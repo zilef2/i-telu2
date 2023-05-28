@@ -34,7 +34,7 @@ const emit = defineEmits(["open"])
                     </div>
                 </div>
                 <div class="flex items-center space-x-2">
-                    <SwitchLangNavbar />
+                    <!-- <SwitchLangNavbar /> -->
                     <SwitchDarkModeNavbar />
                     <div class="">
                         <!-- Settings Dropdown -->

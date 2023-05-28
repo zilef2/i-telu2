@@ -68,20 +68,12 @@ import { Link } from '@inertiajs/vue3';
                     <span class="ml-3">{{ lang().label.permission }}</span>
                 </Link>
             </li>
-            <li v-show="can(['read centroCostos'])"
+            <li v-show="can(['read universidad'])"
                 class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
-                :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('CentroCostos.index') }">
-                <Link :href="route('CentroCostos.index')" class="flex items-center py-2 px-4">
+                :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('universidad.index') }">
+                <Link :href="route('universidad.index')" class="flex items-center py-2 px-4">
                     <PresentationChartLineIcon class="w-6 h-5" />
-                    <span class="ml-3">{{ lang().label.CentroCostos }}</span>
-                </Link>
-            </li>
-            <li v-show="can(['read reporte'])"
-                class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
-                :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('Reportes.index') }">
-                <Link :href="route('Reportes.index')" class="flex items-center py-2 px-4">
-                    <BanknotesIcon class="w-6 h-5" />
-                    <span class="ml-3">{{ lang().label.Reportes }}</span>
+                    <span class="ml-3">{{ lang().label.universidad }}</span>
                 </Link>
             </li>
         </ul>

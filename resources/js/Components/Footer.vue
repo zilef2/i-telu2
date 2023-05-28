@@ -8,7 +8,7 @@
                 <a href=""
                     class="font-bold ">{{ $page.props.app.name }}</a> ©️ {{ new Date().getFullYear() }}
                 <a href="" target="_blank"
-                    class="font-bold text-primary">Ec Ingenieria Electrica S.A.S.</a>
+                    class="font-bold text-primary">{{ $page.props.app.name }}</a>
             </p>
         </div>
     </footer>

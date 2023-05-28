@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "818b9e05c3f85e140dad3d2742e8df49",
+    "content-hash": "0143fe0f28bc577853b40c0b8be0045c",
     "packages": [
         {
             "name": "brick/math",
@@ -6223,16 +6223,16 @@
         },
         {
             "name": "mrdebug/crudgen",
-            "version": "1.9.4",
+            "version": "1.10.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/misterdebug/crud-generator-laravel.git",
-                "reference": "55bc6f97f723cf295cdeb7c4616554af4150c6d6"
+                "reference": "dc4ce592b4450f1d4d6a0ef388fc4bfb3eb2b0a2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/misterdebug/crud-generator-laravel/zipball/55bc6f97f723cf295cdeb7c4616554af4150c6d6",
-                "reference": "55bc6f97f723cf295cdeb7c4616554af4150c6d6",
+                "url": "https://api.github.com/repos/misterdebug/crud-generator-laravel/zipball/dc4ce592b4450f1d4d6a0ef388fc4bfb3eb2b0a2",
+                "reference": "dc4ce592b4450f1d4d6a0ef388fc4bfb3eb2b0a2",
                 "shasum": ""
             },
             "require": {
@@ -6264,9 +6264,9 @@
             "description": "Create a Laravel Crud in a few seconds",
             "support": {
                 "issues": "https://github.com/misterdebug/crud-generator-laravel/issues",
-                "source": "https://github.com/misterdebug/crud-generator-laravel/tree/1.9.4"
+                "source": "https://github.com/misterdebug/crud-generator-laravel/tree/1.10.0"
             },
-            "time": "2023-01-22T20:10:44+00:00"
+            "time": "2023-04-30T01:05:10+00:00"
         },
         {
             "name": "myclabs/deep-copy",

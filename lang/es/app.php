@@ -2,10 +2,13 @@
 
 return [
     'label' => [
-        'CentroCostos' => 'Centro Costos',
-        'CentroCosto' => 'Centro Costo',
-        'Reportes' => 'Reportes',
-        'Reporte' => 'Reporte',
+        //each model
+        'universidad' => 'universidad',
+        'carrera' => 'carrera',
+        'materia' => 'materia',
+        'tema' => 'tema',
+        'subtopico' => 'subtopico',
+        'ejercicio' => 'ejercicio',
 
         'cliente' => 'Cliente',
         'valor_tentativo' => 'Valor tentativo',
@@ -24,7 +27,6 @@ return [
         // form - reportes
         'fecha_ini' => 'fecha inicio',
         'fecha_fin' => 'fecha fin',
-        'horas_trabajadas' => 'Horas trabajadas',
 
         'welcome' => 'Bienvenido',
         'login' => 'Login',

@@ -6,6 +6,7 @@ namespace Database\Seeders;
 
 use App\Models\CentroCosto;
 use App\Models\CentroTrabajo;
+use App\Models\Universidad;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -27,8 +28,9 @@ class DatabaseSeeder extends Seeder
             PermissionSeeder::class,
             RoleSeeder::class,
             UserSeeder::class,
-            CentroTrabajoSeeder::class,
-            ProductoSeeder::class,
+        ]);
+        Universidad::create([
+            'nombre'=> 'Universidad Nacional',
         ]);
     }
 }

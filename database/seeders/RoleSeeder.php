@@ -13,97 +13,41 @@ class RoleSeeder extends Seeder
      *
      * @return void
      */
-    public function run()
-    {
-        $superadmin = Role::create([
-            'name'          => 'superadmin'
-        ]);
-        $superadmin->givePermissionTo([
-            'isSuper',
-            'isAdmin',
+    public function run() {
+        
+        $superadmin = Role::create([ 'name'=>'superadmin' ]);
+        $admin = Role::create([ 'name'=>'admin' ]);
+        $operator = Role::create([ 'name'=>'operator' ]);
 
-            'delete user',
-            'update user',
-            'read user',
-            'create user',
-            'delete role',
-            'update role',
-            'read role',
-            'create role',
-            'delete permission',
-            'update permission',
-            'read permission',
-            'create permission',
-            //reporte
-            'create reporte',
-            'delete reporte',
-            'update reporte',
-            'read reporte',
-            //centroCostos
-            'create centroCostos',
-            'delete centroCostos',
-            'update centroCostos',
-            'read centroCostos',
-        ]);
-        $admin = Role::create([
-            'name'          => 'admin'
-        ]);
-        $admin->givePermissionTo([
-            'isAdmin',
+        $crudCompleto = [ 'delete', 'update', 'read', 'create' ];
+        // $RU = [ 'update', 'read' ];
+        // $CR = [ 'create', 'read' ];
 
-            'delete user',
-            'update user',
-            'read user',
-            'create user',
-            'read role',
-            'read permission',
+        $Models =[
+            'user',
+            'role',
+            'permission',
+            'universidad',
+            'ejercicio',
+        ];
 
-            //reporte
-            'read reporte',
-            // 'create reporte',
-            'update reporte',
-            // 'delete reporte',
+        foreach ($Models as $model) {
+            foreach ($crudCompleto as $crud) {
+                $superadmin->givePermissionTo([ $crud.' '.$model ]);
+                $admin->givePermissionTo([ $crud.' '.$model ]);
+            }
+        }
 
-            //centroCostos
-            'read centroCostos',
-            'create centroCostos',
-            'update centroCostos',
-            'delete centroCostos',
-        ]);
+        $superadmin->givePermissionTo([ 'isSuper', 'isAdmin' ]);
+        $admin->givePermissionTo([ 'isAdmin', ]);
 
-        $operator = Role::create([ 'name'          => 'operator' ]);
         $operator->givePermissionTo([
-            // 'read user',
-            // 'create user',
-            // 'read role',
-            // 'read permission',
-
-             //reporte
-            'read reporte',
-            'create reporte',
-            'delete reporte',
-
-            //centroCostos
-            'read centroCostos',
+             //ejercicio
+            'read ejercicio',
+            'create ejercicio',
+            'delete ejercicio',
         ]);
 
-        $validador = Role::create(['name' => 'validador']);
-
-        $validador->givePermissionTo([
-            'read user',
-            'create user',
-            'read role',
-
-             //reporte
-             'read reporte',
-             'update reporte',
- 
-             //centroCostos
-             'read centroCostos',
-             'create centroCostos',
-             'update centroCostos',
-             'delete centroCostos',
-        ]);
         // $role->revokePermissionTo($permission);
         // $permission->removeRole($role);
     }

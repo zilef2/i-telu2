@@ -21,9 +21,8 @@
     php artisan make:mail ExampleMail
 
     //#-- excel
-    php artisan make:export ExampleExport --model=Empresa
-    php artisan make:import ExampleImport --model=User
-
+    // php artisan make:export ExampleExport --model=Empresa
+    // php artisan make:import ExampleImport --model=User
 
 //despliegue
 

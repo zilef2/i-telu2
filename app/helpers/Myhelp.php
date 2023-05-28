@@ -6,7 +6,7 @@ namespace App\helpers;
 
 class Myhelp{
 
-    public function redirect($ruta,$seconds = 4)
+    public function redirect($ruta,$seconds =14)
     {
         sleep($seconds);
         return redirect()->to($ruta);
@@ -47,5 +47,7 @@ class Myhelp{
         }
         return '';
     }
+
+    
 
 } ?>

@@ -57,6 +57,12 @@ return [
             'ignore_exceptions' => false,
         ],
 
+        'soloadmin' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/Adminlaravel.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+        ],
+        
         'single' => [
             'driver' => 'single',
             'path' => storage_path('logs/laravel.log'),

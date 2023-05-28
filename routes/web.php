@@ -1,11 +1,14 @@
 <?php
 
-use App\Http\Controllers\CentroCostosController;
+use App\Http\Controllers\CarrerasController;
+use App\Http\Controllers\EjerciciosController;
+use App\Http\Controllers\MateriasController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\ReporteController;
-use App\Http\Controllers\ReportesController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SubtopicosController;
+use App\Http\Controllers\TemasController;
+use App\Http\Controllers\UniversidadsController;
 use App\Http\Controllers\UserController;
 
 use App\Models\Permission; use App\Models\Role; use App\Models\User;
@@ -36,21 +39,21 @@ Route::get('/setLang/{locale}', function ($locale) {
 })->name('setlang');
 
 Route::middleware('auth', 'verified')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit'); Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update'); Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::resource('/user', UserController::class)->except('create', 'show', 'edit');
-    Route::post('/user/destroy-bulk', [UserController::class, 'destroyBulk'])->name('user.destroy-bulk');
+    Route::resource('/user', UserController::class)->except('create', 'show', 'edit'); Route::post('/user/destroy-bulk', [UserController::class, 'destroyBulk'])->name('user.destroy-bulk');
     
-    Route::resource('/role', RoleController::class)->except('create', 'show', 'edit');
-    Route::post('/role/destroy-bulk', [RoleController::class, 'destroyBulk'])->name('role.destroy-bulk');
+    Route::resource('/role', RoleController::class)->except('create', 'show', 'edit'); Route::post('/role/destroy-bulk', [RoleController::class, 'destroyBulk'])->name('role.destroy-bulk');
 
-    Route::resource('/permission', PermissionController::class)->except('create', 'show', 'edit');
-    Route::post('/permission/destroy-bulk', [PermissionController::class, 'destroyBulk'])->name('permission.destroy-bulk');
+    Route::resource('/permission', PermissionController::class)->except('create', 'show', 'edit'); Route::post('/permission/destroy-bulk', [PermissionController::class, 'destroyBulk'])->name('permission.destroy-bulk');
     
-    Route::resource('/CentroCostos', CentroCostosController::class);
-    Route::resource('/Reportes', ReportesController::class);
+    Route::resource('/universidad', UniversidadsController::class);
+    Route::resource('/carrera', CarrerasController::class);
+    Route::resource('/materia', MateriasController::class);
+    Route::resource('/tema', TemasController::class);
+    Route::resource('/subtopico', SubtopicosController::class);
+    Route::resource('/ejercicio', EjerciciosController::class);
+
 });
 
 require __DIR__.'/auth.php';
