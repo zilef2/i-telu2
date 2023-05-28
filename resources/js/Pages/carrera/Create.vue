@@ -21,27 +21,24 @@ const data = reactive({
     multipleSelect: false,
 })
 const today = new Date();
-function fechaInInput(dateit,addDays=0,addMonths=0){
-    let mesConCero = addMonths == 0 ? (dateit.getMonth()+1) : (dateit.getMonth()+1+addMonths);
-    let diaConCero = addDays == 0 ? (dateit.getDay()) : (dateit.getDay()+addDays);
-    if(mesConCero < 10) mesConCero = '0'+mesConCero;
-    if(diaConCero < 10) diaConCero = '0'+diaConCero;
-    return (dateit.getFullYear())+"-"+(mesConCero)+'-'+(diaConCero);
-}
 
 const form = useForm({
     nombre: '',
+    descripcion: '',
 })
 
 const create = () => {
-    form.post(route('universidad.store'), {
+    form.post(route('carrera.store'), {
         preserveScroll: true,
         onSuccess: () => {
             emit("close")
             form.reset()
             data.multipleSelect = false
         },
-        onError: () => alert(errors.create),
+        // onError: () => alert(form.errors),
+        // onError: () => null,
+        onError: () => alert(JSON.stringify(form.errors, null, 4)),
+
         onFinish: () => null,
     })
 }
@@ -51,7 +48,6 @@ watchEffect(() => {
         form.errors = {}
     }
 })
-
 
 </script>
 

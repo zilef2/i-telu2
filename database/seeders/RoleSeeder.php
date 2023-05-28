@@ -28,6 +28,10 @@ class RoleSeeder extends Seeder
             'role',
             'permission',
             'universidad',
+            'carrera',
+            'materia',
+            'tema',
+            'subtopico',
             'ejercicio',
         ];
 
@@ -41,11 +45,14 @@ class RoleSeeder extends Seeder
         $superadmin->givePermissionTo([ 'isSuper', 'isAdmin' ]);
         $admin->givePermissionTo([ 'isAdmin', ]);
 
+
         $operator->givePermissionTo([
-             //ejercicio
-            'read ejercicio',
-            'create ejercicio',
-            'delete ejercicio',
+            'read universidad',
+            'read carrera',
+            'read materia',
+            'read tema',
+            'read subtopico',
+            'read ejercicio', 'update ejercicio', // 'create ejercicio', // 'delete ejercicio',
         ]);
 
         // $role->revokePermissionTo($permission);

@@ -18,7 +18,7 @@ class UniversidadsController extends Controller
     {
         $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
         // log::channel('soloadmin')->info('Vista:' . $nombreC. '|  U:'.Auth::user()->name );
-        log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' |UNIVERSIDAD| ' );
+        log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||Universidad|| ' );
 
         $ListaControladoresYnombreClase = (explode('\\',get_class($this)));
         $nombreC = end($ListaControladoresYnombreClase);
@@ -45,7 +45,7 @@ class UniversidadsController extends Controller
             //campos ordenables
             $nombresTabla[2][] = ["s_nombre", "s_descripcion"]; 
         }else{ // not operator
-            $titulo = 'Universidad admin';
+            $titulo = 'Universidad';
             
             if ($request->has('search')) {
                 $Universidads->whereMonth('descripcion', $request->search);
@@ -94,7 +94,7 @@ class UniversidadsController extends Controller
     {
         DB::beginTransaction();
                 $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
-                log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' |UNIVERSIDAD| ' );
+                log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||Universidad|| ' );
 
         try {
             $Universidad = Universidad::create([
@@ -104,11 +104,11 @@ class UniversidadsController extends Controller
             DB::commit();
             Log::info("U -> ".Auth::user()->name." Guardo Universidad ".$request->nombre." correctamente");
 
-            return back()->with('success', __('app.label.created_successfully', ['nombre' => $Universidad->nombre]));
+            return back()->with('success', __('app.label.created_successfully2', ['nombre' => $Universidad->nombre]));
 
         } catch (\Throwable $th) {
             DB::rollback();
-            Log::alert("U -> ".Auth::user()->name." fallo en Guardar Universidad ".$request->nombre." - $th->getMessage()");
+            Log::alert("U -> ".Auth::user()->name." fallo en Guardar Universidad ".$request->nombre." - ".$th->getMessage());
 
             return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.Universidad')]) . $th->getMessage());
         }
@@ -120,7 +120,7 @@ class UniversidadsController extends Controller
     {
         DB::beginTransaction();
             $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
-            log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' |UNIVERSIDAD| ' );
+            log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||Universidad|| ' );
 
         try {
             $Universidad->update([
@@ -130,11 +130,11 @@ class UniversidadsController extends Controller
             DB::commit();
             Log::info("U -> ".Auth::user()->name." actualizo Universidad ".$request->nombre." correctamente");
 
-            return back()->with('success', __('app.label.updated_successfully', ['nombre' => $Universidad->nombre]));
+            return back()->with('success', __('app.label.updated_successfully2', ['nombre' => $Universidad->nombre]));
         } catch (\Throwable $th) {
             
             DB::rollback();
-            Log::alert("U -> ".Auth::user()->name." fallo en actualizar Universidad ".$request->nombre." - $th->getMessage()");
+            Log::alert("U -> ".Auth::user()->name." fallo en actualizar Universidad ".$request->nombre." - ".$th->getMessage());
             return back()->with('error', __('app.label.updated_error', ['nombre' => $Universidad->nombre]) . $th->getMessage());
         }
     }
@@ -158,11 +158,11 @@ class UniversidadsController extends Controller
             $Universidads->delete();
             DB::commit();
             Log::info("U -> ".Auth::user()->name." borro Universidad id:".$id." correctamente");
-            return back()->with('success', __('app.label.deleted_successfully'));
+            return back()->with('success', __('app.label.deleted_successfully2'));
             
         } catch (\Throwable $th) {
             DB::rollback();
-            Log::alert("U -> ".Auth::user()->name." fallo en borrar Universidad ".$id." - $th->getMessage()");
+            Log::alert("U -> ".Auth::user()->name." fallo en borrar Universidad ".$id." - ".$th->getMessage());
             return back()->with('error', __('app.label.deleted_error', ['name' => __('app.label.Universidads')]) . $th->getMessage());
         }
     }

@@ -16,7 +16,7 @@ class CreateSubtopicosTable extends Migration
         Schema::create('subtopicos', function (Blueprint $table) {
             $table->id();
 			$table->string('nombre');
-			$table->string('descripcion');
+			$table->string('descripcion')->nullable();
             $table->unsignedBigInteger('tema_id');
              
             $table->foreign('tema_id')

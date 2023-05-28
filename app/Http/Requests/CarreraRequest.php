@@ -26,7 +26,7 @@ class CarreraRequest extends FormRequest
         return
         [
 			'nombre' => 'required',
-			'descripcion' => 'required',
+			// 'descripcion' => 'required',
         ];
     }
 }

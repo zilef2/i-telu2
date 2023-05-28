@@ -16,7 +16,7 @@ class CreateEjerciciosTable extends Migration
         Schema::create('ejercicios', function (Blueprint $table) {
             $table->id();
 			$table->string('nombre');
-			$table->string('descripcion');
+			$table->string('descripcion')->nullable();
             $table->unsignedBigInteger('subtopico_id');
              
             $table->foreign('subtopico_id')

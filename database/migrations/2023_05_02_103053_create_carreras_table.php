@@ -16,7 +16,7 @@ class CreateCarrerasTable extends Migration
         Schema::create('carreras', function (Blueprint $table) {
             $table->id();
 			$table->string('nombre');
-			$table->string('descripcion');
+			$table->string('descripcion')->nullable();
             $table->unsignedBigInteger('universidad_id');
              
             $table->foreign('universidad_id')

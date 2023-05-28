@@ -34,6 +34,7 @@ return [
         'email' => 'Email',
         'password' => 'contraseña',
         'password_confirmation' => 'Confirmar contraseña',
+        'nombre' => 'Nombre',
         'name' => 'Nombre',
         'registered' => 'Ya esta registrado?',
         'remember_me' => 'Recordarme',
@@ -61,11 +62,20 @@ return [
         'logout_confirm' => 'Seguro que va a salir?',
         'delete_confirm' => 'Desea borrar ',
         'created_successfully' => '<b>:name</b> creado satisfactoriamente.',
+        'created_successfully2' => '<b>:nombre</b> creado satisfactoriamente.',
         'created_error' => 'Error creando :name.',
         'updated_successfully' => '<b>:name</b> actualizado satisfactoriamente.',
+        'updated_successfully2' => '<b>:nombre</b> actualizado satisfactoriamente.',
+
         'updated_error' => 'Error actualizando :name.',
+        'updated_error2' => 'Error actualizando :nombre.',
+
         'deleted_successfully' => '<b>:name</b> borrado satisfactoriamente.',
+        'deleted_successfully2' => '<b>:nombre</b> borrado satisfactoriamente.',
+
         'deleted_error' => 'Error borrando :name.',
+        'deleted_error2' => 'Error borrando :nombre.',
+
         'all_permission' => 'Todos los Permisos',
         'no_permission' => 'No hay Permisos',
         'edit' => 'Editar',

@@ -14,7 +14,7 @@ import Checkbox from '@/Components/Checkbox.vue';
 const props = defineProps({
     show: Boolean,
     title: String,
-    universidad: Object,
+    carrera: Object,
 })
 
 const data = reactive({
@@ -32,7 +32,7 @@ const printForm = [
 ];
 
 const update = () => {
-    form.put(route('universidad.update', props.universidad?.id), {
+    form.put(route('carrera.update', props.carrera?.id), {
         preserveScroll: true,
         onSuccess: () => {
             emit("close")
@@ -47,7 +47,7 @@ const update = () => {
 watchEffect(() => {
     if (props.show) {
         form.errors = {}
-        form.nombre = props.universidad?.nombre
+        form.nombre = props.carrera?.nombre
     }
 })
 </script>
