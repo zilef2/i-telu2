@@ -2,102 +2,174 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use Inertia\Inertia;
 
-use App\Models\Tema;
+use App\Models\tema;
+use App\Http\Requests\MateriumRequest;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\TemaRequest;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class TemasController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Contracts\View\View
-     */
-    public function index()
-    {
-        $temas= Tema::all();
-        return view('temas.index', ['temas'=>$temas]);
+    public function index(Request $request) {
+        if(Auth::user()->isAdmin < 1){
+            $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
+            // log::channel('soloadmin')->info('Vista:' . $nombreC. '|  U:'.Auth::user()->name );
+            log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||tema|| ' );
+        }
+
+        $titulo = __('app.label.temas');
+        $permissions = auth()->user()->roles->pluck('name')[0];
+        $temas = tema::query();
+        
+        if($permissions === "operator") {
+            $perPage = $request->has('perPage') ? $request->perPage : 10;
+
+            $nombresTabla =[//0: como se ven //1 como es la BD //2??
+                ["Acciones","#"],
+                [],
+                [null,null,null]
+            ];
+            $nombresTabla[0][] = ["nombre", "observaciones"];
+            
+            //m for money || t for datetime || d date || i for integer || s string || b boolean 
+            $nombresTabla[1][] = ["s_nombre", "s_descripcion"]; 
+            
+            //campos ordenables
+            $nombresTabla[2][] = ["s_nombre", "s_descripcion"]; 
+        }else{ // not operator
+            $titulo = 'tema';
+            
+            if ($request->has('search')) {
+                $temas->where('descripcion','LIKE', "%".$request->search."%");
+                // $temas->whereMonth('descripcion', $request->search);
+                // $temas->OrwhereMonth('fecha_fin', $request->search);
+                $temas->orWhere('nombre', 'LIKE', "%" . $request->search . "%");
+            }
+            
+            if ($request->has(['field', 'order'])) {
+                $temas->orderBy($request->field, $request->order);
+            }else{
+                $temas->orderBy('nombre');
+            }
+            $perPage = $request->has('perPage') ? $request->perPage : 10;
+
+            //0: como se ven //1 como es la BD //2 orden
+            $nombresTabla =[
+                ["Acciones","#"],
+                [],
+                [null,null]
+            ];
+            $nombresTabla[0] = array_merge($nombresTabla[0] , ["nombre","descripcion","materia"]);
+            //m for money || t for datetime || d date || i for integer || s string || b boolean 
+            $nombresTabla[1] = array_merge($nombresTabla[1] , ["s_nombre", "s_descripcion","i_materia_id"]);
+            //campos ordenables
+            $nombresTabla[2] = array_merge($nombresTabla[2] , ["nombre", "descripcion",""]);
+        }
+        $temas = $temas->get()->map(function ($tema){
+            $tema->hijo = $tema->materia_nombre();
+            return $tema;
+        });
+        // dd($temas);
+        $page = request('page', 1); // Current page number
+        $total = $temas->count();
+        $paginated = new LengthAwarePaginator(
+            $temas->forPage($page, $perPage),
+            $total,
+            $perPage,
+            $page,
+            ['path' => request()->url()]
+        );
+
+        return Inertia::render('tema/Index', [ //carpeta
+            'title'          =>  $titulo,
+            'filters'        =>  $request->all(['search', 'field', 'order']),
+            'perPage'        =>  (int) $perPage,
+            'fromController' =>  $paginated,
+            'breadcrumbs'    =>  [['label' => __('app.label.temas'), 
+                                    'href' => route('tema.index')]],
+            'nombresTabla'   =>  $nombresTabla,
+
+        ]);
+    }//fin index
+
+    public function create() { }
+
+    public function store(TemaRequest $request) {
+        DB::beginTransaction();
+                $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
+                log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||tema|| ' );
+
+        try {
+            $tema = tema::create([
+                'nombre' => $request->nombre,
+                //otrosCampos
+                'descripcion' => 'Descripcion generica',
+                'materia_id' => 1,//todo: temp
+            ]);
+            DB::commit();
+            Log::info("U -> ".Auth::user()->name." Guardo tema ".$request->nombre." correctamente");
+
+            return back()->with('success', __('app.label.created_successfully2', ['nombre' => $tema->nombre]));
+
+        } catch (\Throwable $th) {
+            DB::rollback();
+            Log::alert("U -> ".Auth::user()->name." fallo en Guardar tema ".$request->nombre." - ".$th->getMessage());
+
+            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.tema')]) . $th->getMessage());
+        }
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Contracts\View\View
-     */
-    public function create()
-    {
-        return view('temas.create');
+    public function show(tema $tema) { }
+    public function edit(tema $tema) { }
+
+    public function update(Request $request, $id) {
+        $tema = tema::find($id);
+        DB::beginTransaction();
+            $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
+            log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||tema|| ' );
+        try {
+            // dd($tema,$request->nombre);
+            $tema->update([
+                'nombre' => $request->nombre,
+                'descripcion' => $request->nombre,//todo: temp
+                //otrosCampos
+            ]);
+            DB::commit();
+            Log::info("U -> ".Auth::user()->name." actualizo tema ".$request->nombre." correctamente");
+
+            return back()->with('success', __('app.label.updated_successfully2', ['nombre' => $tema->nombre]));
+        } catch (\Throwable $th) {
+            
+            DB::rollback();
+            Log::alert("U -> ".Auth::user()->name." fallo en actualizar tema ".$request->nombre." - ".$th->getMessage());
+            return back()->with('error', __('app.label.updated_error', ['nombre' => $tema->nombre]) . $th->getMessage());
+        }
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  TemaRequest  $request
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function store(TemaRequest $request)
-    {
-        $tema = new Tema;
-		$tema->nombre = $request->input('nombre');
-		$tema->descripcion = $request->input('descripcion');
-        $tema->save();
+    // public function destroy(tema $tema)
+    public function destroy($id) {
+        $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
+        log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||tema|| ' );
 
-        return to_route('temas.index');
-    }
+        DB::beginTransaction();
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Contracts\View\View
-     */
-    public function show($id)
-    {
-        $tema = Tema::findOrFail($id);
-        return view('temas.show',['tema'=>$tema]);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Contracts\View\View
-     */
-    public function edit($id)
-    {
-        $tema = Tema::findOrFail($id);
-        return view('temas.edit',['tema'=>$tema]);
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  TemaRequest  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function update(TemaRequest $request, $id)
-    {
-        $tema = Tema::findOrFail($id);
-		$tema->nombre = $request->input('nombre');
-		$tema->descripcion = $request->input('descripcion');
-        $tema->save();
-
-        return to_route('temas.index');
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function destroy($id)
-    {
-        $tema = Tema::findOrFail($id);
-        $tema->delete();
-
-        return to_route('temas.index');
+        try {
+            $temas = tema::findOrFail($id);
+            Log::info($nombreC." U -> ".Auth::user()->name."La tema id:".$id." y nombre:".$temas->nombre." ha sido borrada correctamente");
+            $temas->delete();
+            DB::commit();
+            return back()->with('success', __('app.label.deleted_successfully2',['nombre' => $temas->nombre]));
+            
+        } catch (\Throwable $th) {
+            DB::rollback();
+            Log::alert("U -> ".Auth::user()->name." fallo en borrar tema ".$id." - ".$th->getMessage());
+            return back()->with('error', __('app.label.deleted_error', ['name' => __('app.label.temas')]) . $th->getMessage());
+        }
     }
 }

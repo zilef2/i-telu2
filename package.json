@@ -9,8 +9,10 @@
   "dependencies": {
     "@headlessui/vue": "^1.7.9",
     "@heroicons/vue": "^2.0.15",
+    "@inertiajs/progress": "^0.2.7",
     "@vueuse/core": "^9.12.0",
-    "floating-vue": "^2.0.0-beta.20"
+    "floating-vue": "^2.0.0-beta.20",
+    "openai": "^3.2.1"
   },
   "devDependencies": {
     "@inertiajs/vue3": "^1.0.0",

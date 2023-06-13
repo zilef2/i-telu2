@@ -43,7 +43,7 @@ watchEffect(() => {
     }
 
 })
-//TOREVISE
+//TOSTUDY
 const roles = props.roles?.map(role => ({ label: role.name, value: role.name }))
 
 </script>
@@ -83,8 +83,7 @@ const roles = props.roles?.map(role => ({ label: role.name, value: role.name }))
                     </div>
                     <div>
                         <InputLabel for="role" :value="lang().label.role" />
-                        <SelectInput id="role" class="mt-1 block w-full" v-model="form.role" required :dataSet="roles">
-                        </SelectInput>
+                        <SelectInput id="role" class="mt-1 block w-full" v-model="form.role" required :dataSet="roles"> </SelectInput>
                         <InputError class="mt-2" :message="form.errors.role" />
                     </div>
                 </div>

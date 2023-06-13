@@ -16,7 +16,11 @@ php artisan make:crud Tema "nombre:string, descripcion:string"
 php artisan make:crud Subtopico "nombre:string, descripcion:string"
 php artisan make:crud ejercicio "nombre:string, descripcion:string"
 
+php artisan make:crud objetivo "nombre:string, descripcion:string"
+//its donest need a Model -> materia_user
 
+
+// no yet
 php artisan make:crud clasificacionUser "nombre:string, descripcion:string"
 php artisan make:crud clasificacionMateria "nombre:string, descripcion:string"
 php artisan make:crud clasificacionEjercicio "nombre:string, descripcion:string"

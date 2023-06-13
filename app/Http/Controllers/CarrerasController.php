@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Carrera;
 use App\Http\Requests\CarreraRequest;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -48,7 +49,8 @@ class CarrerasController extends Controller
             $titulo = 'Carrera';
             
             if ($request->has('search')) {
-                $Carreras->whereMonth('descripcion', $request->search);
+                $Carreras->where('descripcion','LIKE', "%".$request->search."%");
+                // $Carreras->whereMonth('descripcion', $request->search);
                 // $Carreras->OrwhereMonth('fecha_fin', $request->search);
                 $Carreras->orWhere('nombre', 'LIKE', "%" . $request->search . "%");
             }
@@ -61,26 +63,37 @@ class CarrerasController extends Controller
             }
             $perPage = $request->has('perPage') ? $request->perPage : 10;
 
-            $nombresTabla =[//0: como se ven //1 como es la BD //2 orden
+            //0: como se ven //1 como es la BD //2 orden
+            $nombresTabla =[
                 ["Acciones","#"],
                 [],
                 [null,null]
             ];
-            $nombresTabla[0] = array_merge($nombresTabla[0] , ["nombre","descripcion"]);
-            
+            $nombresTabla[0] = array_merge($nombresTabla[0] , ["nombre","descripcion","Universidad"]);
             //m for money || t for datetime || d date || i for integer || s string || b boolean 
-            $nombresTabla[1] = array_merge($nombresTabla[1] , ["s_nombre", "s_descripcion"]);
-            
+            $nombresTabla[1] = array_merge($nombresTabla[1] , ["s_nombre", "s_descripcion","i_universidad_id"]);
             //campos ordenables
-            $nombresTabla[2] = array_merge($nombresTabla[2] , ["s_nombre", "s_descripcion"]);
-
+            $nombresTabla[2] = array_merge($nombresTabla[2] , ["s_nombre", "s_descripcion","i_universidad_id"]);
         }
+        $Carreras = $Carreras->get()->map(function ($carrera){
+            $carrera->hijo = $carrera->universidad_nombre();
+            return $carrera;
+        });
+        $page = request('page', 1); // Current page number
+        $total = $Carreras->count();
+        $paginated = new LengthAwarePaginator(
+            $Carreras->forPage($page, $perPage),
+            $total,
+            $perPage,
+            $page,
+            ['path' => request()->url()]
+        );
 
         return Inertia::render('carrera/Index', [ //carpeta
             'title'          =>  $titulo,
             'filters'        =>  $request->all(['search', 'field', 'order']),
             'perPage'        =>  (int) $perPage,
-            'fromController' =>  $Carreras->paginate($perPage),
+            'fromController' =>  $paginated,
             'breadcrumbs'    =>  [['label' => __('app.label.Carreras'), 
                                     'href' => route('carrera.index')]],
             'nombresTabla'   =>  $nombresTabla,
@@ -101,7 +114,7 @@ class CarrerasController extends Controller
                 'nombre' => $request->nombre,
                 //otrosCampos
                 'descripcion' => '',
-                'universidad_id' => 1,
+                'universidad_id' => 1,//todo: temp
             ]);
             DB::commit();
             Log::info("U -> ".Auth::user()->name." Guardo Carrera ".$request->nombre." correctamente");
@@ -151,16 +164,16 @@ class CarrerasController extends Controller
     public function destroy($id)
     {
         $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
+        log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||Carrera|| ' );
 
         DB::beginTransaction();
 
         try {
-            // si se la rechazaron, tendra que hacer uno nuevo
             $Carreras = Carrera::findOrFail($id);
+            Log::info("U -> ".Auth::user()->name."La carrera id:".$id." y nombre:".$Carreras->nombre." ha sido borrada correctamente");
             $Carreras->delete();
             DB::commit();
-            Log::info("U -> ".Auth::user()->name." borro Carrera id:".$id." correctamente");
-            return back()->with('success', __('app.label.deleted_successfully2'));
+            return back()->with('success', __('app.label.deleted_successfully2',['nombre' => $Carreras->nombre]));
             
         } catch (\Throwable $th) {
             DB::rollback();

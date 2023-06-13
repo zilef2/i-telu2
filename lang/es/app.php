@@ -2,10 +2,19 @@
 
 return [
     'label' => [
-        //each model
-        'universidad' => 'universidad',
+        //carrera
         'carrera' => 'carrera',
+        'UnObjetivo' => 'Describa el objetivo de la materia',
+        'otroObjetivo' => 'Puede agregar un objetivo extras a la materia (opcional)',
+        
+        //each model
+        'universidadCarreras' => 'Universidad y Carreras',
+        'universidad' => 'universidad',
+        'universidads' => 'universidad',
+        'carrera' => 'carrera',
+        'Carreras' => 'carreras',
         'materia' => 'materia',
+        'materias' => 'materias',
         'tema' => 'tema',
         'subtopico' => 'subtopico',
         'ejercicio' => 'ejercicio',
@@ -86,7 +95,7 @@ return [
         'verify_email_notification' => 'A new verification link has been sent to the email address you provided during registration.',
         'no_data' => 'No data',
         'documentation' => 'Introduccion',
-        'documentation_detail' => 'Desarrollo a la medida realizado para la empresa _',
+        'documentation_detail' => 'Desarrollo a la medida realizado para la entidad ?',
         'more' => 'Más',
         'check_all' => 'Check all',
         'email_verification' => 'Email Verification',
@@ -113,6 +122,9 @@ return [
         'delete_account' => 'Borar cuenta'
     ],
     'placeholder' => [
+        //carrera
+        'UnObjetivo' => 'Describa el objetivo',
+
         'search' => 'Buscar...',
         'email' => 'email@email.com',
         'password' => 'contraseña',

@@ -37,7 +37,7 @@ class UniversidadsController extends Controller
                 [],
                 [null,null,null]
             ];
-            $nombresTabla[0][] = ["Centro costo","inicio", "fin", "horas trabajadas", "valido", "observaciones"];
+            $nombresTabla[0][] = ["nombre", "observaciones"];
             
             //m for money || t for datetime || d date || i for integer || s string || b boolean 
             $nombresTabla[1][] = ["s_nombre", "s_descripcion"]; 
@@ -48,7 +48,7 @@ class UniversidadsController extends Controller
             $titulo = 'Universidad';
             
             if ($request->has('search')) {
-                $Universidads->whereMonth('descripcion', $request->search);
+                // $Universidads->whereMonth('descripcion', $request->search);
                 // $Universidads->OrwhereMonth('fecha_fin', $request->search);
                 $Universidads->orWhere('nombre', 'LIKE', "%" . $request->search . "%");
             }

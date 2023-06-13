@@ -5,6 +5,11 @@
 @tailwind components;
 @tailwind utilities;
 
+
+/* zilef */
+/* fin zilef */
+
+
 .scrollbar::-webkit-scrollbar {
     @apply w-1.5 h-1.5 bg-gray-800 dark:bg-gray-300;
 }

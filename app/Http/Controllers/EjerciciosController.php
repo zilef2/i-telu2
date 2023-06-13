@@ -2,68 +2,96 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use Inertia\Inertia;
 
-use App\Models\Ejercicio;
-use App\Http\Requests\EjercicioRequest;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Models\ejercicio;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Inertia\Inertia;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\ejercicioRequest;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class EjerciciosController extends Controller
 {
-    public function index(Request $request)
-    {
-        $titulo = __('app.label.Ejercicios');
+    public function index(Request $request) {
+        if(Auth::user()->isAdmin < 1){
+            $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
+            // log::channel('soloadmin')->info('Vista:' . $nombreC. '|  U:'.Auth::user()->name );
+            log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||ejercicio|| ' );
+        }
+
+        $titulo = __('app.label.ejercicios');
         $permissions = auth()->user()->roles->pluck('name')[0];
-        $Ejercicios = Ejercicio::query();
+        $ejercicios = ejercicio::query();
         
-        if($permissions === "operator") { //admin | validador
+        if($permissions === "operator") {
             $perPage = $request->has('perPage') ? $request->perPage : 10;
 
             $nombresTabla =[//0: como se ven //1 como es la BD //2??
-                ["Acciones","#","Centro costo","inicio", "fin", "horas trabajadas", "valido", "observaciones"],
-                ["t_fecha_ini", "t_fecha_fin", "i_horas_trabajadas", "b_valido", "s_observaciones"], //m for money || t for datetime || d date || i for integer || s string || b boolean 
-                [null,null,null,"t_fecha_ini", "t_fecha_fin", "i_horas_trabajadas", "b_valido", "s_observaciones"] //campos ordenables
+                ["Acciones","#"],
+                [],
+                [null,null,null]
             ];
-
-            // $startDate = Carbon::now()->startOfWeek();
-            // $endDate = Carbon::now()->endOfWeek();
+            $nombresTabla[0][] = ["nombre", "observaciones"];
+            
+            //m for money || t for datetime || d date || i for integer || s string || b boolean 
+            $nombresTabla[1][] = ["s_nombre", "s_descripcion"]; 
+            
+            //campos ordenables
+            $nombresTabla[2][] = ["s_nombre", "s_descripcion"]; 
         }else{ // not operator
-            $titulo = $this->CalcularTituloQuincena();
+            $titulo = 'ejercicio';
             
             if ($request->has('search')) {
-                $Ejercicios->whereMonth('fecha_ini', $request->search);
-                $Ejercicios->OrwhereMonth('fecha_fin', $request->search);
-                $Ejercicios->OrwhereYear('fecha_ini', $request->search);
-                $Ejercicios->OrwhereYear('fecha_fin', $request->search);
-                $Ejercicios->OrwhereDay('fecha_ini', $request->search);
-                $Ejercicios->OrwhereDay('fecha_fin', $request->search);
-                // $Ejercicios->orWhere('fecha_fin', 'LIKE', "%" . $request->search . "%");
+                $ejercicios->where('descripcion','LIKE', "%".$request->search."%");
+                // $ejercicios->whereMonth('descripcion', $request->search);
+                // $ejercicios->OrwhereMonth('fecha_fin', $request->search);
+                $ejercicios->orWhere('nombre', 'LIKE', "%" . $request->search . "%");
             }
+            
             if ($request->has(['field', 'order'])) {
-                $Ejercicios->orderBy($request->field, $request->order);
+                $ejercicios->orderBy($request->field, $request->order);
             }else{
-                $Ejercicios->orderBy('fecha_ini');
+                $ejercicios->orderBy('nombre');
             }
             $perPage = $request->has('perPage') ? $request->perPage : 10;
 
-            $nombresTabla =[//0: como se ven //1 como es la BD
-                ["Acciones","#","Centro costo","Trabajador", "valido",   "inicio",       "fin",        "horas trabajadas",   "observaciones"],
-                ["b_valido","t_fecha_ini", "t_fecha_fin", "i_horas_trabajadas", "s_observaciones"], //m for money || t for datetime || d date || i for integer || s string || b boolean 
-                [null,null,null,null,"b_valido","t_fecha_ini", "t_fecha_fin", "i_horas_trabajadas", "s_observaciones"] //m for money || t for datetime || d date || i for integer || s string || b boolean 
+            //0: como se ven //1 como es la BD //2 orden
+            $nombresTabla =[
+                ["Acciones","#"],
+                [],
+                [null,null]
             ];
+            $nombresTabla[0] = array_merge($nombresTabla[0] , ["nombre","descripcion","subtopico"]);
+            //m for money || t for datetime || d date || i for integer || s string || b boolean 
+            $nombresTabla[1] = array_merge($nombresTabla[1] , ["s_nombre", "s_descripcion","i_subtopico_id"]);
+            //campos ordenables
+            $nombresTabla[2] = array_merge($nombresTabla[2] , ["nombre", "descripcion",""]);
         }
+        $ejercicios = $ejercicios->get()->map(function ($ejercicio){
+            $ejercicio->hijo = $ejercicio->subtopico_nombre();
+            return $ejercicio;
+        });
+        // dd($ejercicios);
+        $page = request('page', 1); // Current page number
+        $total = $ejercicios->count();
+        $paginated = new LengthAwarePaginator(
+            $ejercicios->forPage($page, $perPage),
+            $total,
+            $perPage,
+            $page,
+            ['path' => request()->url()]
+        );
 
-
-        return Inertia::render('Ejercicios/Index', [ //carpeta
+        return Inertia::render('ejercicio/Index', [ //carpeta
             'title'          =>  $titulo,
             'filters'        =>  $request->all(['search', 'field', 'order']),
             'perPage'        =>  (int) $perPage,
-            'fromController' =>  $Ejercicios->paginate($perPage),
-            'breadcrumbs'    =>  [['label' => __('app.label.Ejercicios'), 'href' => route('Ejercicios.index')]],
+            'fromController' =>  $paginated,
+            'breadcrumbs'    =>  [['label' => __('app.label.ejercicios'), 
+                                    'href' => route('ejercicio.index')]],
             'nombresTabla'   =>  $nombresTabla,
 
         ]);
@@ -71,68 +99,76 @@ class EjerciciosController extends Controller
 
     public function create() { }
 
-    public function store(EjercicioRequest $request)
-    {
+    public function store(ejercicioRequest $request) {
         DB::beginTransaction();
-        
+                $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
+                log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||ejercicio|| ' );
+
         try {
-            $Ejercicio = Ejercicio::create([
-                'nombre' => $request->nombre
+            $ejercicio = ejercicio::create([
+                'nombre' => $request->nombre,
+                //otrosCampos
+                'descripcion' => 'Descripcion generica',
+                'subtopico_id' => 1,//todo: temp
             ]);
             DB::commit();
-            Log::info("U -> ".Auth::user()->name." Guardo el ejercicio ".$request->nombre." correctamente");
+            Log::info("U -> ".Auth::user()->name." Guardo ejercicio ".$request->nombre." correctamente");
 
-            return back()->with('success', __('app.label.created_successfully', ['nombre' => $Ejercicio->nombre]));
+            return back()->with('success', __('app.label.created_successfully2', ['nombre' => $ejercicio->nombre]));
 
         } catch (\Throwable $th) {
             DB::rollback();
-            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.Ejercicio')]) . $th->getMessage());
+            Log::alert("U -> ".Auth::user()->name." fallo en Guardar ejercicio ".$request->nombre." - ".$th->getMessage());
+
+            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.ejercicio')]) . $th->getMessage());
         }
     }
 
-    public function show(Ejercicio $Ejercicio) { }
-    public function edit(Ejercicio $Ejercicio) { }
-    public function update(Request $request, Ejercicio $Ejercicio)
-    {
+    public function show(ejercicio $ejercicio) { }
+    public function edit(ejercicio $ejercicio) { }
+
+    public function update(Request $request, $id) {
+        $ejercicio = ejercicio::find($id);
         DB::beginTransaction();
+            $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
+            log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||ejercicio|| ' );
         try {
-            $Ejercicio->update([
-                'nombre' => $request->nombre
+            // dd($ejercicio,$request->nombre);
+            $ejercicio->update([
+                'nombre' => $request->nombre,
+                'descripcion' => $request->nombre,//todo: temp
+                //otrosCampos
             ]);
             DB::commit();
-            return back()->with('success', __('app.label.updated_successfully', ['nombre' => $Ejercicio->nombre]));
+            Log::info("U -> ".Auth::user()->name." actualizo ejercicio ".$request->nombre." correctamente");
+
+            return back()->with('success', __('app.label.updated_successfully2', ['nombre' => $ejercicio->nombre]));
         } catch (\Throwable $th) {
+            
             DB::rollback();
-            return back()->with('error', __('app.label.updated_error', ['nombre' => $Ejercicio->nombre]) . $th->getMessage());
+            Log::alert("U -> ".Auth::user()->name." fallo en actualizar ejercicio ".$request->nombre." - ".$th->getMessage());
+            return back()->with('error', __('app.label.updated_error', ['nombre' => $ejercicio->nombre]) . $th->getMessage());
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Ejercicio  $Ejercicio
-     * @return \Illuminate\Http\Response
-     */
-    // public function destroy(Ejercicio $Ejercicio)
-    public function destroy($id)
-    {
+    // public function destroy(ejercicio $ejercicio)
+    public function destroy($id) {
+        $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
+        log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||ejercicio|| ' );
+
         DB::beginTransaction();
 
         try {
-            // si se la rechazaron, tendra que hacer uno nuevo
-            $Ejercicios = Ejercicio::findOrFail($id);
-            if($Ejercicios->valido == 0){
-                $Ejercicios->delete();
-                DB::commit();
-                return back()->with('success', __('app.label.deleted_successfully'));
-            }else{
-                DB::commit();
-                return back()->with('warning', __('app.label.not_deleted', ['name' => $Ejercicios->nombre]));
-            }
+            $ejercicios = ejercicio::findOrFail($id);
+            Log::info($nombreC." U -> ".Auth::user()->name."La ejercicio id:".$id." y nombre:".$ejercicios->nombre." ha sido borrada correctamente");
+            $ejercicios->delete();
+            DB::commit();
+            return back()->with('success', __('app.label.deleted_successfully2',['nombre' => $ejercicios->nombre]));
             
         } catch (\Throwable $th) {
             DB::rollback();
-            return back()->with('error', __('app.label.deleted_error', ['name' => __('app.label.Ejercicios')]) . $th->getMessage());
+            Log::alert("U -> ".Auth::user()->name." fallo en borrar ejercicio ".$id." - ".$th->getMessage());
+            return back()->with('error', __('app.label.deleted_error', ['name' => __('app.label.ejercicios')]) . $th->getMessage());
         }
     }
 }

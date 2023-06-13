@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -22,6 +22,12 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        
+        'sexo',
+        'fecha_nacimiento',
+        'semestre',
+        'limite_token_general',
+        'limite_token_leccion',
     ];
 
     /**
@@ -34,30 +40,29 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    public function getCreatedAtAttribute()
-    {
+    public function getCreatedAtAttribute() {
         return date('d-m-Y H:i', strtotime($this->attributes['created_at']));
     }
 
-    public function getUpdatedAtAttribute()
-    {
+    public function getUpdatedAtAttribute() {
         return date('d-m-Y H:i', strtotime($this->attributes['updated_at']));
     }
 
-    public function getEmailVerifiedAtAttribute()
-    {
+    public function getEmailVerifiedAtAttribute() {
         return $this->attributes['email_verified_at'] == null ? null:date('d-m-Y H:i', strtotime($this->attributes['email_verified_at']));
     }
 
-    public function getPermissionArray()
-    {
+    public function getPermissionArray() {
         return $this->getAllPermissions()->mapWithKeys(function ($pr) {
             return [$pr['name'] => true];
         });
     }
 
-    public function reportes()
-	{
+    public function reportes() {
 		return $this->hasMany('App\Models\Reporte');
 	}
+
+    public function materias(): BelongsToMany {
+        return $this->BelongsToMany(Materia::class);
+    }
 }

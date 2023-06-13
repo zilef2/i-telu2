@@ -39,7 +39,9 @@ Route::get('/setLang/{locale}', function ($locale) {
 })->name('setlang');
 
 Route::middleware('auth', 'verified')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit'); Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update'); Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit'); 
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::resource('/user', UserController::class)->except('create', 'show', 'edit'); Route::post('/user/destroy-bulk', [UserController::class, 'destroyBulk'])->name('user.destroy-bulk');
     
@@ -49,7 +51,10 @@ Route::middleware('auth', 'verified')->group(function () {
     
     Route::resource('/universidad', UniversidadsController::class);
     Route::resource('/carrera', CarrerasController::class);
+
     Route::resource('/materia', MateriasController::class);
+    Route::get('/materiaEstudiar/{id}/{temaSelec?}/{subtopicoSelec?}/{ejercicioSelec?}', [MateriasController::class,'VistaTema'])->name('materia.VistaTema');
+
     Route::resource('/tema', TemasController::class);
     Route::resource('/subtopico', SubtopicosController::class);
     Route::resource('/ejercicio', EjerciciosController::class);
@@ -57,8 +62,6 @@ Route::middleware('auth', 'verified')->group(function () {
 });
 
 require __DIR__.'/auth.php';
-
-
 
 // <editor-fold desc="Artisan">
     Route::get('/exception',function(){

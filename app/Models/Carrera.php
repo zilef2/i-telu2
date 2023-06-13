@@ -25,6 +25,9 @@ class Carrera extends Model
     public function universidad(): BelongsTo {
         return $this->belongsTo(Universidad::class, 'universidad_id');
     }
+    public function universidad_nombre(): string {
+        return $this->universidad->nombre;
+    }
 
     public function materias(): HasMany {
         return $this->hasMany(Materia::class, 'carrera_id');
