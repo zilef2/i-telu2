@@ -1,17 +1,18 @@
 <script setup>
+    import { reactive, watch,onMounted } from 'vue';
     import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
     import { Head } from '@inertiajs/vue3';
     import Breadcrumb from '@/Components/Breadcrumb.vue';
     import TextInput from '@/Components/TextInput.vue';
     import PrimaryButton from '@/Components/PrimaryButton.vue';
     import SelectInput from '@/Components/SelectInput.vue';
-    import { reactive, watch } from 'vue';
     import DangerButton from '@/Components/DangerButton.vue';
     import pkg from 'lodash';
-    import { router,usePage } from '@inertiajs/vue3';
+    import { router, usePage, Link } from '@inertiajs/vue3';
 
     import Pagination from '@/Components/Pagination.vue';
-    import { ChevronUpDownIcon, PencilIcon, TrashIcon } from '@heroicons/vue/24/solid';
+    import { ChevronUpDownIcon, EyeIcon, PencilIcon, TrashIcon, UserGroupIcon } from '@heroicons/vue/24/solid';
+
 
     import Create from '@/Pages/universidad/Create.vue';
     import Edit from '@/Pages/universidad/Edit.vue'; 
@@ -45,9 +46,10 @@
         deleteOpen: false,
         deleteBulkOpen: false,
         generico: null,
+        successMessage: '',
         dataSet: usePage().props.app.perpage,
-    })
         
+    })
 
     const order = (field) => {
         console.log("🧈 debu field:", field);
@@ -86,7 +88,7 @@
 
 <template>
     <Head :title="props.title" ></Head>
-
+    
     <AuthenticatedLayout>
         <Breadcrumb :title="title" :breadcrumbs="breadcrumbs" />
         <div class="space-y-4">
@@ -154,12 +156,19 @@
                                                 class="px-2 py-1.5 rounded-none" v-tooltip="lang().tooltip.delete">
                                                 <TrashIcon class="w-4 h-4" />
                                             </DangerButton>
+                                            <Link :href="route('universidad.AsignarUsers', clasegenerica.id)"
+                                                v-show="can(['delete universidad'])" 
+                                                type="button"
+                                                class="px-2 -mb-1.5 py-1.5 rounded-none hover:bg-blue-500">
+                                                <UserGroupIcon class="w-4 h-4" />
+                                            </Link>
                                         </div>
                                     </div>
                                 </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (index+1) }}</td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.nombre) }} </td>
-                                <!-- muestre 1 hijo -->
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.cuantosUs) }} </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.tresPrimeros) }} </td>
                             </tr>
                         </tbody>
                     </table>

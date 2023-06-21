@@ -11,14 +11,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules;
 
 class UserController extends Controller
 {
 
-    public function __construct()
-    {
-
+    public function __construct() {
         $this->middleware('permission:create user', ['only' => ['create', 'store']]);
         $this->middleware('permission:read user', ['only' => ['index', 'show']]);
         $this->middleware('permission:update user', ['only' => ['edit', 'update']]);
@@ -30,12 +27,13 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(UserIndexRequest $request)
-    {
+    public function index(UserIndexRequest $request) {
         $users = User::query();
         if ($request->has('search')) {
             $users->where('name', 'LIKE', "%" . $request->search . "%");
             $users->orWhere('email', 'LIKE', "%" . $request->search . "%");
+            $users->orWhere('identificacion', 'LIKE', "%" . $request->search . "%");
+            $users->orWhere('semestre', 'LIKE', "%" . $request->search . "%");
         }
         if ($request->has(['field', 'order'])) {
             $users->orderBy($request->field, $request->order);
@@ -47,7 +45,7 @@ class UserController extends Controller
             $users->whereHas('roles', function ($query) {
                 return $query->where('name', '<>', 'superadmin');
             });
-            $roles = Role::where('name', '<>', 'superadmin')->get();
+            $roles = Role::where('name', '<>', 'superadmin')->where('name', '<>', 'admin')->get();
         }
         return Inertia::render('User/Index', [
             'title'         => __('app.label.user'),
@@ -69,12 +67,15 @@ class UserController extends Controller
         //
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
+
+    //! STORE functions
+    public function updatingDate($date) {
+        if($date === null || $date == '1969-12-31'){
+            return null;
+        }
+        return date("Y-m-d",strtotime($date));
+    }
+
     public function store(UserStoreRequest $request)
     {
         DB::beginTransaction();
@@ -83,6 +84,14 @@ class UserController extends Controller
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
+
+                'identificacion' => $request->identificacion,
+                'sexo' => $request->sexo,
+                'fecha_nacimiento' => $this->updatingDate($request->fecha_nacimiento),
+                'semestre' => $request->semestre,
+                'semestre_mas_bajo' => $request->semestre_mas_bajo,
+                'limite_token_general' => 3,
+                'limite_token_leccion' => $request->limite_token_leccion,
             ]);
             $user->assignRole($request->role);
             DB::commit();
@@ -131,6 +140,14 @@ class UserController extends Controller
                 'name'      => $request->name,
                 'email'     => $request->email,
                 'password'  => $request->password ? Hash::make($request->password) : $user->password,
+
+                'identificacion' => $request->identificacion,
+                'sexo' => $request->sexo,
+                'fecha_nacimiento' => $request->fecha_nacimiento,
+                'semestre' => $request->semestre,
+                'semestre_mas_bajo' => $request->semestre_mas_bajo,
+                'limite_token_general' => $request->limite_token_general,
+                'limite_token_leccion' => $request->limite_token_leccion,
             ]);
             $user->syncRoles($request->role);
             DB::commit();

@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\helpers\Myhelp;
 use App\Http\Controllers\Controller;
 
 use App\Models\Universidad;
 use App\Http\Requests\UniversidadRequest;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -14,22 +17,27 @@ use Inertia\Inertia;
 
 class UniversidadsController extends Controller
 {
-    public function index(Request $request)
-    {
-        $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
-        // log::channel('soloadmin')->info('Vista:' . $nombreC. '|  U:'.Auth::user()->name );
-        log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||Universidad|| ' );
 
-        $ListaControladoresYnombreClase = (explode('\\',get_class($this)));
-        $nombreC = end($ListaControladoresYnombreClase);
-        Log::info(' U -> '.Auth::user()->name. ' Accedio a la vista' .$nombreC );
+    public function CalcularClasePrincipal(&$universidads) {
+        $universidads = $universidads->get()->map(function ($universidad){
 
+            $universidad->tresPrimeros = Myhelp::ArrayInString($universidad->users->pluck('name'));
+
+            $universidad->cuantosUs = $universidad->users->count();
+        
+            return $universidad;
+        });
+        // dd($universidads);
+    }
+
+
+    public function index(Request $request) {
+        $permissions = Myhelp::EscribirEnLog($this,'INDEX:universidad');
 
         $titulo = __('app.label.Universidads');
-        $permissions = auth()->user()->roles->pluck('name')[0];
         $Universidads = Universidad::query();
         
-        if($permissions === "operator") {
+        if($permissions === "estudiante") {
             $perPage = $request->has('perPage') ? $request->perPage : 10;
 
             $nombresTabla =[//0: como se ven //1 como es la BD //2??
@@ -44,7 +52,7 @@ class UniversidadsController extends Controller
             
             //campos ordenables
             $nombresTabla[2][] = ["s_nombre", "s_descripcion"]; 
-        }else{ // not operator
+        }else{ // not estudiante
             $titulo = 'Universidad';
             
             if ($request->has('search')) {
@@ -54,8 +62,7 @@ class UniversidadsController extends Controller
             }
             
             if ($request->has(['field', 'order'])) {
-                dd(substr($request->field,2));
-                $Universidads->orderBy($request->field, $request->order);
+                $Universidads->orderBy(substr($request->field,2), $request->order);
             }else{
                 $Universidads->orderBy('nombre');
             }
@@ -66,27 +73,92 @@ class UniversidadsController extends Controller
                 [],
                 [null,null]
             ];
-            $nombresTabla[0] = array_merge($nombresTabla[0] , ["nombre","descripcion"]);
+            $nombresTabla[0] = array_merge($nombresTabla[0] , ["nombre","# Inscritos","Inscritos"]);
             
             //m for money || t for datetime || d date || i for integer || s string || b boolean 
-            $nombresTabla[1] = array_merge($nombresTabla[1] , ["s_nombre", "s_descripcion"]);
+            $nombresTabla[1] = array_merge($nombresTabla[1] , ["s_nombre","i_inscritos","s_inscritos"]);
             
             //campos ordenables
-            $nombresTabla[2] = array_merge($nombresTabla[2] , ["s_nombre", "s_descripcion"]);
-
+            $nombresTabla[2] = array_merge($nombresTabla[2] , ["s_nombre","",""]);
         }
+
+        $this->CalcularClasePrincipal($Universidads);
+        
+        $page = request('page', 1); // Current page number
+        $paginated = new LengthAwarePaginator(
+            $Universidads->forPage($page, $perPage),
+            $Universidads->count(),
+            $perPage,
+            $page,
+            ['path' => request()->url()]
+        );
 
         return Inertia::render('universidad/Index', [ //carpeta
             'title'          =>  $titulo,
             'filters'        =>  $request->all(['search', 'field', 'order']),
             'perPage'        =>  (int) $perPage,
-            'fromController' =>  $Universidads->paginate($perPage),
+            'fromController' =>  $paginated,
             'breadcrumbs'    =>  [['label' => __('app.label.Universidads'), 
                                     'href' => route('universidad.index')]],
             'nombresTabla'   =>  $nombresTabla,
-
         ]);
     }//fin index
+
+    public function AsignarUsers(Request $request, $universidadid){ //get
+        $titulo = 'Seleccione los estudiantes a matricular';
+        $permissions = Myhelp::EscribirEnLog($this,'universidad');
+        if($permissions === "estudiante") {
+            Myhelp::EscribirEnLog($this,'Criticou');
+
+            return back()->with('error', __('app.label.no_permission'));
+        } else { // not estudiante
+            // $nombresTabla = $this->laTabla(0);
+        }
+
+
+        $universidad = universidad::find($universidadid);
+        $users = User::query();
+        $filtroUser = $this->UsuariosSinLosInscritos($universidad,$users);
+        if(count($filtroUser->si) > 0){
+            $users->whereNotIn('users.id',$filtroUser->no)
+                ->whereIn('users.id',$filtroUser->si);
+
+            if ($request->has('search')) {
+                $users->Where(function($query) use ($request){
+                    $query->where('name', 'LIKE', "%" . $request->search . "%");
+                    $query->orWhere('email', 'LIKE', "%" . $request->search . "%");
+                });
+            }
+        }else{
+            $users->where('id',0);
+        }
+
+       
+
+        return Inertia::render('universidad/AsignarUsers', [ //carpeta
+            'title'          =>  $titulo,
+            'breadcrumbs'    =>  [['label' => __('app.label.universidad'), 'href' => route('universidad.index')]],
+            'filters'       => $request->all(['search']),
+
+            'usuariosPorInscribir' =>  $users->get(),
+            'inscritos' => $universidad->users,
+            'universidad' =>  $universidad,
+            // 'UniversidadSelect' => $UniversidadSelect,
+        ]);
+    }
+
+    public function UsuariosSinLosInscritos($modelo,$users) {
+        $estudiantes = $users->whereHas('roles', function ($query) {
+            return $query->where('name', 'estudiante');
+        })->pluck('id');
+        $usuariosDeLaU = $modelo->users;
+
+        return (object) [
+            'si'=>$estudiantes,
+            'no'=>$usuariosDeLaU->pluck('id'),
+            'siNames'=>$usuariosDeLaU->pluck('name'),
+        ];
+    }
 
     public function create() { }
 
@@ -114,17 +186,41 @@ class UniversidadsController extends Controller
         }
     }
 
+    public function SubmitAsignarUsers(Request $request) {
+        DB::beginTransaction();
+        Myhelp::EscribirEnLog($this,' universidad');
+
+        try {
+            $Universidad = Universidad::find($request->universidadid);
+            // dd($request->selectedId);
+            $Universidad->users()->attach(
+                $request->selectedId
+            );
+
+            DB::commit();
+            Log::info("U -> ".Auth::user()->name." matriculo a la universidad ".count($request->selectedId)." estudiantes correctamente");
+
+            // return back()->with('success', __('app.label.created_success'));
+            return redirect()->route('universidad.index')->with('success', __('app.label.created_success'));
+
+        } catch (\Throwable $th) {
+            DB::rollback();
+            Log::alert("U -> ".Auth::user()->name." fallo en matricular(universidad) - ".$th->getMessage());
+            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.Universidad')]) . $th->getMessage());
+        }
+    }
+
     public function show(Universidad $Universidad) { }
     public function edit(Universidad $Universidad) { }
     public function update(Request $request, Universidad $Universidad)
     {
         DB::beginTransaction();
-            $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
-            log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||Universidad|| ' );
+        Myhelp::EscribirEnLog($this,' UPDATE:universidad ','',false);
 
         try {
             $Universidad->update([
                 'nombre' => $request->nombre,
+
                 //otrosCampos
             ]);
             DB::commit();
@@ -148,7 +244,7 @@ class UniversidadsController extends Controller
     // public function destroy(Universidad $Universidad)
     public function destroy($id)
     {
-        $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
+        Myhelp::EscribirEnLog($this,'DELETE:universidad','',false);
 
         DB::beginTransaction();
 
@@ -157,7 +253,7 @@ class UniversidadsController extends Controller
             $Universidads = Universidad::findOrFail($id);
             $Universidads->delete();
             DB::commit();
-            Log::info("U -> ".Auth::user()->name." borro Universidad id:".$id." correctamente");
+            Myhelp::EscribirEnLog($this,'universidad','borro Universidad id:'.$id.' correctamente',false);
             return back()->with('success', __('app.label.deleted_successfully2'));
             
         } catch (\Throwable $th) {

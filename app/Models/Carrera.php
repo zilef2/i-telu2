@@ -32,4 +32,8 @@ class Carrera extends Model
     public function materias(): HasMany {
         return $this->hasMany(Materia::class, 'carrera_id');
     }
+
+    public function users() {
+        return $this->belongsToMany(User::class, 'carrera_user');
+    }
 }

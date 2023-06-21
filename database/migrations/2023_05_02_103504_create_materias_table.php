@@ -17,8 +17,29 @@ class CreateMateriasTable extends Migration
             $table->id();
 			$table->string('nombre');
 			$table->string('descripcion')->nullable();
+
+			$table->text('objetivo1')->nullable();
+			$table->text('objetivo2')->nullable();
+			$table->text('objetivo3')->nullable();
+
+            $table->unsignedBigInteger('req1_materia_id')->nullable();
+            $table->foreign('req1_materia_id')
+                    ->references('id')
+                    ->on('materias')
+                    ->onDelete('cascade');
+            $table->unsignedBigInteger('req2_materia_id')->nullable();
+            $table->foreign('req2_materia_id')
+                    ->references('id')
+                    ->on('materias')
+                    ->onDelete('cascade');
+            $table->unsignedBigInteger('req3_materia_id')->nullable();
+            $table->foreign('req3_materia_id')
+                    ->references('id')
+                    ->on('materias')
+                    ->onDelete('cascade');
+
+
             $table->unsignedBigInteger('carrera_id');
-             
             $table->foreign('carrera_id')
                     ->references('id')
                     ->on('carreras')

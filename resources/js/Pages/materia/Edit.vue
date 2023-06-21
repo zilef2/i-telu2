@@ -8,7 +8,8 @@ import TextInput from '@/Components/TextInput.vue';
 import DatetimeInput from '@/Components/DatetimeInput.vue';
 
 import { useForm } from '@inertiajs/vue3';
-import { watchEffect, reactive } from 'vue';
+
+import { onMounted, watchEffect, reactive } from 'vue';
 import Checkbox from '@/Components/Checkbox.vue';
 import SelectInput from '@/Components/SelectInput.vue';
 
@@ -17,6 +18,7 @@ const props = defineProps({
     title: String,
     materia: Object,
     carrerasSelect: Object,
+    MateriasRequisitoSelect: Object,
 })
 
 const data = reactive({
@@ -27,14 +29,15 @@ const emit = defineEmits(["close"]);
 
 const form = useForm({
     nombre: '',
+    descripcion: '',
     carrera_id: '',
-    UnObjetivo: '',
-    otroObjetivo: '',
+    requisito1: '',
+    requisito2: '',
+    requisito3: '',
+    cuantosReq: 1,
+    cuantosObj: 1,
+    objetivo: [],
 });
-
-const printForm = [
-    {idd: 'nombre',label: 'nombre', type:'text', value:form.nombre},
-];
 
 const update = () => {
     form.put(route('materia.update', props.materia?.id), {
@@ -49,14 +52,31 @@ const update = () => {
     })
 }
 
+let MateriasRequisitoSelect;
 watchEffect(() => {
-    
     if (props.show) {
-        console.log("🧈 debu UnObjetivo:", props.materia.objetivs);
         form.errors = {}
-        form.nombre = props.materia?.nombre
-        form.carrera_id = props.materia?.carrera_id
-        form.UnObjetivo = props.materia?.objetivs
+
+
+        MateriasRequisitoSelect = props.MateriasRequisitoSelect?.map(
+            materia => {
+                return { label: materia.nombre, value: materia.id }
+            }
+        )
+        form.nombre = props.materia?.nombre,
+        form.descripcion = props.materia?.descripcion,
+        form.carrera_id = props.materia?.carrera_id,
+        
+        form.requisito1 = props.materia?.req1_materia_id,
+        form.requisito2 = props.materia?.req2_materia_id,
+        form.requisito3 = props.materia?.req3_materia_id,
+        form.cuantosReq = ((props.materia?.requisito1) !== null) + ((props.materia?.requisito2) !== null) + ((props.materia?.requisito3) !== null)
+        
+        form.objetivo[0] = props.materia?.objetivo1
+        form.objetivo[1] = props.materia?.objetivo2
+        form.objetivo[2] = props.materia?.objetivo3
+
+        form.cuantosObj = ((form.objetivo[0]) !== '') + ((form.objetivo[1]) !== '') + ((form.objetivo[2]) !== '')
     }
 })
 </script>
@@ -69,11 +89,17 @@ watchEffect(() => {
                     {{ lang().label.edit }} {{ props.title }}
                 </h2>
                 <div class="my-6 grid grid-cols-2 gap-6">
-                    <div v-for="(atributosform, indice) in printForm" :key="indice">
-                        <InputLabel :for="atributosform.label" :value="atributosform.value" />
-                        <TextInput :id="atributosform.idd" :type="atributosform.type" class="mt-1 block w-full"
-                            v-model="form[atributosform.idd]" required
-                            :placeholder="atributosform.label" :error="form.errors[atributosform.idd]" />
+                    <div>
+                        <InputLabel for="nombre" :value="lang().label.name" />
+                        <TextInput id="nombre" type="text" class="mt-1 block w-full" v-model="form.nombre" required
+                            :placeholder="lang().placeholder.nombre" :error="form.errors.nombre" />
+                        <InputError class="mt-2" :message="form.errors.nombre" />
+                    </div>
+                    <div>
+                        <InputLabel for="descripcion" :value="lang().label.descripcion" />
+                        <TextInput id="descripcion" type="text" class="mt-1 block w-full" v-model="form.descripcion" required
+                            :placeholder="lang().placeholder.descripcion" :error="form.errors.descripcion" />
+                        <InputError class="mt-2" :message="form.errors.descripcion" />
                     </div>
                     <div>
                         <InputLabel for="carrera_id" :value="lang().label.carrera" />
@@ -81,17 +107,40 @@ watchEffect(() => {
                         <InputError class="mt-2" :message="form.errors.carrera_id" />
                     </div>
 
-                    <div class="col-span-2">
-                        <InputLabel for="UnObjetivo" :value="lang().label.UnObjetivo" />
-                        <textarea  rows="2" cols="50" class="mt-1 block w-full" v-model="form.UnObjetivo" required
-                            :placeholder="lang().placeholder.UnObjetivo" :error="form.errors.UnObjetivo" ></textarea>
-                        <InputError class="mt-2" :message="form.errors.UnObjetivo" />
+                    <div>
+                        <InputLabel for="cuantosReq" :value="lang().label.cuantosReq" />
+                        <TextInput id="cuantosReq" type="number" min=0 max=3 class="mt-1 block w-full" v-model="form.cuantosReq" required
+                            :placeholder="lang().placeholder.cuantosReq" />
                     </div>
-                    <div class="col-span-2">
-                        <InputLabel for="otroObjetivo" :value="lang().label.otroObjetivo" />
-                        <textarea  rows="2" cols="50" class="mt-1 block w-full" v-model="form.otroObjetivo" required
-                            :placeholder="lang().placeholder.otroObjetivo" :error="form.errors.otroObjetivo" ></textarea>
-                        <InputError class="mt-2" :message="form.errors.otroObjetivo" />
+                  
+
+                    <div v-if="form.carrera_id && form.cuantosReq > 0">
+                        <InputLabel for="requisito1" :value="lang().label.requisito1" />
+                        <SelectInput id="requisito1" class="mt-1 block w-full" v-model="form.requisito1" required :dataSet="MateriasRequisitoSelect"> </SelectInput>
+                        <InputError class="mt-2" :message="form.errors.requisito1" />
+                    </div>
+                    <div v-if="form.cuantosReq > 1">
+                        <InputLabel for="requisito2" :value="lang().label.requisito2" />
+                        <SelectInput id="requisito2" class="mt-1 block w-full" v-model="form.requisito2" required :dataSet="MateriasRequisitoSelect"> </SelectInput>
+                        <InputError class="mt-2" :message="form.errors.requisito2" />
+                    </div>
+                    <div v-if="form.cuantosReq > 2">
+                        <InputLabel for="requisito3" :value="lang().label.requisito3" />
+                        <SelectInput id="requisito3" class="mt-1 block w-full" v-model="form.requisito3" required :dataSet="MateriasRequisitoSelect"> </SelectInput>
+                        <InputError class="mt-2" :message="form.errors.requisito3" />
+                    </div>
+
+                    <!-- objetivos -->
+                    <div>
+                        <InputLabel for="cuantosObj" :value="lang().label.cuantosObj" />
+                        <TextInput id="cuantosObj" type="number" min=0 max=3 class="mt-1 block w-full" v-model.number="form.cuantosObj" required
+                            :placeholder="lang().placeholder.cuantosObj" />
+                    </div>
+                    <div v-if="form.cuantosObj > 0" v-for="index in form.cuantosObj">
+                        <InputLabel for="" :value="lang().label.objetivo + index" />
+                        <TextInput id="objetivo" type="text" min=0 max=3 class="mt-1 block w-full" v-model="form.objetivo[index-1]" required
+                            :placeholder="lang().placeholder.objetivo" />
+                        <InputError class="mt-2" :message="form.errors.objetivo" />
                     </div>
                 </div>
                 <div class="flex justify-end">

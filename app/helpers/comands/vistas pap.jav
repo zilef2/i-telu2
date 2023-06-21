@@ -17,6 +17,7 @@ php artisan make:crud Subtopico "nombre:string, descripcion:string"
 php artisan make:crud ejercicio "nombre:string, descripcion:string"
 
 php artisan make:crud objetivo "nombre:string, descripcion:string"
+php artisan make:crud posicionUser "nombre:string, importancia:integer"
 //its donest need a Model -> materia_user
 
 
@@ -38,7 +39,7 @@ php artisan make:crud clasificacionEjercicio "nombre:string, descripcion:string"
         
         // (admin )
 
-        // (operator)
+        // (estudiante)
 
     //vistas crud
     //

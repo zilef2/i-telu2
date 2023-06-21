@@ -5,14 +5,14 @@ import Breadcrumb from '@/Components/Breadcrumb.vue';
 import TextInput from '@/Components/TextInput.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SelectInput from '@/Components/SelectInput.vue';
-import { reactive, watch, ref } from 'vue';
+import { reactive, watch, ref, watchEffect, onMounted } from 'vue';
 
 import DangerButton from '@/Components/DangerButton.vue';
 import pkg from 'lodash';
-import { router, usePage,Link } from '@inertiajs/vue3';
+import { router, usePage, Link } from '@inertiajs/vue3';
 
 import Pagination from '@/Components/Pagination.vue';
-import { ChevronUpDownIcon,EyeIcon, PencilIcon, TrashIcon } from '@heroicons/vue/24/solid';
+import { ChevronUpDownIcon, EyeIcon, PencilIcon, TrashIcon, UserGroupIcon } from '@heroicons/vue/24/solid';
 
 import Create from '@/Pages/materia/Create.vue';
 import Edit from '@/Pages/materia/Edit.vue';
@@ -34,19 +34,19 @@ const props = defineProps({
     respuest: String,
     errorMessage: String,
     carrerasSelect: Object,
+    MateriasRequisitoSelect: Object,
+    UniversidadSelect: Object,
 })
-
-const carrerasSelect = props.carrerasSelect?.map(carrera => ({ 
-    label: carrera.nombre, value: carrera.id
- }))
-
 
 const data = reactive({
     params: {
         search: props.filters.search,
         field: props.filters.field,
         order: props.filters.order,
+        selectedUni: props.filters.selectedUni,
         perPage: props.perPage,
+        selectedcarr: props.filters.selectedcarr
+        
     },
     selectedId: [],
     multipleSelect: false,
@@ -56,17 +56,16 @@ const data = reactive({
     deleteBulkOpen: false,
     generico: null,
     dataSet: usePage().props.app.perpage,
+
+    UniversidadSelect: [],
+    carrerasDeUSel: [],
+    numeroCarreras: 0,
 })
-
-
-
 const order = (field) => {
-    console.log("🧈 debu field:", field);
     data.params.field = field.replace(/ /g, "_")
 
     data.params.order = data.params.order === "asc" ? "desc" : "asc"
 }
-
 watch(() => _.cloneDeep(data.params), debounce(() => {
     let params = pickBy(data.params)
     router.get(route("materia.index"), params, {
@@ -74,8 +73,23 @@ watch(() => _.cloneDeep(data.params), debounce(() => {
         preserveState: true,
         preserveScroll: true,
     })
-}, 150))
+}, 100))
 
+
+
+watchEffect(() => {
+    // data.numeroCarreras = ((Object.keys(props.carrerasSelect)).length)
+    // console.log(data.numeroCarreras)
+    // if(data.numeroCarreras > 0){
+        data.carrerasDeUSel = props.carrerasSelect?.map(
+            carrera => (
+                { label: carrera.nombre, value: carrera.id }
+            )
+        )
+        data.carrerasDeUSel.unshift({label: 'Seleccione carrera', value:0})
+    // }
+})
+// console.log(data.params.carrerasDeUSel)
 const selectAll = (event) => {
     if (event.target.checked === false) {
         data.selectedId = []
@@ -93,11 +107,30 @@ const select = () => {
     }
 }
 
-</script>
+onMounted(() =>{
+    if(data.params.selectedcarr === null) data.params.selectedcarr = 0
+    data.UniversidadSelect = props.UniversidadSelect?.map(
+        universidad => (
+            { label: universidad.nombre, value: universidad.id }
+        )
+    )
+    data.UniversidadSelect.unshift({label: 'Seleccione Universidad', value:0})
 
+    // data.numeroCarreras = ((Object.keys(props.carrerasSelect)).length)
+    // if(data.numeroCarreras > 0){
+
+        data.carrerasDeUSel = props.carrerasSelect.map(
+            carrera => (
+                { label: carrera.nombre, value: carrera.id }
+            )
+        )
+        data.carrerasDeUSel.unshift({label: 'Seleccione carrera', value:0})
+    // }
+})
+
+</script>
 <template>
     <Head :title="props.title"></Head>
-
     <AuthenticatedLayout>
         <Breadcrumb :title="title" :breadcrumbs="breadcrumbs" />
 
@@ -110,10 +143,10 @@ const select = () => {
                     <PrimaryButton class="rounded-none" @click="data.createOpen = true">
                         {{ lang().button.add }}
                     </PrimaryButton>
-                    <Create :show="data.createOpen" @close="data.createOpen = false" :title="props.title" 
-                        :carrerasSelect="carrerasSelect"/>
-                    <Edit :show="data.editOpen" @close="data.editOpen = false" :materia="data.generico"
-                        :title="props.title" :carrerasSelect="carrerasSelect" />
+                    <Create :show="data.createOpen" @close="data.createOpen = false" :title="props.title"
+                        :carrerasSelect="carrerasSelect" :MateriasRequisitoSelect="props.MateriasRequisitoSelect" />
+                    <Edit :show="data.editOpen" @close="data.editOpen = false" :materia="data.generico" :title="props.title"
+                        :carrerasSelect="carrerasSelect" :MateriasRequisitoSelect="props.MateriasRequisitoSelect" />
                     <Delete :show="data.deleteOpen" @close="data.deleteOpen = false" :materia="data.generico"
                         :title="props.title" />
                 </div>
@@ -122,11 +155,18 @@ const select = () => {
                 <div class="flex justify-between p-2">
                     <div class="flex space-x-2">
                         <SelectInput v-model="data.params.perPage" :dataSet="data.dataSet" />
-                        <DangerButton @click="data.deleteBulkOpen = true" v-show="data.selectedId.length != 0"
+                        <div class="bg-gray-100">
+                            <!-- <label for="uni" class="mt-2 pl-8">Universidad: </label> -->
+                            <SelectInput v-model="data.params.selectedUni" id="uni" :dataSet="data.UniversidadSelect" />
+                        </div>
+                        <div v-if="data.params.selectedUni != 0" class="bg-gray-100">
+                            <!-- <label for="carrer" class="mt-2 pl-8">Carrera: </label> -->
+                            <SelectInput v-model="data.params.selectedcarr" id="carrer" :dataSet="data.carrerasDeUSel" />
+                        </div>
+                        <!-- <DangerButton @click="data.deleteBulkOpen = true" v-show="data.selectedId.length != 0"
                             class="px-3 py-1.5" v-tooltip="lang().tooltip.delete_selected">
                             <TrashIcon class="w-5 h-5" />
-                        </DangerButton>
-                        
+                        </DangerButton> -->
                     </div>
                     <TextInput v-model="data.params.search" type="text" class="block w-3/6 md:w-2/6 lg:w-1/6 rounded-lg"
                         :placeholder="lang().placeholder.search" />
@@ -173,20 +213,27 @@ const select = () => {
                                                 class="px-2 py-1.5 rounded-none" v-tooltip="lang().tooltip.delete">
                                                 <TrashIcon class="w-4 h-4" />
                                             </DangerButton>
-                                            <Link :href="route('materia.VistaTema',clasegenerica.id)" v-show="can(['read materia'])"
-                                                    type="button"
-                                                    class="px-2 py-1.5 rounded-none tracking-widest hover:bg-blue-500 active:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150"
-                                                    v-tooltip="lang().tooltip.see">
-                                                <EyeIcon class="w-4 h-4" />
+                                            <Link :href="route('materia.VistaTema', clasegenerica.id)"
+                                                v-show="can(['read materia'])" type="button"
+                                                class="px-2 -mb-1.5 py-1.5 rounded-none hover:bg-blue-500">
+                                            <EyeIcon class="w-4 h-4" />
+                                            </Link>
+                                            <Link :href="route('materia.AsignarUsers', clasegenerica.id)"
+                                                v-show="can(['read materia'])" type="button"
+                                                class="px-2 -mb-1.5 py-1.5 rounded-none hover:bg-blue-500">
+                                            <UserGroupIcon class="w-4 h-4" />
                                             </Link>
                                         </div>
                                     </div>
                                 </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (index + 1) }}</td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.nombre) }} </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.descripcion) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.hijo) }} </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.nombre) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.muchos) }} </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.numRequisitos) }} </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.objetivs) }} </td>
+
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.descripcion) }} </td>
                             </tr>
                         </tbody>
                     </table>
@@ -200,4 +247,5 @@ const select = () => {
 
 
 
-</AuthenticatedLayout></template>
+    </AuthenticatedLayout>
+</template>

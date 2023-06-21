@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\helpers\Myhelp;
 use App\Http\Controllers\Controller;
 
 use App\Models\Carrera;
 use App\Http\Requests\CarreraRequest;
+use App\Models\Universidad;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
@@ -15,22 +18,29 @@ use Inertia\Inertia;
 
 class CarrerasController extends Controller
 {
-    public function index(Request $request)
-    {
-        $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
-        // log::channel('soloadmin')->info('Vista:' . $nombreC. '|  U:'.Auth::user()->name );
-        log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||Carrera|| ' );
 
-        $ListaControladoresYnombreClase = (explode('\\',get_class($this)));
-        $nombreC = end($ListaControladoresYnombreClase);
-        Log::info(' U -> '.Auth::user()->name. ' Accedio a la vista' .$nombreC );
+    public function CalcularClasePrincipal(&$Carreras) {
+
+        $Carreras = $Carreras->get()->map(function ($carrera){
+            $carrera->hijo = $carrera->universidad_nombre();
+            $CarreraUsers = $carrera->users;
+            $carrera->tresPrimeros = Myhelp::ArrayInString($CarreraUsers->pluck('name'));
+            $carrera->cuantosUs = $CarreraUsers->count();
+            return $carrera;
+        });
+
+        // dd($universidads);
+    }
+
+    public function index(Request $request) {
+        $permissions = Myhelp::EscribirEnLog($this,'carrera');
 
 
         $titulo = __('app.label.Carreras');
         $permissions = auth()->user()->roles->pluck('name')[0];
         $Carreras = Carrera::query();
         
-        if($permissions === "operator") {
+        if($permissions === "estudiante") {
             $perPage = $request->has('perPage') ? $request->perPage : 10;
 
             $nombresTabla =[//0: como se ven //1 como es la BD //2??
@@ -45,7 +55,7 @@ class CarrerasController extends Controller
             
             //campos ordenables
             $nombresTabla[2][] = ["s_nombre", "s_descripcion"]; 
-        }else{ // not operator
+        }else{ // not estudiante
             $titulo = 'Carrera';
             
             if ($request->has('search')) {
@@ -56,8 +66,7 @@ class CarrerasController extends Controller
             }
             
             if ($request->has(['field', 'order'])) {
-                dd(substr($request->field,2));
-                $Carreras->orderBy($request->field, $request->order);
+                $Carreras->orderBy(substr($request->field,2), $request->order);
             }else{
                 $Carreras->orderBy('nombre');
             }
@@ -69,16 +78,14 @@ class CarrerasController extends Controller
                 [],
                 [null,null]
             ];
-            $nombresTabla[0] = array_merge($nombresTabla[0] , ["nombre","descripcion","Universidad"]);
+            $nombresTabla[0] = array_merge($nombresTabla[0] , ["nombre","descripcion","Universidad","# Inscritos","Inscritos"]);
             //m for money || t for datetime || d date || i for integer || s string || b boolean 
-            $nombresTabla[1] = array_merge($nombresTabla[1] , ["s_nombre", "s_descripcion","i_universidad_id"]);
+            $nombresTabla[1] = array_merge($nombresTabla[1] , ["s_nombre", "s_descripcion","i_universidad_id","i_inscritos","s_inscritos"]);
             //campos ordenables
-            $nombresTabla[2] = array_merge($nombresTabla[2] , ["s_nombre", "s_descripcion","i_universidad_id"]);
+            $nombresTabla[2] = array_merge($nombresTabla[2] , ["s_nombre", "s_descripcion","i_universidad_id","",""]);
         }
-        $Carreras = $Carreras->get()->map(function ($carrera){
-            $carrera->hijo = $carrera->universidad_nombre();
-            return $carrera;
-        });
+        $this->CalcularClasePrincipal($Carreras);
+        
         $page = request('page', 1); // Current page number
         $total = $Carreras->count();
         $paginated = new LengthAwarePaginator(
@@ -89,6 +96,8 @@ class CarrerasController extends Controller
             ['path' => request()->url()]
         );
 
+        $PapaSelect = Universidad::all();
+
         return Inertia::render('carrera/Index', [ //carpeta
             'title'          =>  $titulo,
             'filters'        =>  $request->all(['search', 'field', 'order']),
@@ -97,24 +106,77 @@ class CarrerasController extends Controller
             'breadcrumbs'    =>  [['label' => __('app.label.Carreras'), 
                                     'href' => route('carrera.index')]],
             'nombresTabla'   =>  $nombresTabla,
+            'PapaSelect' => $PapaSelect,
 
         ]);
     }//fin index
 
+    public function AsignarUsers(Request $request, $carreraid){
+        $titulo = 'Seleccione los estudiantes a matricular';
+        $permissions = Myhelp::EscribirEnLog($this,'carrera');
+        $carrera = Carrera::find($carreraid);
+        if($permissions === "estudiante") {
+            return back()->with('error', __('app.label.no_permission'));
+        } else { // not estudiante
+            // $nombresTabla = $this->laTabla(0);
+        }
+
+        $universidad = Universidad::find($carrera->universidad_id);
+        $users = User::query();
+
+        $filtroUser = $this->UsuariosSinLosInscritos($carrera,$universidad);
+
+        if(count($filtroUser->si) > 0){
+            $users->whereNotIn('users.id',$filtroUser->no)
+                ->whereIn('users.id',$filtroUser->si);
+
+            if ($request->has('search')) {
+                $users->Where(function($query) use ($request){
+                    $query->where('name', 'LIKE', "%" . $request->search . "%");
+                    $query->orWhere('email', 'LIKE', "%" . $request->search . "%");
+                });
+            }
+        }else{
+            $users->where('id',0);
+        }
+
+        // dd($carrera->users);
+        return Inertia::render('carrera/AsignarUsers', [ //carpeta
+            'title'          =>  $titulo,
+            'breadcrumbs'    =>  [['label' => __('app.label.carreras'), 'href' => route('carrera.index')]],
+            'filters'       => $request->all(['search']),
+
+            'usuariosPorInscribir' =>  $users->get(),
+            'carrera' =>  $carrera,
+            'universidad' =>  $universidad,
+            'inscritos' => $carrera->users,
+        ]);
+    }
+
+    public function UsuariosSinLosInscritos($modelo,$universidad) {
+        $usuariosU = $universidad->users->pluck('id');
+        $usuariosDeLaCarrera = $modelo->users->pluck('id');
+
+        return (object) [
+            'si'=>$usuariosU,
+            'no'=>$usuariosDeLaCarrera
+        ];
+    }
+
+    //fin index y sus funciones
+
     public function create() { }
 
-    public function store(CarreraRequest $request)
-    {
+    public function store(CarreraRequest $request){
         DB::beginTransaction();
-                $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
-                log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||Carrera|| ' );
+        Myhelp::EscribirEnLog($this,'carrera');
 
         try {
             $Carrera = Carrera::create([
                 'nombre' => $request->nombre,
                 //otrosCampos
-                'descripcion' => '',
-                'universidad_id' => 1,//todo: temp
+                'descripcion' => $request->descripcion,
+                'universidad_id' => $request->universidad_id,
             ]);
             DB::commit();
             Log::info("U -> ".Auth::user()->name." Guardo Carrera ".$request->nombre." correctamente");
@@ -129,18 +191,40 @@ class CarrerasController extends Controller
         }
     }
 
+    public function SubmitAsignarUsers(Request $request) {
+        DB::beginTransaction();
+        Myhelp::EscribirEnLog($this,' carrera');
+
+        try {
+            $carrera = carrera::find($request->carreraid);
+            // dd($request->selectedId);
+            $carrera->users()->attach(
+                $request->selectedId
+            );
+
+            DB::commit();
+            Log::info("U -> ".Auth::user()->name." matriculo a la carrera ".count($request->selectedId)." estudiantes correctamente");
+
+            return redirect()->route('carrera.index')->with('success', __('app.label.created_success'));
+
+        } catch (\Throwable $th) {
+            DB::rollback();
+            Log::alert("U -> ".Auth::user()->name." fallo en matricular(carrera) - ".$th->getMessage());
+            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.Universidad')]) . $th->getMessage());
+        }
+    }
+
     public function show(Carrera $Carrera) { }
     public function edit(Carrera $Carrera) { }
-    public function update(Request $request, Carrera $Carrera)
-    {
+    public function update(Request $request, Carrera $Carrera) {
         DB::beginTransaction();
-            $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
-            log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||Carrera|| ' );
+        Myhelp::EscribirEnLog($this,'carrera');
 
         try {
             $Carrera->update([
                 'nombre' => $request->nombre,
-                //otrosCampos
+                'descripcion' => $request->descripcion,
+                'universidad_id' => $request->universidad_id,
             ]);
             DB::commit();
             Log::info("U -> ".Auth::user()->name." actualizo Carrera ".$request->nombre." correctamente");
@@ -163,11 +247,9 @@ class CarrerasController extends Controller
     // public function destroy(Carrera $Carrera)
     public function destroy($id)
     {
-        $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
-        log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||Carrera|| ' );
+        Myhelp::EscribirEnLog($this,'carrera');
 
         DB::beginTransaction();
-
         try {
             $Carreras = Carrera::findOrFail($id);
             Log::info("U -> ".Auth::user()->name."La carrera id:".$id." y nombre:".$Carreras->nombre." ha sido borrada correctamente");

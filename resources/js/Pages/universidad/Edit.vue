@@ -59,7 +59,7 @@ watchEffect(() => {
                 <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
                     {{ lang().label.edit }} {{ props.title }}
                 </h2>
-                <div class="my-6 grid grid-cols-2 gap-6">
+                <div class="my-6 grid grid-cols-1 gap-6">
                     <div v-for="(atributosform, indice) in printForm" :key="indice">
                         <InputLabel :for="atributosform.label" :value="atributosform.value" />
                         <TextInput :id="atributosform.idd" :type="atributosform.type" class="mt-1 block w-full"

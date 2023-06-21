@@ -17,11 +17,13 @@ class RoleSeeder extends Seeder
         
         $superadmin = Role::create([ 'name'=>'superadmin' ]);
         $admin = Role::create([ 'name'=>'admin' ]);
-        $operator = Role::create([ 'name'=>'operator' ]);
 
-        $crudCompleto = [ 'delete', 'update', 'read', 'create' ];
-        // $RU = [ 'update', 'read' ];
-        // $CR = [ 'create', 'read' ];
+
+        $profesor = Role::create([ 'name'=>'profesor' ]);
+        $coordinador_academico = Role::create([ 'name'=>'coordinador_academico' ]);
+        $coordinador_de_programa = Role::create([ 'name'=>'coordinador_de_programa' ]);
+        $estudiante = Role::create([ 'name'=>'estudiante' ]);
+
 
         $Models =[
             'user',
@@ -34,6 +36,8 @@ class RoleSeeder extends Seeder
             'subtopico',
             'ejercicio',
         ];
+        $crudCompleto = [ 'delete', 'update', 'read', 'create' ];
+
 
         foreach ($Models as $model) {
             foreach ($crudCompleto as $crud) {
@@ -41,18 +45,46 @@ class RoleSeeder extends Seeder
                 $admin->givePermissionTo([ $crud.' '.$model ]);
             }
         }
+        $superadmin->givePermissionTo([ 'isSuper', 'isAdmin','isCoorAcademico', 'isCoorPrograma' ]);
+        $admin->givePermissionTo(['isAdmin','isCoorAcademico', 'isCoorPrograma' ]);
+        $coordinador_academico->givePermissionTo(['isCoorAcademico']);
+        $coordinador_de_programa->givePermissionTo(['isCoorPrograma']);
+        $profesor->givePermissionTo(['isProfesor']);
+        $estudiante->givePermissionTo(['isEstudiante']);
 
-        $superadmin->givePermissionTo([ 'isSuper', 'isAdmin' ]);
-        $admin->givePermissionTo([ 'isAdmin', ]);
+        $coordinador_academico->givePermissionTo([
+            'read user', 'update user', 'create user', 'delete user',
+            'read universidad', 'update universidad', 'create universidad', 'delete universidad',
+            'read carrera', 'update carrera', 'create carrera', 'delete carrera',
+            'read materia', 'update materia', 'create materia', 'delete materia',
+            'read tema', 'update tema', 'create tema', 'delete tema',
+            'read subtopico', 'update subtopico', 'create subtopico', 'delete subtopico',
+            'read ejercicio', 'update ejercicio', 'create ejercicio', 'delete ejercicio',
+        ]);
+        $coordinador_de_programa->givePermissionTo([
+            'read universidad', 'update universidad', 'create universidad', 'delete universidad',
+            'read carrera', 'update carrera', 'create carrera', 'delete carrera',
+            'read materia', 'update materia', 'create materia', 'delete materia',
+            'read tema', 'update tema', 'create tema', 'delete tema',
+            'read subtopico', 'update subtopico', 'create subtopico', 'delete subtopico',
+            'read ejercicio', 'update ejercicio', 'create ejercicio', 'delete ejercicio',
+        ]);
 
-
-        $operator->givePermissionTo([
+        $profesor->givePermissionTo([
             'read universidad',
+            'read carrera',
+            'read materia', 'update materia', 'create materia', 'delete materia',
+            'read tema', 'update tema', 'create tema', 'delete tema',
+            'read subtopico', 'update subtopico', 'create subtopico', 'delete subtopico',
+            'read ejercicio', 'update ejercicio', 'create ejercicio', 'delete ejercicio',
+        ]);
+        $estudiante->givePermissionTo([
+            // 'read universidad',
             'read carrera',
             'read materia',
             'read tema',
             'read subtopico',
-            'read ejercicio', 'update ejercicio', // 'create ejercicio', // 'delete ejercicio',
+            'read ejercicio', // 'update ejercicio', // 'create ejercicio', // 'delete ejercicio',
         ]);
 
         // $role->revokePermissionTo($permission);

@@ -26,7 +26,7 @@ class subtopicosController extends Controller
         $permissions = auth()->user()->roles->pluck('name')[0];
         $subtopicos = subtopico::query();
         
-        if($permissions === "operator") {
+        if($permissions === "estudiante") {
             $perPage = $request->has('perPage') ? $request->perPage : 10;
 
             $nombresTabla =[//0: como se ven //1 como es la BD //2??
@@ -41,7 +41,7 @@ class subtopicosController extends Controller
             
             //campos ordenables
             $nombresTabla[2][] = ["s_nombre", "s_descripcion"]; 
-        }else{ // not operator
+        }else{ // not estudiante
             $titulo = 'subtopico';
             
             if ($request->has('search')) {
@@ -109,7 +109,7 @@ class subtopicosController extends Controller
                 'nombre' => $request->nombre,
                 //otrosCampos
                 'descripcion' => 'Descripcion generica',
-                'tema_id' => 1,//todo: temp
+                'tema_id' => $request->tema_id,
             ]);
             DB::commit();
             Log::info("U -> ".Auth::user()->name." Guardo subtopico ".$request->nombre." correctamente");

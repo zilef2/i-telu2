@@ -163,13 +163,15 @@ const select = () => {
                                         type="checkbox" @change="select" :value="role.id" v-model="data.selectedId" />
                                 </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-center">{{ ++index }}</td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ role.name }}</td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ role.name.replace(/_/g," ") }}</td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ role.guard_name }}</td>
                                 <td v-tooltip="lang().tooltip.detail"
                                     v-if="role.permissions.length == props.permissions.length"
                                     @click="(data.permissionOpen = true), (data.role = role)"
                                     class="whitespace-nowrap py-4 px-2 sm:py-3 cursor-pointer text-blue-600 dark:text-blue-400 font-bold underline">
-                                    {{ lang().label.all_permission }}</td>
+                                    {{ lang().label.all_permission }}
+                                </td>
+
                                 <td v-tooltip="lang().tooltip.detail" v-else-if="role.permissions.length != 0"
                                     @click="(data.permissionOpen = true), (data.role = role)"
                                     class="whitespace-nowrap py-4 px-2 sm:py-3 cursor-pointer text-blue-600 dark:text-blue-400 font-bold underline">

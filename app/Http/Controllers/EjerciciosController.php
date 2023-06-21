@@ -26,7 +26,7 @@ class EjerciciosController extends Controller
         $permissions = auth()->user()->roles->pluck('name')[0];
         $ejercicios = ejercicio::query();
         
-        if($permissions === "operator") {
+        if($permissions === "estudiante") {
             $perPage = $request->has('perPage') ? $request->perPage : 10;
 
             $nombresTabla =[//0: como se ven //1 como es la BD //2??
@@ -41,7 +41,7 @@ class EjerciciosController extends Controller
             
             //campos ordenables
             $nombresTabla[2][] = ["s_nombre", "s_descripcion"]; 
-        }else{ // not operator
+        }else{ // not estudiante
             $titulo = 'ejercicio';
             
             if ($request->has('search')) {
@@ -109,7 +109,7 @@ class EjerciciosController extends Controller
                 'nombre' => $request->nombre,
                 //otrosCampos
                 'descripcion' => 'Descripcion generica',
-                'subtopico_id' => 1,//todo: temp
+                'subtopico_id' => $request->subtopico_id,
             ]);
             DB::commit();
             Log::info("U -> ".Auth::user()->name." Guardo ejercicio ".$request->nombre." correctamente");

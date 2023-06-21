@@ -18,6 +18,7 @@ import Delete from '@/Pages/User/Delete.vue';
 import DeleteBulk from '@/Pages/User/DeleteBulk.vue';
 import Checkbox from '@/Components/Checkbox.vue';
 import { usePage } from '@inertiajs/vue3';
+import {number_format, formatDate, CalcularEdad, CalcularSexo} from '@/global.js';
 
 const { _, debounce, pickBy } = pkg
 const props = defineProps({
@@ -111,8 +112,8 @@ const select = () => {
                             <TrashIcon class="w-5 h-5" />
                         </DangerButton>
                     </div>
-                    <TextInput v-model="data.params.search" type="text" class="block w-3/6 md:w-2/6 lg:w-1/6 rounded-lg"
-                        :placeholder="lang().placeholder.search" />
+                    <TextInput v-model="data.params.search" type="text" class="block w-4/6 md:w-3/6 lg:w-2/6 rounded-lg"
+                        placeholder="Nombre, correo o semestre" />
                 </div>
                 <div class="overflow-x-auto scrollbar-table">
                     <table class="w-full">
@@ -128,26 +129,20 @@ const select = () => {
                                         <ChevronUpDownIcon class="w-4 h-4" />
                                     </div>
                                 </th>
-                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('email')">
-                                    <div class="flex justify-between items-center">
-                                        <span>{{ lang().label.email }}</span>
-                                        <ChevronUpDownIcon class="w-4 h-4" />
-                                    </div>
-                                </th>
+                                <!-- <th class="px-2 py-4 cursor-pointer" v-on:click="order('email')">
+                                    <div class="flex justify-between items-center"> <span>{{ lang().label.email }}</span> <ChevronUpDownIcon class="w-4 h-4" /> </div>
+                                </th> -->
                                 <th class="px-2 py-4">{{ lang().label.role }}</th>
-                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('created_at')">
-                                    <div class="flex justify-between items-center">
-                                        <span>{{ lang().label.created }}</span>
-                                        <ChevronUpDownIcon class="w-4 h-4" />
-                                    </div>
-                                </th>
-                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('updated_at')">
-                                    <div class="flex justify-between items-center">
-                                        <span>{{ lang().label.updated }}</span>
-                                        <ChevronUpDownIcon class="w-4 h-4" />
-                                    </div>
-                                </th>
-                                <th class="px-2 py-4 sr-only">Action</th>
+                                
+                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('identificacion')"> <div class="flex justify-between items-center"> <span>{{ lang().label.identificacion }}</span> <ChevronUpDownIcon class="w-4 h-4" /> </div> </th>
+                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('sexo')"> <div class="flex justify-between items-center"> <span>{{ lang().label.sexo }}</span> <ChevronUpDownIcon class="w-4 h-4" /> </div> </th>
+                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('fecha_nacimiento')"> <div class="flex justify-between items-center"> <span>{{ lang().label.edad }}</span> <ChevronUpDownIcon class="w-4 h-4" /> </div> </th>
+                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('semestre')"> <div class="flex justify-between items-center"> <span>{{ lang().label.semestre }}</span> <ChevronUpDownIcon class="w-4 h-4" /> </div> </th>
+                                <!-- <th class="px-2 py-4 cursor-pointer" v-on:click="order('semestre_mas_bajo')"> <div class="flex justify-between items-center"> <span>{{ lang().label.semestre_mas_bajo }}</span> <ChevronUpDownIcon class="w-4 h-4" /> </div> </th> -->
+                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('limite_token_general')"> <div class="flex justify-between items-center"> <span>{{ lang().label.limite_token_general }}</span> <ChevronUpDownIcon class="w-4 h-4" /> </div> </th>
+                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('limite_token_leccion')"> <div class="flex justify-between items-center"> <span>{{ lang().label.limite_token_lec }}</span> <ChevronUpDownIcon class="w-4 h-4" /> </div> </th>
+
+                                <th class="px-2 py-4">Accion</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -165,13 +160,23 @@ const select = () => {
                                         <CheckBadgeIcon class="ml-[2px] w-4 h-4 text-primary dark:text-white"
                                             v-show="user.email_verified_at" />
                                     </span>
+                                    <span class="flex justify-start items-center text-sm text-gray-600">
+                                        {{ user.email }}
+                                    </span>
+                                    
                                 </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.email }}</td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{
                                     user.roles.length == 0 ? 'not selected' : user.roles[0].name
                                 }}</td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.created_at }}</td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.updated_at }}</td>
+                                <!-- <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.created_at }}</td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.updated_at }}</td> -->
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.identificacion }}</td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ CalcularSexo(user.sexo) }}</td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ CalcularEdad(user.fecha_nacimiento) }}</td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.semestre }}</td>
+                                <!-- <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.semestre_mas_bajo }}</td> -->
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.limite_token_general }}</td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.limite_token_leccion }}</td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">
                                     <div class="flex justify-center items-center">
                                         <div class="rounded-md overflow-hidden">

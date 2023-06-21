@@ -23,11 +23,14 @@ class User extends Authenticatable
         'email',
         'password',
         
+        'identificacion',
         'sexo',
         'fecha_nacimiento',
         'semestre',
         'limite_token_general',
         'limite_token_leccion',
+        
+        'posicion',
     ];
 
     /**

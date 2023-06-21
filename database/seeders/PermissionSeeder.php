@@ -16,6 +16,10 @@ class PermissionSeeder extends Seeder
     {
         Permission::create(['name' => 'isSuper']);
         Permission::create(['name' => 'isAdmin']);
+        Permission::create(['name' => 'isCoorAcademico']);
+        Permission::create(['name' => 'isCoorPrograma']);
+        Permission::create(['name' => 'isProfesor']);
+        Permission::create(['name' => 'isEstudiante']);
 
         
         // Permission::create(['name' => 'delete user']);

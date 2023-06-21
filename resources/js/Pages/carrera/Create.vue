@@ -9,10 +9,12 @@ import InputError from '@/Components/InputError.vue';
     import { useForm } from '@inertiajs/vue3';
     // import Checkbox from '@/Components/Checkbox.vue';
     import { reactive, watchEffect } from 'vue';
+    import SelectInput from '@/Components/SelectInput.vue';
 
 const props = defineProps({
     show: Boolean,
     title: String,
+    PapaSelect: Object,
 })
 
 const emit = defineEmits(["close"]);
@@ -25,6 +27,7 @@ const today = new Date();
 const form = useForm({
     nombre: '',
     descripcion: '',
+    universidad_id: 1,
 })
 
 const create = () => {
@@ -58,14 +61,24 @@ watchEffect(() => {
                 <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
                     {{ lang().label.add }} {{ props.title }}
                 </h2>
-                <div class="my-6 grid grid-cols-1 gap-6">
+                <div class="my-6 grid grid-cols-2 gap-6">
                     <div>
                         <InputLabel for="nombre" :value="lang().label.name" />
                         <TextInput id="nombre" type="text" class="mt-1 block w-full" v-model="form.nombre" required
                             :placeholder="lang().placeholder.nombre" :error="form.errors.nombre" />
                         <InputError class="mt-2" :message="form.errors.nombre" />
                     </div>
-                    
+                    <div>
+                        <InputLabel for="descripcion" :value="lang().label.descripcion" />
+                        <TextInput id="descripcion" type="text" class="mt-1 block w-full" v-model="form.descripcion" required
+                            :placeholder="lang().placeholder.descripcion" :error="form.errors.descripcion" />
+                        <InputError class="mt-2" :message="form.errors.descripcion" />
+                    </div>
+                    <div>
+                        <InputLabel for="universidad_id" :value="lang().label.carrera" />
+                        <SelectInput id="universidad_id" class="mt-1 block w-full" v-model="form.universidad_id" required :dataSet="PapaSelect"> </SelectInput>
+                        <InputError class="mt-2" :message="form.errors.universidad_id" />
+                    </div>
                 </div>
                 
                 <div class="flex justify-end">

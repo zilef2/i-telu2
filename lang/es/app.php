@@ -2,8 +2,38 @@
 
 return [
     'label' => [
+        //asignar - materia
+        
+        'no_permission' => 'Accion no autorizada',
+        //materia
+        'cuantosObj' => 'cuantos Objetivos?',
+        'objetivo' => 'objetivo',
+        'tieneRequisitos' => 'tiene Requisitos?',
+        'cuantosReq' => 'cuantos Requisitos',
+        'requisito1' => 'requisito 1',
+        'requisito2' => 'requisito 2',
+        'requisito3' => 'requisito 3',
+        'carrera' => 'carrera',
+        'descripcion' => 'descripcion',
+        'seeTemas' => 'Temas',
+        //user
+        'identificacion' => 'identificacion',
+        'edad' => 'edad',
+        'anio' => 'edad',
+        'sexo' => 'sexo',
+        'fecha_nacimiento' => 'fecha de nacimiento',
+        'semestre' => 'semestre',
+        'semestre_mas_bajo' => 'semestre mas bajo',
+        'limite_token_general' => 'limite de general',
+        'limite_token_leccion' => 'limite de tokens por leccion',
+        'limite_token_lec' => 'limite/leccion',
+
+        //universidad
+        'universidad' => 'universidad',
+        'Universidads' => 'universidades',
         //carrera
         'carrera' => 'carrera',
+        'carreras' => 'carreras',
         'UnObjetivo' => 'Describa el objetivo de la materia',
         'otroObjetivo' => 'Puede agregar un objetivo extras a la materia (opcional)',
         
@@ -72,6 +102,7 @@ return [
         'delete_confirm' => 'Desea borrar ',
         'created_successfully' => '<b>:name</b> creado satisfactoriamente.',
         'created_successfully2' => '<b>:nombre</b> creado satisfactoriamente.',
+        'created_success' => 'operacion finalizada satisfactoriamente.',
         'created_error' => 'Error creando :name.',
         'updated_successfully' => '<b>:name</b> actualizado satisfactoriamente.',
         'updated_successfully2' => '<b>:nombre</b> actualizado satisfactoriamente.',
@@ -103,6 +134,7 @@ return [
         'of' => 'de',
     ],
     'button' => [
+
         'login' => 'Ingresar',
         'loading' => 'Cargando...',
         'register' => 'Registrar',
@@ -122,6 +154,9 @@ return [
         'delete_account' => 'Borar cuenta'
     ],
     'placeholder' => [
+        //materia
+        'cuantosReq' => 'cuantos Requisitos?',
+
         //carrera
         'UnObjetivo' => 'Describa el objetivo',
 

@@ -27,7 +27,7 @@ class TemasController extends Controller
         $permissions = auth()->user()->roles->pluck('name')[0];
         $temas = tema::query();
         
-        if($permissions === "operator") {
+        if($permissions === "estudiante") {
             $perPage = $request->has('perPage') ? $request->perPage : 10;
 
             $nombresTabla =[//0: como se ven //1 como es la BD //2??
@@ -42,7 +42,7 @@ class TemasController extends Controller
             
             //campos ordenables
             $nombresTabla[2][] = ["s_nombre", "s_descripcion"]; 
-        }else{ // not operator
+        }else{ // not estudiante
             $titulo = 'tema';
             
             if ($request->has('search')) {
@@ -110,7 +110,7 @@ class TemasController extends Controller
                 'nombre' => $request->nombre,
                 //otrosCampos
                 'descripcion' => 'Descripcion generica',
-                'materia_id' => 1,//todo: temp
+                'materia_id' => $request->materia_id,
             ]);
             DB::commit();
             Log::info("U -> ".Auth::user()->name." Guardo tema ".$request->nombre." correctamente");

@@ -27,6 +27,34 @@ return new class extends Migration
                     ->on('materias')
                     ->onDelete('cascade');
         });
+        Schema::create('carrera_user', function (Blueprint $table) {
+            $table->id();
+            $table->timestamps();
+            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('carrera_id');
+            $table->foreign('user_id')
+                    ->references('id')
+                    ->on('users')
+                    ->onDelete('cascade');
+            $table->foreign('carrera_id')
+                    ->references('id')
+                    ->on('carreras')
+                    ->onDelete('cascade');
+        });
+        Schema::create('universidad_user', function (Blueprint $table) {
+            $table->id();
+            $table->timestamps();
+            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('universidad_id');
+            $table->foreign('user_id')
+                    ->references('id')
+                    ->on('users')
+                    ->onDelete('cascade');
+            $table->foreign('universidad_id')
+                    ->references('id')
+                    ->on('universidads')
+                    ->onDelete('cascade');
+        });
     }
 
     /**
@@ -37,6 +65,8 @@ return new class extends Migration
     public function down()
     {
         Schema::dropIfExists('materia_user');
+        Schema::dropIfExists('carrera_user');
+        Schema::dropIfExists('universidad_user');
         
     }
 };

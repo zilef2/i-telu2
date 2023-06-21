@@ -2,6 +2,11 @@
 
 namespace App\helpers;
 
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection as SupportCollection;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+
 // use Hamcrest\Type\IsInteger;
 
 class Myhelp{
@@ -48,6 +53,37 @@ class Myhelp{
         return '';
     }
 
-    
+    public static function EscribirEnLog( $thiis, $clase = '',$mensaje='',$returnPermission=true) {
+        
+        $permissions = $returnPermission ? auth()->user()->roles->pluck('name')[0] : null;
+        $ListaControladoresYnombreClase = (explode('\\', get_class($thiis))); $nombreC = end($ListaControladoresYnombreClase);
+        $Elpapa = (explode('\\', get_parent_class($thiis))); $nombreP = end($Elpapa);
+        if($permissions == 'admin' || $permissions == 'superadmin') {
+            $ElMensaje = $mensaje != '' ? ' Mensaje: '.$mensaje : '';
+            Log::channel('soloadmin')->info('Vista:' . $nombreC.' Padre: '.$nombreP. '|  U:'.Auth::user()->name.$ElMensaje);
+        } else {
+            Log::info('Vista: ' . $nombreC.' Padre: '.$nombreP. 'U:'.Auth::user()->name. ' ||'.$clase.'|| '.' Mensaje: '.$mensaje); 
+        }
+        return $permissions;
+    }
+
+    public static function ArrayInString($Elarray,$limite = 3) {
+        $Elarray = $Elarray->toArray();
+        // dd($Elarray instanceof Collection);
+        if(count($Elarray) > $limite){
+            $result= [];
+            $result[] = $Elarray[0];
+            $result[] = $Elarray[1];
+            $result[] = $Elarray[2];
+
+            return implode(", ",$result)  . '...';
+        }else{
+            if(count($Elarray) > 0) {
+                return implode(",",$Elarray);
+            }else{
+                return 'Sin resultados';
+            }
+        }
+    }
 
 } ?>
