@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Role;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class RoleSeeder extends Seeder
@@ -19,10 +18,10 @@ class RoleSeeder extends Seeder
         $admin = Role::create([ 'name'=>'admin' ]);
 
 
-        $profesor = Role::create([ 'name'=>'profesor' ]);
-        $coordinador_academico = Role::create([ 'name'=>'coordinador_academico' ]);
-        $coordinador_de_programa = Role::create([ 'name'=>'coordinador_de_programa' ]);
         $estudiante = Role::create([ 'name'=>'estudiante' ]);
+        $profesor = Role::create([ 'name'=>'profesor' ]);
+        $coordinador_de_programa = Role::create([ 'name'=>'coordinador_de_programa' ]);
+        $coordinador_academico = Role::create([ 'name'=>'coordinador_academico' ]);
 
 
         $Models =[

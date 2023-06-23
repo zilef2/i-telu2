@@ -2,25 +2,32 @@
 
 namespace App\Http\Controllers;
 
-use App\helpers\Myhelp;
-use Inertia\Inertia;
+use App\helpers\HelpGPT;
+use OpenAI;
+use App\Models\User;
 
+use Inertia\Inertia;
+use App\helpers\Myhelp;
+use App\Models\Carrera;
 use App\Models\materia;
-use App\Http\Requests\MateriumRequest;
+use App\Models\Universidad;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
-use App\Models\Carrera;
-use App\Models\Universidad;
-use App\Models\User;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
 
-use OpenAI;
+use App\Http\Requests\MateriumRequest;
+use Illuminate\Pagination\LengthAwarePaginator;
 // use OpenAI\Exceptions\ErrorException;
 
 class MateriasController extends Controller {
+
+    public $respuestaLimite = 'Limite de tokens';
+    public $respuestaLarga = 'La respuesta es demasiado extensa';
+    public $MAX_USAGE_RESPUESTA = 550;
+    public $MAX_USAGE_TOTAL = 600;
+
 
     public function CalcularClasePrincipal(&$materias) {
         $materias = $materias->get()->map(function ($materia){
@@ -80,10 +87,11 @@ class MateriasController extends Controller {
         }
 
         // $carrerasSelect = Carrera::has('materias')->get();
+        //todo: solo las necesarias
         $MateriasRequisitoSelect = materia::all();
         $UniversidadSelect = Universidad::has('carreras')->get();
     }
-    public function laTabla($estudiante) {
+    public function NombresTabla($estudiante) {
         
         $nombresTabla =[//0: como se ven //1 como es la BD //2orden
             ["Acciones","#"],
@@ -119,14 +127,14 @@ class MateriasController extends Controller {
         $perPage = $request->has('perPage') ? $request->perPage : 10;
         $materias = materia::query();
         if($permissions === "estudiante") {
-            $nombresTabla = $this->laTabla(1);
+            $nombresTabla = $this->NombresTabla(1);
             
         }else{ // not estudiante
 
             $titulo = 'materia';
             $this->Filtros($request,$materias);
             $perPage = $request->has('perPage') ? $request->perPage : 10;
-            $nombresTabla = $this->laTabla(0);
+            $nombresTabla = $this->NombresTabla(0);
         }
 
         //hijos materias 
@@ -168,7 +176,7 @@ class MateriasController extends Controller {
         if($permissions === "estudiante") {
             return back()->with('error', __('app.label.no_permission'));
         } else { // not estudiante
-            // $nombresTabla = $this->laTabla(0);
+            // $nombresTabla = $this->NombresTabla(0);
         }
 
         $materia = materia::find($materiaid);
@@ -275,52 +283,242 @@ class MateriasController extends Controller {
         $materia = materia::find($id);
         
         $limite = $usuario->limite_token_leccion;
+        $restarAlToken = 0;
+        set_time_limit(120);
 
         if($limite > 0) {
+                // 'Eres un experto en la materia universitaria: '.$pregunta.', se lo mas cordial posible. Propon 2 ejercicios, 1 muy sencillo y otro mas dificil, para estudiantes que desean estudiar para un parcial de la materia '.$pregunta.'. Antes de darles los ejercicios, dales un contexto de almenos 20 palabras.'
+                // eres un academico con exp en la asignatura X con mas de 20 años, responda: X2 , con un nivel X3. con un nivel (Bachillerato, Universitario o posgrado)
+                // 'Eres un experto en la materia universitaria: Fisica mecanica. se desea saber '.$ejercicioSelec.' para estudiantes. Antes de resolver la pregunta, genera un contexto, si es posible, de entre 20 y 40 palabras.',
 
             if($temaSelec != '') {
+                $plantillaPracticar = 'Ejercicios para practicar';
                 $client = OpenAI::client(env('GTP_SELECT'));
                 $result = $client->completions()->create([
                     'model' => 'text-davinci-003',
-                    // nivel de dificultadad,
                     'prompt' =>
-                    // eres un academico con exp en la asignatura X con mas de 20 años, responda: X2 , con un nivel X3. con un nivel (Bachillerato, Universitario o posgrado)
-                    'eres un academico, experto en la asignatura Fisica Clasica con mas de 20 años de experiencia, el tema es: '.$temaSelec.', el sub-tema es: '.$subtopicoSelec.' 
-                            responda el siguiente ejercicio: '.$ejercicioSelec.' . con un nivel Universitario',
-                    // 'Eres un experto en la materia universitaria: Fisica mecanica. se desea saber '.$ejercicioSelec.' para estudiantes. Antes de resolver la pregunta, genera un contexto de almenos 20 palabras.',
-                    'max_tokens' => 423 // Adjust the response length as needed
+                    'Eres un academico, experto en la asignatura de '.$materia->nombre.' con años de experiencia enseñandola, el tema es: '.$temaSelec.', el sub-tema es: '.$subtopicoSelec.' 
+                            responda el siguiente ejercicio: '.$ejercicioSelec
+                            .'. La respuesta debe tener el nivel de un estudiante '.$usuario->pgrado
+                            .'. Antes de resolver la pregunta, genera un contexto, si es posible, de entre 20 y 40 palabras. Cuando finalices el contexto, deja un renglon vacio.'
+                            .'. Al finalizar la respuesta. sujiere 3 ejercicios para preguntarle a una inteligencia artificial(ponle de titulo '.$plantillaPracticar.') y seguir aprendiendo de '.$temaSelec,
+                    'max_tokens' => 723 // Adjust the response length as needed
                 ]);
-                // 'Eres un experto en la materia universitaria: '.$pregunta.', se lo mas cordial posible. Propon 2 ejercicios, 1 muy sencillo y otro mas dificil, para estudiantes que desean estudiar para un parcial de la materia '.$pregunta.'. Antes de darles los ejercicios, dales un contexto de almenos 20 palabras.'
-                $respuesta = $result['choices'][0]["text"];
-                $respuesta = 'hola';
+                // // dd($result);
+                $respuesta = substr($result['choices'][0]["text"],2);
 
-                $usuario->decrement('limite_token_leccion');
-                $usuario->save();
+                $PP=[];
+                $PP[0] = ["finish_reason" => 'stop'];
+                // $PP[0] = $result['choices'][0] ?? 'fallo';
+                // $PP[1] = $result['choices'][0]["finishReason"] ?? 'fallo finishReason';
+
+                    $R_finishReason = $result['choices'][0]["finishReason"] ?? 'fallo';
+                    $R_index = $result['choices'][0]["index"];
+                    $R_logprobs = $result['choices'][0]["logprobs"];
+
+                    // $usageEntrada = $result['usage']["promptTokens"]; //~  240
+                    $usageRespuesta = $result['usage']["completion_tokens"]; //~ 260
+                    $usageTotal = $result['usage']["total_tokens"]; //~ 500
+                    $usageRespuesta = HelpGPT::CalcularTokenConsumidos($usageRespuesta,$usageTotal);
+
+                    // $respuesta = '
+                    // .
+                    // La energía potencial es un concepto clave en la física ya que representa la cantidad de energía disponible que un cuerpo posee en un sistema conservativo debido a su posición en el espacio. En este caso, para un cuerpo de masa m=1 kg a una altura h=2 m, la energía potencial se puede calcular como Ep=m*g*h, donde g es la aceleración de la gravedad. La energía potencial en este caso es 1 * 9.81 m/s2 * 2 m = 19.62 J. ◀La energía potencial es un concepto clave en la física ya que representa la cantidad de energía disponible que un cuerpo posee en un sistema conservativo debido ▶
+                    
+                    // Ejercicios para preguntar a una IA: 
+                    // 1. ¿Cuál es la fórmula para calcular la energía cinética? 
+                    // 2. ¿Cómo se relaciona la energía cinética y la energía potencial? 
+                    // 3. ¿Cuáles son algunas aplicaciones prácticas de la energía cinética y potencial?';
+
+                $finishingReason = '';
+                $soloEjercicios = $this->GenerarSujerencias($respuesta,$plantillaPracticar,$PP,$finishingReason);
+
+                if($finishingReason != 'stop'){
+                    $respuesta = 'El servicio no esta disponible';
+                }else{
+                    $usuario->update([ 'limite_token_leccion' => (intval($usuario->limite_token_leccion)) - $restarAlToken ]);
+                }
+
             } else {
                 $respuesta = 'Tema no selecionado';
             }
         }else{
-            $respuesta = 'Limite de tokens';
+            $respuesta = $this->respuestaLimite;
         }
 
         $temasYValores = $this->lookForTemas(intval($id));
+        set_time_limit(70);
+
         return Inertia::render('materia/vistaTem', [ //carpeta
             'elid'              =>  intval($id),
             'title'             =>  'Seleccione una leccion',
             'perPage'           =>  10,
             'fromController'    =>  $temasYValores[0],
             'respuesta'         =>  $respuesta,
-            'valoresSelect'     =>  '',
+            'objetivosCarrera'  =>  $materia->objetivos(),
             'temaSelec'         => $temaSelec,
             'subtopicoSelec'    => $subtopicoSelec,
             'ejercicioSelec'    => $ejercicioSelec,
-            'limite'    => $limite,
+            'limite'            => $limite,
+            'usuario'           => $usuario,
+            'materia'           => $materia,
+            'restarAlToken'    => $restarAlToken,
+            'soloEjercicios'    => $soloEjercicios ?? '',
             'breadcrumbs'       =>  [['label' => __('app.label.materias'), 
                                     'href' => route('materia.index')]],
 
         ]);
     }
 
+    public function GenerarSujerencias($respuestaGPT,$plantillaPracticar, $pp, &$finishingReason) {
+        // $vectorEjercicios = explode("\n", $respuestaGPT);
+        // $vectorEjercicios = array_filter($vectorEjercicios, 'trim');
+
+        $vectorEjercicios = [
+            1 => "La energía cinética y potencial son dos formas de energía cruciales para la física y deben ser entendidas. La energía cinética es la energía que un objeto posee cuando está en movimiento, mientras que la energía potencial es la energía que se almacena en el objeto gracias a las fuerzas que actúan sobre él. ◀La energía cinética y potencial son dos formas de energía cruciales para la física y deben ser entendidas. La energía cinética es la energía que un objeto posee ",
+            3 => "Para calcular la energía potencial de un cuerpo con masa 1 kg a una altura de 2 metros, se debe utilizar la ecuación de la energía potencial gravitacional, es decir, U = mgh, donde m es la masa, g es la aceleración de la gravedad y h es la altura. Por lo tanto, la energía potencial es igual a 2 kg × 10 m/s2 × 2 m, lo que equivale a 40 Joules. ◀Para calcular la energía potencial de un cuerpo con masa 1 kg a una altura de 2 metros, se debe utilizar la ecuación de la energía potencial gravitacional, es d ",
+            5 => "Ejercicios para practicar:",
+            7 => "1. Calcular la energía cinética de un objeto con masa de 1 kg que se mueve a una velocidad de 5 m/s.",
+            9 => "2. Calcular la energía potencial de un objeto con masa de 10 kg a una altura de 50 metros.",
+            11 => "3. ¿Qué es una ecuación de energía cinética? ¿Y una ecuación de energía potencial? Diferencia las dos ecuaciones.",
+        ];
+
+        // $posicionEjercicios = -1;
+        // foreach ($vectorEjercicios as $key => $value) {
+        //     if(strpos($value, 'Ejercicios') !== false){
+        //         $posicionEjercicios = $key;
+        //     }
+        // }
+
+        // $posicionEjercicios = array_search($plantillaPracticar.': ',$vectorEjercicios,true);
+        $posicionEjercicios2 = array_search($plantillaPracticar.':',$vectorEjercicios,true);
+        
+        if($posicionEjercicios2 !== false) {
+            $contador = $posicionEjercicios2;
+            while($contador <= array_key_last($vectorEjercicios)){
+                if($vectorEjercicios[$contador] ?? false){
+                    $soloEjercicios[] = $vectorEjercicios[$contador];
+                }
+                $contador++;
+                if($contador > 25)break;
+            }
+        }else{
+            $soloEjercicios = ['Sin sugerencias'];
+        }
+        $finishingReason = $pp[0]["finish_reason"];
+
+        session(['tresEjercicios' => $soloEjercicios]);
+        return $soloEjercicios;
+    }//fin: GenerarSujerencias
+
+    
+
+
+    // public function masPreguntas($id,$nuevaPregunta) {
+    public function masPreguntas(Request $request) {
+        $usuario = Auth::user();
+        // dd(
+        //     $request->id,
+        //     $request[0],
+        //     $request[1],
+        //     $request
+        // );
+        if(isset($request->materiaid) && $request->materiaid != null){
+
+            $materia = materia::find($request->materiaid);
+            $materia->TodosObjetivos = $materia->objetivos();
+
+            $limite = $usuario->limite_token_general;
+            $tresEjercicios = session('tresEjercicios');
+            $restarAlToken = 0;
+            $respuesta = 'Probando';
+            if($limite > 0) {
+                $gpt = $this->gptPart($request,$materia,$usuario);
+                $respuesta = preg_replace("/^\n\n/", "", $gpt[0]);
+                $restarAlToken = $gpt[1];
+            }else{//no le quedan mas tokens
+                $respuesta = $this->respuestaLimite;
+            }
+
+            return Inertia::render('materia/masPreguntas', [ //carpeta
+                'nuevaPregunta'     => $request->pregunta,
+                'respuesta'         =>  $respuesta,
+                'restarAlToken'     =>  $restarAlToken,
+
+                'materia'           => $materia,
+                'nivel'             => $request->nivel ?? 'Bachiller',
+                'title'             =>  'Seccion de repaso general',
+                'perPage'           =>  10,
+                'restarAlToken'     => $restarAlToken,
+                'tresEjercicios'    => $tresEjercicios,
+                'limite'            => $limite,
+                'breadcrumbs'       =>  [['label' => __('app.label.materias'), 
+                                        'href' => route('materia.index')]],
+            ]);
+        }else{
+            return Inertia::render('materia/masPreguntas', [
+                'nuevaPregunta'    => '',
+                'respuesta'         =>  '',
+
+                'materia'           => null,
+                'nivel'             => $request->nivel ?? 'Bachiller',
+                'title'             =>  'Seccion de repaso general',
+                'restarAlToken'     => null,
+                'tresEjercicios'    => null,
+                'limite'            => null,
+                'breadcrumbs'       =>  [['label' => __('app.label.materias'), 
+                                        'href' => route('materia.index')]],
+            ]);
+        }
+
+    }
+
+    public function gptPart($request,$materia,$usuario, $productio=true ){ //productio is for debugging
+        if($productio) {
+
+            $plantillaPracticar = 'Ejercicios para practicar';
+            $client = OpenAI::client(env('GTP_SELECT'));
+            $result = $client->completions()->create([
+                'model' => 'text-davinci-003',
+                'prompt' => 'Eres un academico, experto en la asignatura de '.$materia->nombre.' con años de experiencia enseñandola,
+                        responda el siguiente ejercicio: '.$request->pregunta
+                        .'. La respuesta debe tener el nivel de un estudiante '.$request->nivel
+                        .'. Antes de resolver la pregunta, genera un contexto, si es posible, de entre 20 y 40 palabras. Cuando finalices el contexto, deja un renglon vacio.'
+                        .'. Al finalizar la respuesta. sujiere 3 ejercicios para preguntarle a una inteligencia artificial(ponle de titulo '.$plantillaPracticar.') y seguir aprendiendo de '.$materia->nombre,
+                'max_tokens' => 600 // Adjust the response length as needed
+            ]);
+            $respuesta = $result['choices'][0]["text"];
+
+            $finishReason = $result['choices'][0];
+            $finishingReason = $finishReason["finish_reason"] ?? '';
+            // dd($respuesta,$finishReason,$finishingReason,$request->nivel);
+
+
+            // $respuesta = 'a';
+            // $finishingReason ='length';
+            // $result['usage']["completionTokens"] = 100;
+
+            if($finishingReason == 'stop'){
+                // dd($result['usage']);
+                    $usageRespuesta = intval($result['usage']["completion_tokens"]); //~ 260
+                    $usageRespuestaTotal = intval($result['usage']["total_tokens"]); //~ 500
+                    
+                    $restarAlToken = HelpGPT::CalcularTokenConsumidos($usageRespuesta,$usageRespuestaTotal);
+                    $usuario->update([ 'limite_token_general' => (intval($usuario->limite_token_general)) - $restarAlToken ]);
+                    return [$respuesta,$restarAlToken];
+            }else{
+                if($finishingReason == 'length'){
+                    return [$this->respuestaLarga,0];
+                }else{
+                    return ['El servicio no esta disponible',0];
+                }
+            }
+        }
+        return ['GPT desabilitado',0];
+        
+    }
+
+    //fin GPT
     public function store(MateriumRequest $request) {
         DB::beginTransaction();
         $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);

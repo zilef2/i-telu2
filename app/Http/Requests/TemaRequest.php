@@ -25,8 +25,10 @@ class TemaRequest extends FormRequest
     {
         return
         [
-			'nombre' => 'required',
-			// 'descripcion' => 'required',
+			'nombre' => 'required|max:255|min:1',
+			'descripcion' => 'nullable|max:255',
+			'materia_id' => 'required|min:1',
+
         ];
     }
 }

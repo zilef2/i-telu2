@@ -2,20 +2,80 @@
 
 namespace App\Http\Controllers;
 
+use App\helpers\HelpGPT;
+use App\helpers\Myhelp;
 use Inertia\Inertia;
 
 use App\Models\tema;
-use App\Http\Requests\MateriumRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\TemaRequest;
+use App\Models\Materia;
+use GuzzleHttp\Promise\Coroutine;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
+use OpenAI;
 
 class TemasController extends Controller
 {
+    public $respuestaLimite = 'Limite de tokens';
+    public $respuestaLarga = 'La respuesta es demasiado extensa';
+    public $MAX_USAGE_RESPUESTA = 550;
+    public $MAX_USAGE_TOTAL = 600;
+
+    public function fNombresTabla($numberPermissions) {
+        if($numberPermissions < 2) { //estudiante
+
+            $nombresTabla =[//0: como se ven //1 como es la BD //2??
+                ["Acciones","#"],
+                [],
+                [null,null,null]
+            ];
+            array_push($nombresTabla[0], "nombre", "observaciones");
+            //m for money || t for datetime || d date || i for integer || s string || b boolean
+            $nombresTabla[1][] = ["s_nombre", "s_descripcion"];
+            //se puede ordenar?
+            $nombresTabla[2][] = ["s_nombre", "s_descripcion"];
+        }
+        if($numberPermissions < 3){ //profesor
+
+            array_push($nombresTabla[0], 'materia');
+            $nombresTabla[1][] = 'i_materia_id';
+            $nombresTabla[2][] = '';
+            // $nombresTabla[2][] = [];
+        }
+        // dd($nombresTabla);
+        //coordinador_academico
+        // coordinador_de_programa
+
+        return $nombresTabla;
+    }
+    public function Filtros($request, &$temas) {
+        //todo: validar que un estudiante no vea todos los temas de otras universidades
+        if ($request->has('search')) {
+            $temas->where('descripcion','LIKE', "%".$request->search."%");
+            // $temas->whereMonth('descripcion', $request->search);
+            // $temas->OrwhereMonth('fecha_fin', $request->search);
+            $temas->orWhere('nombre', 'LIKE', "%" . $request->search . "%");
+        }
+        
+        if ($request->has(['field', 'order'])) {
+            $temas->orderBy($request->field, $request->order);
+        }else{
+            $temas->orderBy('nombre');
+        }
+    }
+    public function losSelect() {
+        //todo:solo las materias asociadas
+        $MateriasSelect = Materia::all();
+        return [
+            'MateriasSelect' => $MateriasSelect
+        ];
+    }
+
+
     public function index(Request $request) {
         if(Auth::user()->isAdmin < 1){
             $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
@@ -27,54 +87,26 @@ class TemasController extends Controller
         $permissions = auth()->user()->roles->pluck('name')[0];
         $temas = tema::query();
         
+        $perPage = $request->has('perPage') ? $request->perPage : 10;
+        $numberPermissions = Myhelp::getPermissionToNumber($permissions);
         if($permissions === "estudiante") {
-            $perPage = $request->has('perPage') ? $request->perPage : 10;
 
-            $nombresTabla =[//0: como se ven //1 como es la BD //2??
-                ["Acciones","#"],
-                [],
-                [null,null,null]
-            ];
-            $nombresTabla[0][] = ["nombre", "observaciones"];
-            
-            //m for money || t for datetime || d date || i for integer || s string || b boolean 
-            $nombresTabla[1][] = ["s_nombre", "s_descripcion"]; 
-            
-            //campos ordenables
-            $nombresTabla[2][] = ["s_nombre", "s_descripcion"]; 
+            $nombresTabla = $this->fNombresTabla($numberPermissions);
         }else{ // not estudiante
-            $titulo = 'tema';
+            //todo: si es profe, solo muestre los temas de sus materias
+            $this->Filtros($request,$temas);
+            $nombresTabla = $this->fNombresTabla($numberPermissions);
             
-            if ($request->has('search')) {
-                $temas->where('descripcion','LIKE', "%".$request->search."%");
-                // $temas->whereMonth('descripcion', $request->search);
-                // $temas->OrwhereMonth('fecha_fin', $request->search);
-                $temas->orWhere('nombre', 'LIKE', "%" . $request->search . "%");
-            }
-            
-            if ($request->has(['field', 'order'])) {
-                $temas->orderBy($request->field, $request->order);
-            }else{
-                $temas->orderBy('nombre');
-            }
-            $perPage = $request->has('perPage') ? $request->perPage : 10;
-
-            //0: como se ven //1 como es la BD //2 orden
-            $nombresTabla =[
-                ["Acciones","#"],
-                [],
-                [null,null]
-            ];
-            $nombresTabla[0] = array_merge($nombresTabla[0] , ["nombre","descripcion","materia"]);
-            //m for money || t for datetime || d date || i for integer || s string || b boolean 
-            $nombresTabla[1] = array_merge($nombresTabla[1] , ["s_nombre", "s_descripcion","i_materia_id"]);
-            //campos ordenables
-            $nombresTabla[2] = array_merge($nombresTabla[2] , ["nombre", "descripcion",""]);
         }
+
+        //CalcularClasePrincipal
+        
         $temas = $temas->get()->map(function ($tema){
             $tema->hijo = $tema->materia_nombre();
             return $tema;
         });
+
+        $Select = $this->losSelect();
         // dd($temas);
         $page = request('page', 1); // Current page number
         $total = $temas->count();
@@ -95,21 +127,21 @@ class TemasController extends Controller
                                     'href' => route('tema.index')]],
             'nombresTabla'   =>  $nombresTabla,
 
+            'MateriasSelect'   =>  $Select['MateriasSelect'],
         ]);
     }//fin index
 
     public function create() { }
-
     public function store(TemaRequest $request) {
         DB::beginTransaction();
-                $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
-                log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||tema|| ' );
+        $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
+        log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||tema|| ' );
 
         try {
             $tema = tema::create([
                 'nombre' => $request->nombre,
                 //otrosCampos
-                'descripcion' => 'Descripcion generica',
+                'descripcion' => $request->descripcion,
                 'materia_id' => $request->materia_id,
             ]);
             DB::commit();
@@ -171,5 +203,83 @@ class TemasController extends Controller
             Log::alert("U -> ".Auth::user()->name." fallo en borrar tema ".$id." - ".$th->getMessage());
             return back()->with('error', __('app.label.deleted_error', ['name' => __('app.label.temas')]) . $th->getMessage());
         }
+    }
+    
+
+    public function temasCreate() {
+        return response()->json(['generatedText' => 'Un subtopico de ejemplo']);
+        
+    }
+
+    public  function temasCreate2(Request $request) {
+        $usuario = Auth::user();
+        // dd(
+        //     $request->id,
+        //     $request[0],
+        //     $request[1],
+        //     $request
+        // );
+
+            $materia = materia::find($request->materiaid);
+            $materia->TodosObjetivos = $materia->objetivos();
+
+            $limite = $usuario->limite_token_general;
+            $tresEjercicios = session('tresEjercicios');
+            $restarAlToken = 0;
+            $respuesta = 'Probando';
+            if($limite > 0) {
+                $gpt = $this->gptPart($request,$materia,$usuario);
+                $respuesta = preg_replace("/^\n\n/", "", $gpt[0]);
+                $restarAlToken = $gpt[1];
+            }else{//no le quedan mas tokens
+                $respuesta = $this->respuestaLimite;
+            }
+
+            return response()->json(['generatedText' => $respuesta]);
+    }
+
+    public function gptPart($request,$materia,$usuario, $productio=true ){ //productio is for debugging
+        if($productio) {
+
+            $plantillaPracticar = 'Ejercicios para practicar';
+            $client = OpenAI::client(env('GTP_SELECT'));
+            $result = $client->completions()->create([
+                'model' => 'text-davinci-003',
+                'prompt' => 'Eres un academico, experto en la asignatura de '.$materia->nombre.' con años de experiencia enseñandola,
+                        responda el siguiente ejercicio: '.$request->pregunta
+                        .'. La respuesta debe tener el nivel de un estudiante '.$request->nivel
+                        .'. Antes de resolver la pregunta, genera un contexto, si es posible, de entre 20 y 40 palabras. Cuando finalices el contexto, deja un renglon vacio.'
+                        .'. Al finalizar la respuesta. sujiere 3 ejercicios para preguntarle a una inteligencia artificial(ponle de titulo '.$plantillaPracticar.') y seguir aprendiendo de '.$materia->nombre,
+                'max_tokens' => 600 // Adjust the response length as needed
+            ]);
+            $respuesta = $result['choices'][0]["text"];
+
+            $finishReason = $result['choices'][0];
+            $finishingReason = $finishReason["finish_reason"] ?? '';
+            // dd($respuesta,$finishReason,$finishingReason,$request->nivel);
+
+
+            // $respuesta = 'a';
+            // $finishingReason ='length';
+            // $result['usage']["completionTokens"] = 100;
+
+            if($finishingReason == 'stop'){
+                // dd($result['usage']);
+                    $usageRespuesta = intval($result['usage']["completion_tokens"]); //~ 260
+                    $usageRespuestaTotal = intval($result['usage']["total_tokens"]); //~ 500
+                    
+                    $restarAlToken = HelpGPT::CalcularTokenConsumidos($usageRespuesta,$usageRespuestaTotal);
+                    $usuario->update([ 'limite_token_general' => (intval($usuario->limite_token_general)) - $restarAlToken ]);
+                    return [$respuesta,$restarAlToken];
+            }else{
+                if($finishingReason == 'length'){
+                    return [$this->respuestaLarga,0];
+                }else{
+                    return ['El servicio no esta disponible',0];
+                }
+            }
+        }
+        return ['GPT desabilitado',0];
+        
     }
 }

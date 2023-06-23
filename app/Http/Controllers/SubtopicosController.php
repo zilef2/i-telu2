@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SubtopicoRequest;
+use App\Models\Tema;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -93,6 +94,7 @@ class subtopicosController extends Controller
             'breadcrumbs'    =>  [['label' => __('app.label.subtopicos'), 
                                     'href' => route('subtopico.index')]],
             'nombresTabla'   =>  $nombresTabla,
+            'temasSelect'   =>  Tema::all(),
 
         ]);
     }//fin index
@@ -107,8 +109,8 @@ class subtopicosController extends Controller
         try {
             $subtopico = subtopico::create([
                 'nombre' => $request->nombre,
+                'descripcion' => $request->descripcion,
                 //otrosCampos
-                'descripcion' => 'Descripcion generica',
                 'tema_id' => $request->tema_id,
             ]);
             DB::commit();

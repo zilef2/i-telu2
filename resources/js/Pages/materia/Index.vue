@@ -12,7 +12,7 @@ import pkg from 'lodash';
 import { router, usePage, Link } from '@inertiajs/vue3';
 
 import Pagination from '@/Components/Pagination.vue';
-import { ChevronUpDownIcon, EyeIcon, PencilIcon, TrashIcon, UserGroupIcon } from '@heroicons/vue/24/solid';
+import { CursorArrowRippleIcon, ChevronUpDownIcon, EyeIcon, PencilIcon, TrashIcon, UserGroupIcon } from '@heroicons/vue/24/solid';
 
 import Create from '@/Pages/materia/Create.vue';
 import Edit from '@/Pages/materia/Edit.vue';
@@ -21,6 +21,7 @@ import Delete from '@/Pages/materia/Delete.vue';
 import Checkbox from '@/Components/Checkbox.vue';
 import InfoButton from '@/Components/InfoButton.vue';
 import { useForm } from '@inertiajs/vue3';
+import {vectorSelect, formatDate, CalcularEdad, CalcularSexo} from '@/global.js';
 
 const { _, debounce, pickBy } = pkg
 const props = defineProps({
@@ -37,6 +38,7 @@ const props = defineProps({
     MateriasRequisitoSelect: Object,
     UniversidadSelect: Object,
 })
+
 
 const data = reactive({
     params: {
@@ -59,6 +61,7 @@ const data = reactive({
 
     UniversidadSelect: [],
     carrerasDeUSel: [],
+    MateriasRequisitoSelect: [],
     numeroCarreras: 0,
 })
 const order = (field) => {
@@ -74,8 +77,6 @@ watch(() => _.cloneDeep(data.params), debounce(() => {
         preserveScroll: true,
     })
 }, 100))
-
-
 
 watchEffect(() => {
     // data.numeroCarreras = ((Object.keys(props.carrerasSelect)).length)
@@ -119,12 +120,16 @@ onMounted(() =>{
     // data.numeroCarreras = ((Object.keys(props.carrerasSelect)).length)
     // if(data.numeroCarreras > 0){
 
-        data.carrerasDeUSel = props.carrerasSelect.map(
-            carrera => (
-                { label: carrera.nombre, value: carrera.id }
-            )
-        )
-        data.carrerasDeUSel.unshift({label: 'Seleccione carrera', value:0})
+        // data.carrerasDeUSel = props.carrerasSelect.map(
+        //     carrera => (
+        //         { label: carrera.nombre, value: carrera.id }
+        //     )
+        // )
+        // data.carrerasDeUSel.unshift({label: 'Seleccione carrera', value:0})
+
+        data.carrerasDeUSel = vectorSelect(data.carrerasDeUSel,props.carrerasSelect,'una')
+        data.MateriasRequisitoSelect = vectorSelect(data.MateriasRequisitoSelect,props.MateriasRequisitoSelect,'una')
+
     // }
 })
 
@@ -144,9 +149,9 @@ onMounted(() =>{
                         {{ lang().button.add }}
                     </PrimaryButton>
                     <Create :show="data.createOpen" @close="data.createOpen = false" :title="props.title"
-                        :carrerasSelect="carrerasSelect" :MateriasRequisitoSelect="props.MateriasRequisitoSelect" />
+                        :carrerasSelect="data.carrerasDeUSel" :MateriasRequisitoSelect="data.MateriasRequisitoSelect" />
                     <Edit :show="data.editOpen" @close="data.editOpen = false" :materia="data.generico" :title="props.title"
-                        :carrerasSelect="carrerasSelect" :MateriasRequisitoSelect="props.MateriasRequisitoSelect" />
+                        :carrerasSelect="data.carrerasDeUSel" :MateriasRequisitoSelect="data.MateriasRequisitoSelect" />
                     <Delete :show="data.deleteOpen" @close="data.deleteOpen = false" :materia="data.generico"
                         :title="props.title" />
                 </div>
@@ -216,7 +221,7 @@ onMounted(() =>{
                                             <Link :href="route('materia.VistaTema', clasegenerica.id)"
                                                 v-show="can(['read materia'])" type="button"
                                                 class="px-2 -mb-1.5 py-1.5 rounded-none hover:bg-blue-500">
-                                            <EyeIcon class="w-4 h-4" />
+                                            <CursorArrowRippleIcon class="w-4 h-4" />
                                             </Link>
                                             <Link :href="route('materia.AsignarUsers', clasegenerica.id)"
                                                 v-show="can(['read materia'])" type="button"

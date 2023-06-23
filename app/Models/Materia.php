@@ -31,11 +31,14 @@ class Materia extends Model
     }
     public function objetivos(){
         $objetivos = '';
-        $objetivos .= $this->objetivo1;
-        $objetivos .= $this->objetivo2;
-        $objetivos .= $this->objetivo3;
+        $objetivos .= $this->objetivo1 != null ? $this->objetivo1 : '';
+        $objetivos .= $this->objetivo2 != null ? '. '. $this->objetivo2 : '';
+        $objetivos .= $this->objetivo3 != null ? '. '.$this->objetivo3 : '';
 
-        return $objetivos;
+        if($objetivos == '')
+            return 'No hay objetivos registrados';
+        else
+            return $objetivos;
     }
 
     public function carrera(): BelongsTo {

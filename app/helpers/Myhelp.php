@@ -86,4 +86,13 @@ class Myhelp{
         }
     }
 
+    public static function getPermissionToNumber($permissions) {
+
+        if($permissions == 'estudiante') return 1;
+        if($permissions == 'profesor') return 2;
+        if($permissions == 'coordinador_academico') return 3;
+        if($permissions == 'coordinador_de_programa') return 4;
+        return 0;
+    }
+
 } ?>

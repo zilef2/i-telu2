@@ -57,6 +57,9 @@ Route::middleware('auth', 'verified')->group(function () {
     Route::get('/AsignarMateria/{materiaid}', [MateriasController::class,'AsignarUsers'])->name('materia.AsignarUsers');
     Route::post('/AsignarMateria', [MateriasController::class,'SubmitAsignarUsers'])->name('materia.SubmitAsignarUsers');
     Route::get('/materiaEstudiar/{id}/{temaSelec?}/{subtopicoSelec?}/{ejercicioSelec?}', [MateriasController::class,'VistaTema'])->name('materia.VistaTema');
+    // Route::get('/masPreguntas/{id}/{nuevaPregunta}', [MateriasController::class,'masPreguntas'])->name('materia.masPreguntas');
+    Route::get('/masPreguntas', [MateriasController::class,'masPreguntas'])->name('materia.masPreguntas');
+    // Route::post('/masPreguntasPost', [MateriasController::class,'masPreguntasPost'])->name('materia.masPreguntasPost');
     
     // #universidad
     Route::get('/AsignaruserUni/{universidadid}', [UniversidadsController::class,'AsignarUsers'])->name('universidad.AsignarUsers');
@@ -66,8 +69,10 @@ Route::middleware('auth', 'verified')->group(function () {
     Route::get('/AsignaruserCarrera/{carreraid}', [CarrerasController::class,'AsignarUsers'])->name('carrera.AsignarUsers');
     Route::post('/AsignaruserCar', [CarrerasController::class,'SubmitAsignarUsers'])->name('carrera.SubmitAsignarUsers');
 
-    //otros
+    // #temas
     Route::resource('/tema', TemasController::class);
+    Route::post('/gpt/temasCreate', [TemasController::class,'temasCreate']);//->name('temas.temasCreate');
+    //otros
     Route::resource('/subtopico', SubtopicosController::class);
     Route::resource('/ejercicio', EjerciciosController::class);
 

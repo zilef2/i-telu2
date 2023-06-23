@@ -24,7 +24,7 @@ class UserIndexRequest extends FormRequest
     public function rules()
     {
         return [
-            'field' => ['in:name,email,created_at,updated_at'],
+            'field' => ['in:name,email,created_at,updated_at,identificacion,sexo,fecha_nacimiento,semestre,limite_token_general,limite_token_leccion,posicion,pgrado'],
             'order' => ['in:asc,desc'],
             'perPage' => ['numeric'],
         ];

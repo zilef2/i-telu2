@@ -10,9 +10,12 @@ import InputError from '@/Components/InputError.vue';
     // import Checkbox from '@/Components/Checkbox.vue';
     import { reactive, watchEffect } from 'vue';
 
+    import SelectInput from '@/Components/SelectInput.vue';
+
 const props = defineProps({
     show: Boolean,
     title: String,
+    temasSelect: Object,
 })
 
 const emit = defineEmits(["close"]);
@@ -25,8 +28,8 @@ const today = new Date();
 const form = useForm({
     nombre: '',
     descripcion: '',
+    tema_id: 0,
 })
-
 const create = () => {
     form.post(route('subtopico.store'), {
         preserveScroll: true,
@@ -58,14 +61,25 @@ watchEffect(() => {
                 <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
                     {{ lang().label.add }} {{ props.title }}
                 </h2>
-                <div class="my-6 grid grid-cols-1 gap-6">
+                <div class="my-6 grid xs:grid-cols-1 sm:grid-cols-2 gap-6">
                     <div>
                         <InputLabel for="nombre" :value="lang().label.name" />
                         <TextInput id="nombre" type="text" class="mt-1 block w-full" v-model="form.nombre" required
                             :placeholder="lang().placeholder.nombre" :error="form.errors.nombre" />
                         <InputError class="mt-2" :message="form.errors.nombre" />
                     </div>
-                    
+                    <div>
+                        <InputLabel for="descripcion" :value="lang().label.descripcion" />
+                        <TextInput id="descripcion" type="text" class="mt-1 block w-full" v-model="form.descripcion" required
+                            :placeholder="lang().placeholder.descripcion" :error="form.errors.descripcion" />
+                        <InputError class="mt-2" :message="form.errors.descripcion" />
+                    </div>
+                    <div>
+                        <InputLabel for="tema_id" :value="lang().label.materia" />
+                        <SelectInput name="tema_id" class="mt-1 block w-full" v-model="form.tema_id" required
+                            :dataSet="temasSelect"> </SelectInput>
+                        <InputError class="mt-2" :message="form.errors.tema_id" />
+                    </div>
                 </div>
                 
                 <div class="flex justify-end">

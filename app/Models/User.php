@@ -31,6 +31,7 @@ class User extends Authenticatable
         'limite_token_leccion',
         
         'posicion',
+        'pgrado', //bachiller, pregrado, postgrado
     ];
 
     /**

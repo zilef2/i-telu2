@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 
 class UserSeeder extends Seeder
@@ -52,21 +53,32 @@ class UserSeeder extends Seeder
 
         
         $nombresGenericos= [ 
-            'jose',
-            'madrid',
-            'felizzola',
-            'marta',
-            'liliana',
-            'mabel',
-            'miguel',
+            'jose' => '1152194566',
+            'madrid' => '1152194567',
+            'felizzola' => '1152194568',
+            'marta' => '1152194569',
+            'liliana' => '1152194510',
+            'mabel' => '1152194511',
+            'miguel' => '1152194512',
+            'jorge' => '1152194513',
+            'emerson' => '1152194514',
         ];
-        foreach ($nombresGenericos as $value) {
+        $grados = ['bachiller','pregrado','postgrado'];
+        foreach ($nombresGenericos as $key => $value) {
+            $yearRandom = (rand(15,39));
+            $anios = Carbon::now()->subYears($yearRandom)->format('Y-m-d H:i');
+            $sexos = ['Masculino', 'Femenino'];
             $unUsuario = User::create([
-                'name'              => $value,
-                'email'             => $value.'@'.$value.'.com',
+                'name'              => $key,
+                'email'             => $key.'@'.$key.'.com',
                 'password'          => bcrypt('asd+-*/'),
                 'email_verified_at' => date('Y-m-d H:i'),
-                'posicion_id' => 1
+                'fecha_nacimiento' => $anios,
+                'sexo' => $sexos[rand(0,1)],
+                'posicion_id' => 1,
+                'identificacion' => $value,
+                'semestre' => rand(1,10),
+                'pgrado' => $grados[rand(0,2)],
             ]); $unUsuario->assignRole('estudiante');
         }
     }

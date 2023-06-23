@@ -48,7 +48,9 @@ const data = reactive({
 
 const order = (field) => {
     data.params.field = field
+    console.log("🧈 debu data.params.field:", data.params.field);
     data.params.order = data.params.order === "asc" ? "desc" : "asc"
+    console.log("🧈 debu data.params.order:", data.params.order);
 }
 
 watch(() => _.cloneDeep(data.params), debounce(() => {
@@ -137,6 +139,7 @@ const select = () => {
                                 <th class="px-2 py-4 cursor-pointer" v-on:click="order('identificacion')"> <div class="flex justify-between items-center"> <span>{{ lang().label.identificacion }}</span> <ChevronUpDownIcon class="w-4 h-4" /> </div> </th>
                                 <th class="px-2 py-4 cursor-pointer" v-on:click="order('sexo')"> <div class="flex justify-between items-center"> <span>{{ lang().label.sexo }}</span> <ChevronUpDownIcon class="w-4 h-4" /> </div> </th>
                                 <th class="px-2 py-4 cursor-pointer" v-on:click="order('fecha_nacimiento')"> <div class="flex justify-between items-center"> <span>{{ lang().label.edad }}</span> <ChevronUpDownIcon class="w-4 h-4" /> </div> </th>
+                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('pgrado')"> <div class="flex justify-between items-center"> <span>{{ lang().label.pgrado }}</span> <ChevronUpDownIcon class="w-4 h-4" /> </div> </th>
                                 <th class="px-2 py-4 cursor-pointer" v-on:click="order('semestre')"> <div class="flex justify-between items-center"> <span>{{ lang().label.semestre }}</span> <ChevronUpDownIcon class="w-4 h-4" /> </div> </th>
                                 <!-- <th class="px-2 py-4 cursor-pointer" v-on:click="order('semestre_mas_bajo')"> <div class="flex justify-between items-center"> <span>{{ lang().label.semestre_mas_bajo }}</span> <ChevronUpDownIcon class="w-4 h-4" /> </div> </th> -->
                                 <th class="px-2 py-4 cursor-pointer" v-on:click="order('limite_token_general')"> <div class="flex justify-between items-center"> <span>{{ lang().label.limite_token_general }}</span> <ChevronUpDownIcon class="w-4 h-4" /> </div> </th>
@@ -171,12 +174,12 @@ const select = () => {
                                 <!-- <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.created_at }}</td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.updated_at }}</td> -->
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.identificacion }}</td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ CalcularSexo(user.sexo) }}</td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ CalcularEdad(user.fecha_nacimiento) }}</td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.semestre }}</td>
-                                <!-- <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.semestre_mas_bajo }}</td> -->
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.limite_token_general }}</td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.limite_token_leccion }}</td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.sexo }}</td>
+                                <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">{{ CalcularEdad(user.fecha_nacimiento) }}</td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.pgrado }}</td>
+                                <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">{{ user.semestre }}</td>
+                                <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">{{ user.limite_token_general }}</td>
+                                <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">{{ user.limite_token_leccion }}</td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">
                                     <div class="flex justify-center items-center">
                                         <div class="rounded-md overflow-hidden">

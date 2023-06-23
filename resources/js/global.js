@@ -84,3 +84,25 @@ export function CalcularEdad(nacimiento){
 export function CalcularSexo(value){
     return value == 0 ? 'Masculino' : 'Femenino'
 }
+
+export function sinTildes(value){
+    let pattern = /[^a-zA-Z0-9\s]/g;
+    let replacement = '';
+    let result = value.replace(pattern, replacement);
+    return result
+}
+
+
+export function ReemplazarTildes(texto){
+    return texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+export function vectorSelect(vectorSelect, propsVector, genero = 'uno'){
+    vectorSelect = propsVector.map(
+        generico => (
+            { label: generico.nombre, value: generico.id }
+        )
+    )
+    vectorSelect.unshift({label: 'Seleccione '+ genero, value:0})
+    return vectorSelect;
+}

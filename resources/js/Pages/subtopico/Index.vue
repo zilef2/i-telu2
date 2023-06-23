@@ -19,6 +19,7 @@
 
     import Checkbox from '@/Components/Checkbox.vue';
     import InfoButton from '@/Components/InfoButton.vue';
+    import {vectorSelect, formatDate, CalcularEdad, CalcularSexo} from '@/global.js';
 
     const { _, debounce, pickBy } = pkg
     const props = defineProps({
@@ -29,6 +30,8 @@
 
         fromController: Object,
         nombresTabla: Array,
+
+        temasSelect: Object,
     })
     
     const data = reactive({
@@ -46,7 +49,9 @@
         deleteBulkOpen: false,
         generico: null,
         dataSet: usePage().props.app.perpage,
+        temasSelect:null
     })
+    data.temasSelect = vectorSelect(data.temasSelect,props.temasSelect,'un tema')
         
 
     const order = (field) => {
@@ -95,8 +100,10 @@
                     <PrimaryButton class="rounded-none" @click="data.createOpen = true">
                         {{ lang().button.add }}
                     </PrimaryButton>
-                    <Create :show="data.createOpen" @close="data.createOpen = false" :title="props.title" />
-                    <Edit :show="data.editOpen" @close="data.editOpen = false" :subtopico="data.generico" :title="props.title" />
+                    <Create :show="data.createOpen" @close="data.createOpen = false" :title="props.title" 
+                        :temasSelect="data.temasSelect"/>
+                    <Edit :show="data.editOpen" @close="data.editOpen = false" :subtopico="data.generico" :title="props.title" 
+                        :temasSelect="data.temasSelect"/>
                     <Delete :show="data.deleteOpen" @close="data.deleteOpen = false" :subtopico="data.generico" :title="props.title" />
                 </div>
             </div>

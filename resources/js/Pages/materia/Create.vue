@@ -8,7 +8,7 @@ import InputError from '@/Components/InputError.vue';
     import DatetimeInput from '@/Components/DatetimeInput.vue';
     import { useForm } from '@inertiajs/vue3';
     import Checkbox from '@/Components/Checkbox.vue';
-    import { reactive, watchEffect, ref } from 'vue';
+    import { reactive, watchEffect, ref, onMounted } from 'vue';
     import SelectInput from '@/Components/SelectInput.vue';
 
 
@@ -52,7 +52,9 @@ const create = () => {
     })
 }
 
+onMounted(() =>{
 
+})
 watchEffect(() => {
     if (props.show) {
         form.errors = {}
@@ -71,6 +73,8 @@ watchEffect(() => {
                 return materia.value !== 0;
             })
         }
+
+
         if(data.MateriasRequisitoSelect){
             data.HayMaterias = data.MateriasRequisitoSelect.length
         }else{
@@ -104,7 +108,8 @@ watchEffect(() => {
                     </div>
                     <div>
                         <InputLabel for="carrera_id" :value="lang().label.carrera" />
-                        <SelectInput name="carrera_id" class="mt-1 block w-full" v-model="form.carrera_id" required :dataSet="carrerasSelect"> </SelectInput>
+                        <SelectInput name="carrera_id" class="mt-1 block w-full" v-model="form.carrera_id" required
+                         :dataSet="props.carrerasSelect"> </SelectInput>
                         <InputError class="mt-2" :message="form.errors.carrera_id" />
                     </div>
                     
@@ -122,7 +127,7 @@ watchEffect(() => {
                             :dataSet="data.MateriasRequisitoSelect"> </SelectInput>
                         <InputError class="mt-2" :message="form.errors.requisito1" />
                     </div>
-                    <!-- <div v-if="form.cuantosReq > 1 && data.HayMaterias">
+                    <div v-if="form.cuantosReq > 1 && data.HayMaterias">
                         <InputLabel for="requisito2" :value="lang().label.requisito2" />
                         <SelectInput id="requisito2" class="mt-1 block w-full" v-model="form.requisito2" required :dataSet="data.MateriasRequisitoSelect"> </SelectInput>
                         <InputError class="mt-2" :message="form.errors.requisito2" />
@@ -131,7 +136,8 @@ watchEffect(() => {
                         <InputLabel for="requisito3" :value="lang().label.requisito3" />
                         <SelectInput id="requisito3" class="mt-1 block w-full" v-model="form.requisito3" required :dataSet="data.MateriasRequisitoSelect"> </SelectInput>
                         <InputError class="mt-2" :message="form.errors.requisito3" />
-                    </div> -->
+                    </div>
+                    <!-- todo: van mas requisitos? -->
 
                     <div v-if="!data.HayMaterias && form.carrera_id">
                         <InputLabel for="requisito1" value="Actualmente no hay materias!" class="text-red-500 bg-red-100" />

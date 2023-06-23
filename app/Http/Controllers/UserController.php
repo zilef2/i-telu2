@@ -33,10 +33,12 @@ class UserController extends Controller
             $users->where('name', 'LIKE', "%" . $request->search . "%");
             $users->orWhere('email', 'LIKE', "%" . $request->search . "%");
             $users->orWhere('identificacion', 'LIKE', "%" . $request->search . "%");
+            $users->orWhere('pgrado', 'LIKE', "%" . $request->search . "%");
             $users->orWhere('semestre', 'LIKE', "%" . $request->search . "%");
         }
+
         if ($request->has(['field', 'order'])) {
-            $users->orderBy($request->field, $request->order);
+            $users = $users->orderBy($request->field, $request->order);
         }
         $perPage = $request->has('perPage') ? $request->perPage : 10;
         $role = auth()->user()->roles->pluck('name')[0];

@@ -19,6 +19,8 @@
 
     import Checkbox from '@/Components/Checkbox.vue';
     import InfoButton from '@/Components/InfoButton.vue';
+    import {vectorSelect, formatDate, CalcularEdad, CalcularSexo} from '@/global.js';
+
 
     const { _, debounce, pickBy } = pkg
     const props = defineProps({
@@ -29,6 +31,8 @@
 
         fromController: Object,
         nombresTabla: Array,
+        subtemasSelect: Object,
+
     })
     
     const data = reactive({
@@ -46,9 +50,10 @@
         deleteBulkOpen: false,
         generico: null,
         dataSet: usePage().props.app.perpage,
+        subtemasSelect: null
     })
+    data.subtemasSelect = vectorSelect(data.subtemasSelect,props.subtemasSelect,'un')
         
-
     const order = (field) => {
         console.log("🧈 debu field:", field);
         data.params.field = field.replace(/ /g, "_")
@@ -95,8 +100,10 @@
                     <PrimaryButton class="rounded-none" @click="data.createOpen = true">
                         {{ lang().button.add }}
                     </PrimaryButton>
-                    <Create :show="data.createOpen" @close="data.createOpen = false" :title="props.title" />
-                    <Edit :show="data.editOpen" @close="data.editOpen = false" :ejercicio="data.generico" :title="props.title" />
+                    <Create :show="data.createOpen" @close="data.createOpen = false" :title="props.title" 
+                        :subtemasSelect="data.subtemasSelect"/>
+                    <Edit :show="data.editOpen" @close="data.editOpen = false" :ejercicio="data.generico" :title="props.title" 
+                        :subtemasSelect="data.subtemasSelect"/>
                     <Delete :show="data.deleteOpen" @close="data.deleteOpen = false" :ejercicio="data.generico" :title="props.title" />
                 </div>
             </div>

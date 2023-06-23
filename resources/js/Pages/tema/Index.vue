@@ -19,6 +19,9 @@
 
     import Checkbox from '@/Components/Checkbox.vue';
     import InfoButton from '@/Components/InfoButton.vue';
+    
+    import {vectorSelect, formatDate, CalcularEdad, CalcularSexo} from '@/global.js';
+
 
     const { _, debounce, pickBy } = pkg
     const props = defineProps({
@@ -29,6 +32,7 @@
 
         fromController: Object,
         nombresTabla: Array,
+        MateriasSelect: Object,
     })
     
     const data = reactive({
@@ -45,12 +49,12 @@
         deleteOpen: false,
         deleteBulkOpen: false,
         generico: null,
+        MateriasSelect: null,
         dataSet: usePage().props.app.perpage,
     })
         
 
     const order = (field) => {
-        console.log("🧈 debu field:", field);
         data.params.field = field.replace(/ /g, "_")
 
         data.params.order = data.params.order === "asc" ? "desc" : "asc"
@@ -81,6 +85,8 @@
             data.multipleSelect = false
         }
     }
+
+    data.MateriasSelect = vectorSelect(data.MateriasSelect,props.MateriasSelect,'una')
     
 </script>
 
@@ -95,8 +101,8 @@
                     <PrimaryButton class="rounded-none" @click="data.createOpen = true">
                         {{ lang().button.add }}
                     </PrimaryButton>
-                    <Create :show="data.createOpen" @close="data.createOpen = false" :title="props.title" />
-                    <Edit :show="data.editOpen" @close="data.editOpen = false" :tema="data.generico" :title="props.title" />
+                    <Create :show="data.createOpen" @close="data.createOpen = false" :title="props.title" :MateriasSelect="data.MateriasSelect"/>
+                    <Edit :show="data.editOpen" @close="data.editOpen = false" :tema="data.generico" :title="props.title" :MateriasSelect="data.MateriasSelect"/>
                     <Delete :show="data.deleteOpen" @close="data.deleteOpen = false" :tema="data.generico" :title="props.title" />
                 </div>
             </div>

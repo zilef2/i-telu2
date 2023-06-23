@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ejercicioRequest;
+use App\Models\Subtopico;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -74,6 +75,8 @@ class EjerciciosController extends Controller
             $ejercicio->hijo = $ejercicio->subtopico_nombre();
             return $ejercicio;
         });
+        //todo: organizar el regero
+
         // dd($ejercicios);
         $page = request('page', 1); // Current page number
         $total = $ejercicios->count();
@@ -93,6 +96,7 @@ class EjerciciosController extends Controller
             'breadcrumbs'    =>  [['label' => __('app.label.ejercicios'), 
                                     'href' => route('ejercicio.index')]],
             'nombresTabla'   =>  $nombresTabla,
+            'subtemasSelect'   =>  Subtopico::all(),
 
         ]);
     }//fin index

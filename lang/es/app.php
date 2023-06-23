@@ -5,6 +5,10 @@ return [
         //asignar - materia
         
         'no_permission' => 'Accion no autorizada',
+        //tema
+        'stema' => 'sub tema',
+        'temas' => 'temas',
+        'tema' => 'tema',
         //materia
         'cuantosObj' => 'cuantos Objetivos?',
         'objetivo' => 'objetivo',
@@ -17,6 +21,7 @@ return [
         'descripcion' => 'descripcion',
         'seeTemas' => 'Temas',
         //user
+        'pgrado' => 'Nivel',
         'identificacion' => 'identificacion',
         'edad' => 'edad',
         'anio' => 'edad',
@@ -24,7 +29,7 @@ return [
         'fecha_nacimiento' => 'fecha de nacimiento',
         'semestre' => 'semestre',
         'semestre_mas_bajo' => 'semestre mas bajo',
-        'limite_token_general' => 'limite de general',
+        'limite_token_general' => 'limite general',
         'limite_token_leccion' => 'limite de tokens por leccion',
         'limite_token_lec' => 'limite/leccion',
 

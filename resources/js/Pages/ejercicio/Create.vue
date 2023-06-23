@@ -9,10 +9,13 @@ import InputError from '@/Components/InputError.vue';
     import { useForm } from '@inertiajs/vue3';
     // import Checkbox from '@/Components/Checkbox.vue';
     import { reactive, watchEffect } from 'vue';
+    import SelectInput from '@/Components/SelectInput.vue';
 
 const props = defineProps({
     show: Boolean,
     title: String,
+    subtemasSelect: Object,
+
 })
 
 const emit = defineEmits(["close"]);
@@ -25,6 +28,8 @@ const today = new Date();
 const form = useForm({
     nombre: '',
     descripcion: '',
+    subtopico_id: 0,
+
 })
 
 const create = () => {
@@ -65,7 +70,12 @@ watchEffect(() => {
                             :placeholder="lang().placeholder.nombre" :error="form.errors.nombre" />
                         <InputError class="mt-2" :message="form.errors.nombre" />
                     </div>
-                    
+                     <div>
+                        <InputLabel for="subtopico_id" :value="lang().label.materia" />
+                        <SelectInput name="subtopico_id" class="mt-1 block w-full" v-model="form.subtopico_id" required
+                            :dataSet="subtemasSelect"> </SelectInput>
+                        <InputError class="mt-2" :message="form.errors.subtopico_id" />
+                    </div>
                 </div>
                 
                 <div class="flex justify-end">
