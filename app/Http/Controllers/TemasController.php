@@ -169,8 +169,8 @@ class TemasController extends Controller
             // dd($tema,$request->nombre);
             $tema->update([
                 'nombre' => $request->nombre,
-                'descripcion' => $request->nombre,//todo: temp
-                //otrosCampos
+                'descripcion' => $request->descripcion,
+                'materia_id' => $request->materia_id,
             ]);
             DB::commit();
             Log::info("U -> ".Auth::user()->name." actualizo tema ".$request->nombre." correctamente");
@@ -207,8 +207,7 @@ class TemasController extends Controller
     
 
     public function temasCreate() {
-        return response()->json(['generatedText' => 'Un subtopico de ejemplo']);
-        
+        return 'Un subtopico de ejemplo';
     }
 
     public  function temasCreate2(Request $request) {

@@ -6,7 +6,7 @@ import TextInput from '@/Components/TextInput.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import InfoButton from '@/Components/InfoButton.vue';
 import SelectInput from '@/Components/SelectInput.vue';
-import { reactive, watch } from 'vue';
+import { reactive, watch, watchEffect } from 'vue';
 import DangerButton from '@/Components/DangerButton.vue';
 import pkg from 'lodash';
 import { router } from '@inertiajs/vue3';
@@ -17,7 +17,8 @@ import Edit from '@/Pages/User/Edit.vue';
 import Delete from '@/Pages/User/Delete.vue';
 import DeleteBulk from '@/Pages/User/DeleteBulk.vue';
 import Checkbox from '@/Components/Checkbox.vue';
-import { usePage } from '@inertiajs/vue3';
+import { usePage,useForm } from '@inertiajs/vue3';
+
 import {number_format, formatDate, CalcularEdad, CalcularSexo} from '@/global.js';
 
 const { _, debounce, pickBy } = pkg
@@ -43,6 +44,7 @@ const data = reactive({
     deleteOpen: false,
     deleteBulkOpen: false,
     user: null,
+    ArchivoNombre: '',
     dataSet: usePage().props.app.perpage
 })
 
@@ -79,10 +81,31 @@ const select = () => {
     }
 }
 
+
+const form = useForm({
+    archivo1: '',
+})
+
+function uploadFile() {
+    form.post('/subiruserupload', {
+        preserveScroll: true,
+        onSuccess: () => {
+            // emit("close")
+            // form.reset()
+        },
+        onError: () => null,
+        onFinish: () => null,
+    });
+}
+
+watchEffect(() => {
+    console.log(form.archivo1.name)
+    data.ArchivoNombre = form.archivo1?.name 
+})
+
 </script>
 
 <template>
-
     <Head :title="props.title" />
 
     <AuthenticatedLayout>
@@ -113,9 +136,22 @@ const select = () => {
                             v-tooltip="lang().tooltip.delete_selected">
                             <TrashIcon class="w-5 h-5" />
                         </DangerButton>
+                        <form @submit.prevent="uploadFile" id="upload">
+                            <label class="mx-2 underline text-sky-500" for="archivo1">
+                                Formato estudiantes
+                            </label>
+                            <small class="mx-2 ">{{ data.ArchivoNombre }}</small>
+                            <input class="hidden" type="file" id="archivo1" @input="form.archivo1 = $event.target.files[0]" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+                            <progress v-if="form.progress" :value="form.progress.percentage" max="100">
+                                {{ form.progress.percentage }}%
+                            </progress>
+                            <PrimaryButton v-show="can(['create user']) && form.archivo1"  :disabled="form.archivo1 == null" class="rounded-none mt-1">
+                                {{ lang().button.subir }}
+                            </PrimaryButton>
+                        </form>
                     </div>
                     <TextInput v-model="data.params.search" type="text" class="block w-4/6 md:w-3/6 lg:w-2/6 rounded-lg"
-                        placeholder="Nombre, correo o semestre" />
+                        placeholder="Nombre, correo, nivel, ID o semestre " />
                 </div>
                 <div class="overflow-x-auto scrollbar-table">
                     <table class="w-full">
@@ -144,6 +180,7 @@ const select = () => {
                                 <!-- <th class="px-2 py-4 cursor-pointer" v-on:click="order('semestre_mas_bajo')"> <div class="flex justify-between items-center"> <span>{{ lang().label.semestre_mas_bajo }}</span> <ChevronUpDownIcon class="w-4 h-4" /> </div> </th> -->
                                 <th class="px-2 py-4 cursor-pointer" v-on:click="order('limite_token_general')"> <div class="flex justify-between items-center"> <span>{{ lang().label.limite_token_general }}</span> <ChevronUpDownIcon class="w-4 h-4" /> </div> </th>
                                 <th class="px-2 py-4 cursor-pointer" v-on:click="order('limite_token_leccion')"> <div class="flex justify-between items-center"> <span>{{ lang().label.limite_token_lec }}</span> <ChevronUpDownIcon class="w-4 h-4" /> </div> </th>
+                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('pgrado')"> <div class="flex justify-between items-center"> <span>{{ lang().label.pgrado }}</span> <ChevronUpDownIcon class="w-4 h-4" /> </div> </th>
 
                                 <th class="px-2 py-4">Accion</th>
                             </tr>
@@ -180,6 +217,7 @@ const select = () => {
                                 <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">{{ user.semestre }}</td>
                                 <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">{{ user.limite_token_general }}</td>
                                 <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">{{ user.limite_token_leccion }}</td>
+                                <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">{{ user.pgrado }}</td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">
                                     <div class="flex justify-center items-center">
                                         <div class="rounded-md overflow-hidden">

@@ -30,9 +30,11 @@ class User extends Authenticatable
         'limite_token_general',
         'limite_token_leccion',
         
-        'posicion',
+        'posicion_id',
         'pgrado', //bachiller, pregrado, postgrado
     ];
+
+ 
 
     /**
      * The attributes that should be hidden for serialization.

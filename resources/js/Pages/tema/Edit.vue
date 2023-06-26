@@ -8,14 +8,18 @@ import TextInput from '@/Components/TextInput.vue';
 import DatetimeInput from '@/Components/DatetimeInput.vue';
 
 import { useForm } from '@inertiajs/vue3';
-import { watchEffect, reactive } from 'vue';
+import { watchEffect, reactive, onMounted} from 'vue';
 import Checkbox from '@/Components/Checkbox.vue';
+import SelectInput from '@/Components/SelectInput.vue';
 
 const props = defineProps({
     show: Boolean,
     title: String,
     tema: Object,
+    MateriasSelect: Object,
+
 })
+    console.log("🧈 debu tema:", props.tema);
 
 const data = reactive({
     multipleSelect: false,
@@ -23,13 +27,21 @@ const data = reactive({
 
 const emit = defineEmits(["close"]);
 
-const form = useForm({
-    nombre: '',
-});
-
+const justNames =[
+    'nombre',
+    'descripcion',
+    'materia_id',
+]
+const form = useForm({ ...Object.fromEntries(justNames.map(field => [field, ''])) });
 const printForm = [
     {idd: 'nombre',label: 'nombre', type:'text', value:form.nombre},
+    {idd: 'descripcion',label: 'descripcion', type:'text', value:form.descripcion},
 ];
+
+onMounted(()=>{
+ 
+})
+
 
 const update = () => {
     form.put(route('tema.update', props.tema?.id), {
@@ -48,7 +60,11 @@ watchEffect(() => {
     if (props.show) {
         form.errors = {}
         form.nombre = props.tema?.nombre
+        form.descripcion = props.tema?.descripcion
+        form.materia_id = props.tema?.materia_id
     }
+
+
 })
 </script>
 
@@ -65,6 +81,12 @@ watchEffect(() => {
                         <TextInput :id="atributosform.idd" :type="atributosform.type" class="mt-1 block w-full"
                             v-model="form[atributosform.idd]" required
                             :placeholder="atributosform.label" :error="form.errors[atributosform.idd]" />
+                    </div>
+                    <div>
+                        <InputLabel for="materia_id" :value="lang().label.materia" />
+                        <SelectInput name="materia_id" class="mt-1 block w-full" v-model="form.materia_id" required
+                            :dataSet="MateriasSelect"> </SelectInput>
+                        <InputError class="mt-2" :message="form.errors.materia_id" />
                     </div>
                 </div>
                 <div class="flex justify-end">

@@ -17,6 +17,8 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+/helpers/reuniones/*.jav
+.jav
 .DS_Store
 .zip
 *.zip

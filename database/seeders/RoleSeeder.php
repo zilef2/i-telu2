@@ -44,39 +44,40 @@ class RoleSeeder extends Seeder
                 $admin->givePermissionTo([ $crud.' '.$model ]);
             }
         }
-        $superadmin->givePermissionTo([ 'isSuper', 'isAdmin','isCoorAcademico', 'isCoorPrograma' ]);
-        $admin->givePermissionTo(['isAdmin','isCoorAcademico', 'isCoorPrograma' ]);
+        $superadmin->givePermissionTo([ 'isSuper', 'isAdmin','isCoorAcademico', 'isCoorPrograma','isProfesor','isEstudiante' ]);
+        $admin->givePermissionTo(['isAdmin','isCoorAcademico', 'isCoorPrograma','isProfesor','isEstudiante' ]);
+
         $coordinador_academico->givePermissionTo(['isCoorAcademico']);
         $coordinador_de_programa->givePermissionTo(['isCoorPrograma']);
         $profesor->givePermissionTo(['isProfesor']);
         $estudiante->givePermissionTo(['isEstudiante']);
 
         $coordinador_academico->givePermissionTo([
-            'read user', 'update user', 'create user', 'delete user',
-            'read universidad', 'update universidad', 'create universidad', 'delete universidad',
-            'read carrera', 'update carrera', 'create carrera', 'delete carrera',
-            'read materia', 'update materia', 'create materia', 'delete materia',
-            'read tema', 'update tema', 'create tema', 'delete tema',
-            'read subtopico', 'update subtopico', 'create subtopico', 'delete subtopico',
-            'read ejercicio', 'update ejercicio', 'create ejercicio', 'delete ejercicio',
+            'read user', 'update user', 'create user',
+            'read universidad', 'update universidad',
+            'read carrera', 'update carrera', 'create carrera', 'inscribirUs carrera',
+            'read materia', 'update materia', 'create materia', 'inscribirUs materia',
+            'read tema', 'update tema', 'create tema',
+            'read subtopico', 'update subtopico', 'create subtopico',
+            'read ejercicio', 'update ejercicio', 'create ejercicio',
         ]);
+
         $coordinador_de_programa->givePermissionTo([
-            'read universidad', 'update universidad', 'create universidad', 'delete universidad',
-            'read carrera', 'update carrera', 'create carrera', 'delete carrera',
-            'read materia', 'update materia', 'create materia', 'delete materia',
-            'read tema', 'update tema', 'create tema', 'delete tema',
-            'read subtopico', 'update subtopico', 'create subtopico', 'delete subtopico',
+            'read carrera', 'cambiarNombre carrera', 'create carrera', 'inscribirUs universidad',
+            'read materia', 'update materia', 'create materia', 'inscribirUs carrera',
+            'read tema', 'update tema', 'create tema', 'inscribirUs materia',
+            'read subtopico', 'update subtopico', 'create subtopico',
             'read ejercicio', 'update ejercicio', 'create ejercicio', 'delete ejercicio',
         ]);
 
         $profesor->givePermissionTo([
-            'read universidad',
             'read carrera',
-            'read materia', 'update materia', 'create materia', 'delete materia',
-            'read tema', 'update tema', 'create tema', 'delete tema',
-            'read subtopico', 'update subtopico', 'create subtopico', 'delete subtopico',
-            'read ejercicio', 'update ejercicio', 'create ejercicio', 'delete ejercicio',
+            'read materia',
+            'read tema', 'cambiarNombre tema', 'create tema',
+            'read subtopico', 'update subtopico', 'create subtopico',
+            'read ejercicio', 'update ejercicio', 'create ejercicio',
         ]);
+
         $estudiante->givePermissionTo([
             // 'read universidad',
             'read carrera',

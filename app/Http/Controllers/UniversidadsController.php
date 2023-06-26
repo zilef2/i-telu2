@@ -127,6 +127,7 @@ class UniversidadsController extends Controller
                 $users->Where(function($query) use ($request){
                     $query->where('name', 'LIKE', "%" . $request->search . "%");
                     $query->orWhere('email', 'LIKE', "%" . $request->search . "%");
+                    $query->orWhere('identificacion', 'LIKE', "%" . $request->search . "%");
                 });
             }
         }else{

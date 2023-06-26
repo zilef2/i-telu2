@@ -44,6 +44,7 @@ Route::middleware('auth', 'verified')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::resource('/user', UserController::class)->except('create', 'show', 'edit'); Route::post('/user/destroy-bulk', [UserController::class, 'destroyBulk'])->name('user.destroy-bulk');
+    Route::post('/subiruserupload', [UserController::class, 'ControllerPersonalImport']);
     
     Route::resource('/role', RoleController::class)->except('create', 'show', 'edit'); Route::post('/role/destroy-bulk', [RoleController::class, 'destroyBulk'])->name('role.destroy-bulk');
 

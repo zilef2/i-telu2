@@ -119,7 +119,7 @@ const inscribirSubmit = () => {
                         </div>
                         <div class="flex-grow">
                             <h2 class="text-gray-900 title-font font-medium">{{ user.name }}</h2>
-                            <small class="text-xs text-gray-500 title-font font-medium">{{ user.email }}</small>
+                            <small class="text-xs text-gray-500 title-font font-medium">{{ user.identificacion }}</small>
                         </div>
                     </div>
                     

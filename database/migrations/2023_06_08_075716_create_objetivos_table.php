@@ -17,6 +17,7 @@ class CreateObjetivosTable extends Migration
             $table->id();
 			$table->text('nombre');
 			$table->string('descripcion');
+			$table->string('resultado_aprendizaje')->nullable();
             $table->timestamps();
 
             $table->unsignedBigInteger('materia_id');

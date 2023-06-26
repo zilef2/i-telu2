@@ -5,14 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Objetivo extends Model
+class Parametro extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'nombre',
-        'descripcion',
-        'resultado_aprendizaje',
-        'materia_id',
+        'prompEjercicios',
+        'prompObjetivos',
+        'NumeroTicketDefecto',
     ];
 }

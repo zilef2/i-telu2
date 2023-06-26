@@ -10,11 +10,13 @@ import DatetimeInput from '@/Components/DatetimeInput.vue';
 import { useForm } from '@inertiajs/vue3';
 import { watchEffect, reactive } from 'vue';
 import Checkbox from '@/Components/Checkbox.vue';
+import SelectInput from '@/Components/SelectInput.vue';
 
 const props = defineProps({
     show: Boolean,
     title: String,
     ejercicio: Object,
+    subtemasSelect: Object,
 })
 
 const data = reactive({
@@ -23,12 +25,17 @@ const data = reactive({
 
 const emit = defineEmits(["close"]);
 
-const form = useForm({
-    nombre: '',
-});
+const justNames =[
+    'nombre',
+    'descripcion',
+    'subtopico_id',
+]
+const form = useForm({ ...Object.fromEntries(justNames.map(field => [field, ''])) });
 
 const printForm = [
     {idd: 'nombre',label: 'nombre', type:'text', value:form.nombre},
+    {idd: 'descripcion',label: 'descripcion', type:'text', value:form.descripcion},
+
 ];
 
 const update = () => {
@@ -48,6 +55,8 @@ watchEffect(() => {
     if (props.show) {
         form.errors = {}
         form.nombre = props.ejercicio?.nombre
+        form.descripcion = props.ejercicio?.descripcion
+        form.subtopico_id = props.ejercicio?.subtopico_id
     }
 })
 </script>
@@ -65,6 +74,13 @@ watchEffect(() => {
                         <TextInput :id="atributosform.idd" :type="atributosform.type" class="mt-1 block w-full"
                             v-model="form[atributosform.idd]" required
                             :placeholder="atributosform.label" :error="form.errors[atributosform.idd]" />
+                    </div>
+
+                    <div>
+                        <InputLabel for="subtopico_id" :value="lang().label.subtopico" />
+                        <SelectInput name="subtopico_id" class="mt-1 block w-full" v-model="form.subtopico_id" required
+                            :dataSet="subtemasSelect"> </SelectInput>
+                        <InputError class="mt-2" :message="form.errors.subtopico_id" />
                     </div>
                 </div>
                 <div class="flex justify-end">

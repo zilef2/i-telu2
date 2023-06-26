@@ -21,27 +21,12 @@ class PermissionSeeder extends Seeder
         Permission::create(['name' => 'isProfesor']);
         Permission::create(['name' => 'isEstudiante']);
 
-        
-        // Permission::create(['name' => 'delete user']);
-        // Permission::create(['name' => 'update user']);
-        // Permission::create(['name' => 'read user']);
-        // Permission::create(['name' => 'create user']);
-
-        // Permission::create(['name' => 'delete role']);
-        // Permission::create(['name' => 'update role']);
-        // Permission::create(['name' => 'read role']);
-        // Permission::create(['name' => 'create role']);
-
-        // Permission::create(['name' => 'delete permission']);
-        // Permission::create(['name' => 'update permission']);
-        // Permission::create(['name' => 'read permission']);
-        // Permission::create(['name' => 'create permission']);
-
-        $crudCompleto = [ 'delete', 'update', 'read', 'create' ];
+        $crudCompleto = [ 'delete', 'update', 'read', 'create','cambiarNombre' ];
         $Models =[
             'user',
             'role',
             'permission',
+
             'universidad',
             'carrera',
             'materia',
@@ -54,5 +39,19 @@ class PermissionSeeder extends Seeder
                 Permission::create(['name' => $crud.' '. $model]);
             }
         }
+
+        $ModelsIns =[
+            'universidad',
+            'carrera',
+            'materia',
+        ];
+        foreach ($ModelsIns as $model) {
+            Permission::create(['name' => 'inscribirUs '. $model]);
+        }
+
+        // foreach ($Models as $model) {
+        //     Permission::create(['name' => ' '. $model]);
+        // }
+
     }
 }

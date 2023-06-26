@@ -25,12 +25,17 @@ const data = reactive({
 })
 const today = new Date();
 
-const form = useForm({
-    nombre: '',
-    descripcion: '',
-    subtopico_id: 0,
+const justNames =[
+    'nombre',
+    'descripcion',
+    'subtopico_id',
+]
+const form = useForm({ ...Object.fromEntries(justNames.map(field => [field, ''])) });
+const printForm = [
+    {idd: 'nombre',label: 'nombre', type:'text', value:form.nombre},
+    {idd: 'descripcion',label: 'descripcion', type:'text', value:form.descripcion},
+];
 
-})
 
 const create = () => {
     form.post(route('ejercicio.store'), {
@@ -51,6 +56,7 @@ const create = () => {
 watchEffect(() => {
     if (props.show) {
         form.errors = {}
+        
     }
 })
 
@@ -64,14 +70,16 @@ watchEffect(() => {
                     {{ lang().label.add }} {{ props.title }}
                 </h2>
                 <div class="my-6 grid grid-cols-1 gap-6">
-                    <div>
-                        <InputLabel for="nombre" :value="lang().label.name" />
-                        <TextInput id="nombre" type="text" class="mt-1 block w-full" v-model="form.nombre" required
-                            :placeholder="lang().placeholder.nombre" :error="form.errors.nombre" />
-                        <InputError class="mt-2" :message="form.errors.nombre" />
+                    <div v-for="(atributosform, indice) in printForm" :key="indice">
+                        <InputLabel :for="atributosform.label" :value="atributosform.value" />
+                        <TextInput :id="atributosform.idd" :type="atributosform.type" class="mt-1 block w-full"
+                            v-model="form[atributosform.idd]" required
+                            :placeholder="atributosform.label" :error="form.errors[atributosform.idd]" />
                     </div>
+
+
                      <div>
-                        <InputLabel for="subtopico_id" :value="lang().label.materia" />
+                        <InputLabel for="subtopico_id" :value="lang().label.subtopico" />
                         <SelectInput name="subtopico_id" class="mt-1 block w-full" v-model="form.subtopico_id" required
                             :dataSet="subtemasSelect"> </SelectInput>
                         <InputError class="mt-2" :message="form.errors.subtopico_id" />

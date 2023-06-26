@@ -9,7 +9,7 @@ import DatetimeInput from '@/Components/DatetimeInput.vue';
 
 import { useForm } from '@inertiajs/vue3';
 
-import { onMounted, watchEffect, reactive } from 'vue';
+import { onMounted, watchEffect, reactive, watch } from 'vue';
 import Checkbox from '@/Components/Checkbox.vue';
 import SelectInput from '@/Components/SelectInput.vue';
 
@@ -25,6 +25,9 @@ const data = reactive({
     multipleSelect: false,
 })
 
+onMounted(()=>{
+})
+
 const emit = defineEmits(["close"]);
 
 const form = useForm({
@@ -38,6 +41,13 @@ const form = useForm({
     cuantosObj: 1,
     objetivo: [],
 });
+
+watch(form.objetivo, (newValue, oldValue) => { 
+    if (props.show) {
+
+        form.cuantosObj = ((form?.objetivo[0]) !== null) + ((form?.objetivo[1]) !== null) + ((form?.objetivo[2]) !== null)
+    }
+})
 
 const update = () => {
     form.put(route('materia.update', props.materia?.id), {
@@ -71,12 +81,10 @@ watchEffect(() => {
         form.requisito2 = props.materia?.req2_materia_id,
         form.requisito3 = props.materia?.req3_materia_id,
         form.cuantosReq = ((props.materia?.requisito1) !== null) + ((props.materia?.requisito2) !== null) + ((props.materia?.requisito3) !== null)
-        
+
         form.objetivo[0] = props.materia?.objetivo1
         form.objetivo[1] = props.materia?.objetivo2
         form.objetivo[2] = props.materia?.objetivo3
-
-        form.cuantosObj = ((form.objetivo[0]) !== '') + ((form.objetivo[1]) !== '') + ((form.objetivo[2]) !== '')
     }
 })
 </script>

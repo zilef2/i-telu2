@@ -106,3 +106,4 @@ export function vectorSelect(vectorSelect, propsVector, genero = 'uno'){
     vectorSelect.unshift({label: 'Seleccione '+ genero, value:0})
     return vectorSelect;
 }
+

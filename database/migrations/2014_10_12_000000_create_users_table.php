@@ -27,7 +27,6 @@ return new class extends Migration
             $table->string ('limite_token_general')->default(3);
             $table->string ('limite_token_leccion')->default(3);
             $table->string ('pgrado')->default('pregrado');
-            $table->string ('posicion')->nullable();
 
             
             $table->timestamp('email_verified_at')->nullable();

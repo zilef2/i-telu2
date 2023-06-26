@@ -21,7 +21,7 @@ class CreatePosicionUsersTable extends Migration
         });
 
         Schema::table('users', function (Blueprint $table) {
-            $table->unsignedBigInteger('posicion_id');
+            $table->unsignedBigInteger('posicion_id')->default(1);
              
             $table->foreign('posicion_id')
                     ->references('id')

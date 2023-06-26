@@ -59,8 +59,8 @@ const data = reactive({
     generico: null,
     dataSet: usePage().props.app.perpage,
 
-    UniversidadSelect: [],
-    carrerasDeUSel: [],
+    UniversidadSelect: [], //para filtro (index)
+    carrerasDeUSel: [], //para filtro (index) y carrera_id (create)
     MateriasRequisitoSelect: [],
     numeroCarreras: 0,
 })
@@ -110,30 +110,13 @@ const select = () => {
 
 onMounted(() =>{
     if(data.params.selectedcarr === null) data.params.selectedcarr = 0
-    data.UniversidadSelect = props.UniversidadSelect?.map(
-        universidad => (
-            { label: universidad.nombre, value: universidad.id }
-        )
-    )
-    data.UniversidadSelect.unshift({label: 'Seleccione Universidad', value:0})
-
-    // data.numeroCarreras = ((Object.keys(props.carrerasSelect)).length)
-    // if(data.numeroCarreras > 0){
-
-        // data.carrerasDeUSel = props.carrerasSelect.map(
-        //     carrera => (
-        //         { label: carrera.nombre, value: carrera.id }
-        //     )
-        // )
-        // data.carrerasDeUSel.unshift({label: 'Seleccione carrera', value:0})
-
-        data.carrerasDeUSel = vectorSelect(data.carrerasDeUSel,props.carrerasSelect,'una')
-        data.MateriasRequisitoSelect = vectorSelect(data.MateriasRequisitoSelect,props.MateriasRequisitoSelect,'una')
-
-    // }
+    data.UniversidadSelect = vectorSelect(data.UniversidadSelect,props.UniversidadSelect,'una')
+    data.carrerasDeUSel = vectorSelect(data.carrerasDeUSel,props.carrerasSelect,'una')
+    // data.MateriasRequisitoSelect = vectorSelect(data.MateriasRequisitoSelect,props.MateriasRequisitoSelect,'una')
+    console.log("🧈 debu data.MateriasRequisitoSelect:", data.MateriasRequisitoSelect);
 })
-
 </script>
+
 <template>
     <Head :title="props.title"></Head>
     <AuthenticatedLayout>
@@ -149,9 +132,9 @@ onMounted(() =>{
                         {{ lang().button.add }}
                     </PrimaryButton>
                     <Create :show="data.createOpen" @close="data.createOpen = false" :title="props.title"
-                        :carrerasSelect="data.carrerasDeUSel" :MateriasRequisitoSelect="data.MateriasRequisitoSelect" />
+                        :carrerasSelect="data.carrerasDeUSel" :MateriasRequisitoSelect="props.MateriasRequisitoSelect" />
                     <Edit :show="data.editOpen" @close="data.editOpen = false" :materia="data.generico" :title="props.title"
-                        :carrerasSelect="data.carrerasDeUSel" :MateriasRequisitoSelect="data.MateriasRequisitoSelect" />
+                        :carrerasSelect="data.carrerasDeUSel" :MateriasRequisitoSelect="props.MateriasRequisitoSelect" />
                     <Delete :show="data.deleteOpen" @close="data.deleteOpen = false" :materia="data.generico"
                         :title="props.title" />
                 </div>

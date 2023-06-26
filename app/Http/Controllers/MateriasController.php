@@ -170,6 +170,102 @@ class MateriasController extends Controller {
     }//fin index
 
 
+    //! STORE & UPDATE & DESTTROY
+        public function store(MateriumRequest $request) {
+            DB::beginTransaction();
+            $permissions = Myhelp::EscribirEnLog($this,'materia');
+
+            try {
+                if($request->cuantosReq != 0){
+                    $req1 = $request->cuantosReq > 0 && $request->requisito1 != '' ? intval($request->requisito1) : null;
+                    $req2 = $request->cuantosReq > 1 && $request->requisito2 != '' ? intval($request->requisito2) : null;
+                    $req3 = $request->cuantosReq > 2 && $request->requisito3 != '' ? intval($request->requisito3) : null;
+                }
+                $materia = materia::create([
+                    'nombre' => $request->nombre,
+                    //otrosCampos
+                    'descripcion' => $request->descripcion,
+                    'carrera_id' =>  $request->carrera_id,
+                    'req1_materia_id' => $req1 ?? null,
+                    'req2_materia_id' => $req2 ?? null,
+                    'req3_materia_id' => $req3 ?? null,
+                    'objetivo1' => $request->objetivo[0] ?? null,
+                    'objetivo2' => $request->objetivo[1] ?? null,
+                    'objetivo3' => $request->objetivo[2] ?? null,
+                ]);
+                DB::commit();
+                Log::info("U -> ".Auth::user()->name." Guardo materia ".$request->nombre." correctamente");
+                return back()->with('success', __('app.label.created_successfully2', ['nombre' => $materia->nombre]));
+            } catch (\Throwable $th) {
+                DB::rollback();
+                Log::alert("U -> ".Auth::user()->name." fallo en Guardar materia ".$request->nombre." - ".$th->getMessage());
+
+                return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.materia')]) . $th->getMessage());
+            }
+        }
+
+        public function show(materia $materia) { }
+        public function edit(materia $materia) { }
+
+        public function update(Request $request, $id) {
+            // dd($request);
+            $materia = Materia::find($id);
+            DB::beginTransaction();
+            $permissions = Myhelp::EscribirEnLog($this,'materia');
+            if($request->cuantosReq != 0){
+                $req1 = $request->cuantosReq > 0 && $request->requisito1 != '' ? intval($request->requisito1) : null;
+                $req2 = $request->cuantosReq > 1 && $request->requisito2 != '' ? intval($request->requisito2) : null;
+                $req3 = $request->cuantosReq > 2 && $request->requisito3 != '' ? intval($request->requisito3) : null;
+            }
+            try {
+                $materia->update([
+                    'nombre' => $request->nombre,
+                    //otrosCampos
+                    'descripcion' => $request->descripcion,
+                    'carrera_id' =>  $request->carrera_id,
+                    'req1_materia_id' => $req1 ?? null,
+                    'req2_materia_id' => $req2 ?? null,
+                    'req3_materia_id' => $req3 ?? null,
+                    'objetivo1' => $request->objetivo[0] ?? null,
+                    'objetivo2' => $request->objetivo[1] ?? null,
+                    'objetivo3' => $request->objetivo[2] ?? null,
+                ]);
+
+                DB::commit();
+                Log::info("U -> ".Auth::user()->name." actualizo materia ".$request->nombre." correctamente");
+
+                return back()->with('success', __('app.label.updated_successfully2', ['nombre' => $materia->nombre]));
+            } catch (\Throwable $th) {
+                
+                DB::rollback();
+                Log::alert("U -> ".Auth::user()->name." fallo en actualizar materia ".$request->nombre." - ".$th->getMessage());
+                return back()->with('error', __('app.label.updated_error', ['nombre' => $materia->nombre]) . $th->getMessage());
+            }
+        }
+
+        // public function destroy(materia $materia)
+        public function destroy($id) {
+            $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
+            log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||materia|| ' );
+
+            DB::beginTransaction();
+
+            try {
+                $materias = materia::findOrFail($id);
+                Log::info($nombreC." U -> ".Auth::user()->name."La materia id:".$id." y nombre:".$materias->nombre." ha sido borrada correctamente");
+                $materias->delete();
+                DB::commit();
+                return back()->with('success', __('app.label.deleted_successfully2',['nombre' => $materias->nombre]));
+                
+            } catch (\Throwable $th) {
+                DB::rollback();
+                Log::alert("U -> ".Auth::user()->name." fallo en borrar materia ".$id." - ".$th->getMessage());
+                return back()->with('error', __('app.label.deleted_error', ['name' => __('app.label.materias')]) . $th->getMessage());
+            }
+        }
+
+
+    
     public function AsignarUsers(Request $request, $materiaid){
         $titulo = 'Seleccione los estudiantes a matricular';
         $permissions = Myhelp::EscribirEnLog($this,'carrera');
@@ -274,10 +370,6 @@ class MateriasController extends Controller {
     }
 
     public function VistaTema($id,$temaSelec = "", $subtopicoSelec = "", $ejercicioSelec = "") {
-       
-        //cuando entra - universidad - carrera
-        //materia - tema
-        //propuesta (intro)
         // dd( $temaSelec,$subtopicoSelec,$ejercicioSelec);
         $usuario = Auth::user();
         $materia = materia::find($id);
@@ -288,11 +380,12 @@ class MateriasController extends Controller {
 
         if($limite > 0) {
                 // 'Eres un experto en la materia universitaria: '.$pregunta.', se lo mas cordial posible. Propon 2 ejercicios, 1 muy sencillo y otro mas dificil, para estudiantes que desean estudiar para un parcial de la materia '.$pregunta.'. Antes de darles los ejercicios, dales un contexto de almenos 20 palabras.'
-                // eres un academico con exp en la asignatura X con mas de 20 años, responda: X2 , con un nivel X3. con un nivel (Bachillerato, Universitario o posgrado)
+                // eres un academico con exp en la asignatura X con mas de 20 años, responda: X2 , con un nivel X3. con un nivel (Bachillerato, pregrado o posgrado)
                 // 'Eres un experto en la materia universitaria: Fisica mecanica. se desea saber '.$ejercicioSelec.' para estudiantes. Antes de resolver la pregunta, genera un contexto, si es posible, de entre 20 y 40 palabras.',
 
             if($temaSelec != '') {
                 $plantillaPracticar = 'Ejercicios para practicar';
+                // dd(env('GTP_SELECT'));
                 $client = OpenAI::client(env('GTP_SELECT'));
                 $result = $client->completions()->create([
                     'model' => 'text-davinci-003',
@@ -301,25 +394,23 @@ class MateriasController extends Controller {
                             responda el siguiente ejercicio: '.$ejercicioSelec
                             .'. La respuesta debe tener el nivel de un estudiante '.$usuario->pgrado
                             .'. Antes de resolver la pregunta, genera un contexto, si es posible, de entre 20 y 40 palabras. Cuando finalices el contexto, deja un renglon vacio.'
-                            .'. Al finalizar la respuesta. sujiere 3 ejercicios para preguntarle a una inteligencia artificial(ponle de titulo '.$plantillaPracticar.') y seguir aprendiendo de '.$temaSelec,
-                    'max_tokens' => 723 // Adjust the response length as needed
+                            .'. Al finalizar la respuesta. sujiere 3 ejercicios para preguntarle a una inteligencia artificial (ponle de titulo '.$plantillaPracticar.') y seguir aprendiendo de '.$temaSelec,
+                    'max_tokens' => 600 // Adjust the response length as needed
                 ]);
-                // // dd($result);
                 $respuesta = substr($result['choices'][0]["text"],2);
+                // // dd($result);
 
                 $PP=[];
                 $PP[0] = ["finish_reason" => 'stop'];
-                // $PP[0] = $result['choices'][0] ?? 'fallo';
-                // $PP[1] = $result['choices'][0]["finishReason"] ?? 'fallo finishReason';
 
-                    $R_finishReason = $result['choices'][0]["finishReason"] ?? 'fallo';
-                    $R_index = $result['choices'][0]["index"];
-                    $R_logprobs = $result['choices'][0]["logprobs"];
+                $R_finishReason = $result['choices'][0]["finish_reason"] ?? 'fallo R_finishReason';
+                $R_index = $result['choices'][0]["index"] ?? 'fallo R_index';
+                $R_logprobs = $result['choices'][0]["logprobs"] ?? 'fallo R_logprobs';
 
-                    // $usageEntrada = $result['usage']["promptTokens"]; //~  240
-                    $usageRespuesta = $result['usage']["completion_tokens"]; //~ 260
-                    $usageTotal = $result['usage']["total_tokens"]; //~ 500
-                    $usageRespuesta = HelpGPT::CalcularTokenConsumidos($usageRespuesta,$usageTotal);
+                // $usageEntrada = $result['usage']["promptTokens"]; //~  240
+                $usageRespuesta = $result['usage']["completion_tokens"]; //~ 260
+                $usageTotal = $result['usage']["total_tokens"]; //~ 500
+                $usageRespuesta = HelpGPT::CalcularTokenConsumidos($usageRespuesta,$usageTotal);
 
                     // $respuesta = '
                     // .
@@ -329,9 +420,9 @@ class MateriasController extends Controller {
                     // 1. ¿Cuál es la fórmula para calcular la energía cinética? 
                     // 2. ¿Cómo se relaciona la energía cinética y la energía potencial? 
                     // 3. ¿Cuáles son algunas aplicaciones prácticas de la energía cinética y potencial?';
+                    $finishingReason = '';
 
-                $finishingReason = '';
-                $soloEjercicios = $this->GenerarSujerencias($respuesta,$plantillaPracticar,$PP,$finishingReason);
+                $soloEjercicios = HelpGPT::ApartarSujerencias($respuesta,$plantillaPracticar,$PP,$finishingReason);
 
                 if($finishingReason != 'stop'){
                     $respuesta = 'El servicio no esta disponible';
@@ -370,46 +461,7 @@ class MateriasController extends Controller {
         ]);
     }
 
-    public function GenerarSujerencias($respuestaGPT,$plantillaPracticar, $pp, &$finishingReason) {
-        // $vectorEjercicios = explode("\n", $respuestaGPT);
-        // $vectorEjercicios = array_filter($vectorEjercicios, 'trim');
-
-        $vectorEjercicios = [
-            1 => "La energía cinética y potencial son dos formas de energía cruciales para la física y deben ser entendidas. La energía cinética es la energía que un objeto posee cuando está en movimiento, mientras que la energía potencial es la energía que se almacena en el objeto gracias a las fuerzas que actúan sobre él. ◀La energía cinética y potencial son dos formas de energía cruciales para la física y deben ser entendidas. La energía cinética es la energía que un objeto posee ",
-            3 => "Para calcular la energía potencial de un cuerpo con masa 1 kg a una altura de 2 metros, se debe utilizar la ecuación de la energía potencial gravitacional, es decir, U = mgh, donde m es la masa, g es la aceleración de la gravedad y h es la altura. Por lo tanto, la energía potencial es igual a 2 kg × 10 m/s2 × 2 m, lo que equivale a 40 Joules. ◀Para calcular la energía potencial de un cuerpo con masa 1 kg a una altura de 2 metros, se debe utilizar la ecuación de la energía potencial gravitacional, es d ",
-            5 => "Ejercicios para practicar:",
-            7 => "1. Calcular la energía cinética de un objeto con masa de 1 kg que se mueve a una velocidad de 5 m/s.",
-            9 => "2. Calcular la energía potencial de un objeto con masa de 10 kg a una altura de 50 metros.",
-            11 => "3. ¿Qué es una ecuación de energía cinética? ¿Y una ecuación de energía potencial? Diferencia las dos ecuaciones.",
-        ];
-
-        // $posicionEjercicios = -1;
-        // foreach ($vectorEjercicios as $key => $value) {
-        //     if(strpos($value, 'Ejercicios') !== false){
-        //         $posicionEjercicios = $key;
-        //     }
-        // }
-
-        // $posicionEjercicios = array_search($plantillaPracticar.': ',$vectorEjercicios,true);
-        $posicionEjercicios2 = array_search($plantillaPracticar.':',$vectorEjercicios,true);
-        
-        if($posicionEjercicios2 !== false) {
-            $contador = $posicionEjercicios2;
-            while($contador <= array_key_last($vectorEjercicios)){
-                if($vectorEjercicios[$contador] ?? false){
-                    $soloEjercicios[] = $vectorEjercicios[$contador];
-                }
-                $contador++;
-                if($contador > 25)break;
-            }
-        }else{
-            $soloEjercicios = ['Sin sugerencias'];
-        }
-        $finishingReason = $pp[0]["finish_reason"];
-
-        session(['tresEjercicios' => $soloEjercicios]);
-        return $soloEjercicios;
-    }//fin: GenerarSujerencias
+    
 
     
 
@@ -517,102 +569,5 @@ class MateriasController extends Controller {
         return ['GPT desabilitado',0];
         
     }
-
-    //fin GPT
-    public function store(MateriumRequest $request) {
-        DB::beginTransaction();
-        $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
-        log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||materia|| ' );
-
-        try {
-            if($request->cuantosReq != 0){
-                $req1 = $request->cuantosReq > 0 && $request->requisito1 != '' ? intval($request->requisito1) : null;
-                $req2 = $request->cuantosReq > 1 && $request->requisito2 != '' ? intval($request->requisito2) : null;
-                $req3 = $request->cuantosReq > 2 && $request->requisito3 != '' ? intval($request->requisito3) : null;
-            }
-
-            // dd(
-            //      $request->objetivo
-            // );
-
-            $materia = materia::create([
-                'nombre' => $request->nombre,
-                //otrosCampos
-                'descripcion' => $request->descripcion,
-                'carrera_id' =>  $request->carrera_id,
-                'req1_materia_id' => $req1 ?? null,
-                'req2_materia_id' => $req2 ?? null,
-                'req3_materia_id' => $req3 ?? null,
-                'objetivo1' => $request->objetivo[0] ?? null,
-                'objetivo2' => $request->objetivo[1] ?? null,
-                'objetivo3' => $request->objetivo[2] ?? null,
-            ]);
-
-            DB::commit();
-            Log::info("U -> ".Auth::user()->name." Guardo materia ".$request->nombre." correctamente");
-
-            return back()->with('success', __('app.label.created_successfully2', ['nombre' => $materia->nombre]));
-
-        } catch (\Throwable $th) {
-            DB::rollback();
-            Log::alert("U -> ".Auth::user()->name." fallo en Guardar materia ".$request->nombre." - ".$th->getMessage());
-
-            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.materia')]) . $th->getMessage());
-        }
-    }
-
-    public function show(materia $materia) { }
-    public function edit(materia $materia) { }
-
-    public function update(Request $request, $id) {
-        $materia = Materia::find($id);
-        DB::beginTransaction();
-            $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
-            log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||materia|| ' );
-        try {
-            $materia->update([
-                'nombre' => $request->nombre,
-                //otrosCampos
-                'descripcion' => $request->descripcion,
-                'carrera_id' =>  $request->carrera_id,
-                'req1_materia_id' => $req1 ?? null,
-                'req2_materia_id' => $req2 ?? null,
-                'req3_materia_id' => $req3 ?? null,
-                'objetivo1' => $request->objetivo[0] ?? null,
-                'objetivo2' => $request->objetivo[1] ?? null,
-                'objetivo3' => $request->objetivo[2] ?? null,
-            ]);
-
-            DB::commit();
-            Log::info("U -> ".Auth::user()->name." actualizo materia ".$request->nombre." correctamente");
-
-            return back()->with('success', __('app.label.updated_successfully2', ['nombre' => $materia->nombre]));
-        } catch (\Throwable $th) {
-            
-            DB::rollback();
-            Log::alert("U -> ".Auth::user()->name." fallo en actualizar materia ".$request->nombre." - ".$th->getMessage());
-            return back()->with('error', __('app.label.updated_error', ['nombre' => $materia->nombre]) . $th->getMessage());
-        }
-    }
-
-    // public function destroy(materia $materia)
-    public function destroy($id) {
-        $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
-        log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||materia|| ' );
-
-        DB::beginTransaction();
-
-        try {
-            $materias = materia::findOrFail($id);
-            Log::info($nombreC." U -> ".Auth::user()->name."La materia id:".$id." y nombre:".$materias->nombre." ha sido borrada correctamente");
-            $materias->delete();
-            DB::commit();
-            return back()->with('success', __('app.label.deleted_successfully2',['nombre' => $materias->nombre]));
-            
-        } catch (\Throwable $th) {
-            DB::rollback();
-            Log::alert("U -> ".Auth::user()->name." fallo en borrar materia ".$id." - ".$th->getMessage());
-            return back()->with('error', __('app.label.deleted_error', ['name' => __('app.label.materias')]) . $th->getMessage());
-        }
-    }
+    //fin gpt
 }

@@ -33,6 +33,7 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             PosicionUserSeeder::class,
             UserSeeder::class,
+            ParametroSeeder::class,
         ]);
         //Universidad
         Universidad::create([ 'nombre'=> 'Universidad Nacional', ]);
@@ -51,6 +52,12 @@ class DatabaseSeeder extends Seeder
             'universidad_id'=> 1,
         ]);
 
+        Carrera::create([
+            'nombre'=> 'Medicina',
+            'descripcion'=> 'Mejor',
+            'universidad_id'=> 1,
+        ]);
+
         //Materia
         Materia::create([
             'nombre'=> 'Fisica',
@@ -62,13 +69,22 @@ class DatabaseSeeder extends Seeder
             'descripcion'=> 'la mejor',
             'carrera_id'=> 1,
         ]);
+        Materia::create([
+            'nombre'=> 'Microbiologia',
+            'descripcion'=> '',
+            'carrera_id'=> 3,
+        ]);
         //Tema
         Tema::create(['nombre'=> 'Trabajo y Energia', 'descripcion'=> 'generico', 'materia_id'=> 1 ]);
+        Tema::create(['nombre'=> 'celula', 'descripcion'=> 'generico', 'materia_id'=> 2 ]);
         //Subtopico
-        Subtopico::create([ 'nombre'=> 'calculo de la energia cinetica y potencial', 'descripcion'=> 'generico', 'tema_id'=> 1 ]);
+        Subtopico::create([ 'nombre'=> 'Energia cinetica', 'descripcion'=> 'generico', 'tema_id'=> 1 ]);
+        Subtopico::create([ 'nombre'=> 'partes importantes de la celula', 'descripcion'=> 'generico', 'tema_id'=> 2 ]);
         //ejercicio
         Ejercicio::create([ 'nombre'=> 'calcular la energia potencial de un cuerpo con masa 1 kg a una altura de 2 metros', 'descripcion'=> 'descripcion generica', 'subtopico_id'=> 1 ]);
+        Ejercicio::create([ 'nombre'=> 'describa la mitocondria', 'descripcion'=> 'descripcion generica', 'subtopico_id'=> 2 ]);
         //Objetivo
-        Objetivo::create([ 'nombre'=> 'Aprender fisica general', 'descripcion'=> 'descripcion', 'materia_id'=> 1 ]);
+        Objetivo::create([ 'nombre'=> 'Aprender fisica general', 'descripcion'=> 'generico', 'resultado_aprendizaje'=> 'Test para mecanica', 'materia_id'=> 1 ]);
+        Objetivo::create([ 'nombre'=> 'Tener las bases para entender los microorganismos', 'descripcion'=> 'generico', 'resultado_aprendizaje'=> 'Test de la microbiota', 'materia_id'=> 3 ]);
     }
 }

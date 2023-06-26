@@ -138,8 +138,8 @@ class subtopicosController extends Controller
             // dd($subtopico,$request->nombre);
             $subtopico->update([
                 'nombre' => $request->nombre,
-                'descripcion' => $request->nombre,//todo: temp
-                //otrosCampos
+                'descripcion' => $request->descripcion,
+                'tema_id' => $request->tema_id,
             ]);
             DB::commit();
             Log::info("U -> ".Auth::user()->name." actualizo subtopico ".$request->nombre." correctamente");

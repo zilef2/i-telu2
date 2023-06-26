@@ -18,6 +18,7 @@ php artisan make:crud ejercicio "nombre:string, descripcion:string"
 
 php artisan make:crud objetivo "nombre:string, descripcion:string"
 php artisan make:crud posicionUser "nombre:string, importancia:integer"
+php artisan make:crud Parametro "prompEjercicios:string, NumeroTicketDefecto:integer"
 //its donest need a Model -> materia_user
 
 
@@ -28,20 +29,14 @@ php artisan make:crud clasificacionEjercicio "nombre:string, descripcion:string"
 
 
 // php artisan make:crud semestre "nombre:string, descripcion:string"
-//vistas 
+//laravel excel 
+php artisan make:import PersonalImport --model=User
 
-        
-    // tablas
-    //fin tablas
+//fin laravel excel
 
-    //vistas iniciales
-        //# superadmin
-        
-        // (admin )
 
-        // (estudiante)
 
-    //vistas crud
-    //
-//fin vistas
 
+// node
+// laravel
+composer require maatwebsite/excel

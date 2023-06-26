@@ -111,15 +111,13 @@ class EjerciciosController extends Controller
         try {
             $ejercicio = ejercicio::create([
                 'nombre' => $request->nombre,
-                //otrosCampos
-                'descripcion' => 'Descripcion generica',
+                'descripcion' => $request->descripcion,
                 'subtopico_id' => $request->subtopico_id,
             ]);
             DB::commit();
             Log::info("U -> ".Auth::user()->name." Guardo ejercicio ".$request->nombre." correctamente");
 
             return back()->with('success', __('app.label.created_successfully2', ['nombre' => $ejercicio->nombre]));
-
         } catch (\Throwable $th) {
             DB::rollback();
             Log::alert("U -> ".Auth::user()->name." fallo en Guardar ejercicio ".$request->nombre." - ".$th->getMessage());
@@ -140,8 +138,8 @@ class EjerciciosController extends Controller
             // dd($ejercicio,$request->nombre);
             $ejercicio->update([
                 'nombre' => $request->nombre,
-                'descripcion' => $request->nombre,//todo: temp
-                //otrosCampos
+                'descripcion' => $request->descripcion,
+                'subtopico_id' => $request->subtopico_id,
             ]);
             DB::commit();
             Log::info("U -> ".Auth::user()->name." actualizo ejercicio ".$request->nombre." correctamente");

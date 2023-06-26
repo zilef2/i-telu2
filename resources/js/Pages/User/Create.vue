@@ -48,7 +48,7 @@ const form = useForm({
     semestre: '1',
     semestre_mas_bajo: 1,
     limite_token_leccion: '3',
-
+    pgrado: 'pregrado',//Bachillerato, pregrado o posgrado
 
     // name: '',
     // email: '',
@@ -62,6 +62,8 @@ const form = useForm({
     // semestre_mas_bajo:1,
     // // limite_token_general:'',
     // limite_token_leccion:'',
+    // pgrado: '',//Bachillerato, pregrado o posgrado
+
 })
 
 const create = () => {
@@ -163,13 +165,20 @@ const daynames = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'];
                                 :error="form.errors.semestre_mas_bajo" />
                             <InputError class="mt-2" :message="form.errors.semestre_mas_bajo" />
                         </div>
-                    </div>
-                    <div>
-                        <InputLabel for="limite_token_leccion" :value="lang().label.limite_token_leccion" />
-                        <TextInput id="limite_token_leccion" type="number" class="mt-1 block w-full"
-                            v-model="form.limite_token_leccion" :placeholder="lang().placeholder.limite_token_leccion"
-                            :error="form.errors.limite_token_leccion" />
-                        <InputError class="mt-2" :message="form.errors.limite_token_leccion" />
+                        <div>
+                            <InputLabel for="limite_token_leccion" :value="lang().label.limite_token_leccion" />
+                            <TextInput id="limite_token_leccion" type="number" class="mt-1 block w-full"
+                                v-model="form.limite_token_leccion" :placeholder="lang().placeholder.limite_token_leccion"
+                                :error="form.errors.limite_token_leccion" />
+                            <InputError class="mt-2" :message="form.errors.limite_token_leccion" />
+                        </div>
+                        <div>
+                            <InputLabel for="pgrado" :value="lang().label.pgrado" />
+                            <TextInput id="pgrado" type="text" class="mt-1 block w-full"
+                                v-model="form.pgrado" :placeholder="lang().placeholder.pgrado"
+                                :error="form.errors.pgrado" />
+                            <InputError class="mt-2" :message="form.errors.pgrado" />
+                        </div>
                     </div>
                     <!-- limite_token_general -->
 

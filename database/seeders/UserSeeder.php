@@ -15,12 +15,17 @@ class UserSeeder extends Seeder
      */
     public function run()
     {
+        $sexos = ['Masculino', 'Femenino'];
+
         $superadmin = User::create([
             'name'              => 'Superadmin',
             'email'             => 'superadmin@superadmin.com',
             'password'          => bcrypt('superadmin0+-*/'),
             'email_verified_at' => date('Y-m-d H:i'),
-            'posicion_id'=>3//coordinador de programa
+            'posicion_id' => 1,
+            'sexo' => $sexos[rand(0,1)],
+            'identificacion' => '11232454',
+
         ]);
         $superadmin->assignRole('superadmin');
 
@@ -29,7 +34,9 @@ class UserSeeder extends Seeder
             'email'             => 'admin@admin.com',
             'password'          => bcrypt('alejoasd00+*??'),
             'email_verified_at' => date('Y-m-d H:i'),
-            'posicion_id'=>3//coordinador de programa
+            'posicion_id' => 1,
+            'sexo' => $sexos[rand(0,1)],
+            'identificacion' => '11232411',
         ]);
         $admin->assignRole('admin');
 
@@ -38,7 +45,9 @@ class UserSeeder extends Seeder
             'email'             => 'estudiante@estudiante.com',
             'password'          => bcrypt('estudiante00+*'),
             'email_verified_at' => date('Y-m-d H:i'),
-            'posicion_id' => 1
+            'posicion_id' => 1,
+            'sexo' => $sexos[rand(0,1)],
+            'identificacion' => '11232412',
         ]);
         $estudiante->assignRole('estudiante');
         
@@ -47,7 +56,9 @@ class UserSeeder extends Seeder
             'email'             => 'alejo@alejo.com',
             'password'          => bcrypt('alejo00+*'),
             'email_verified_at' => date('Y-m-d H:i'),
-            'posicion_id' => 1
+            'posicion_id' => 1,
+            'sexo' => $sexos[rand(0,1)],
+            'identificacion' => '11232413',
         ]); $alejo->assignRole('estudiante');
         
 
@@ -63,11 +74,11 @@ class UserSeeder extends Seeder
             'jorge' => '1152194513',
             'emerson' => '1152194514',
         ];
+        
         $grados = ['bachiller','pregrado','postgrado'];
         foreach ($nombresGenericos as $key => $value) {
             $yearRandom = (rand(15,39));
             $anios = Carbon::now()->subYears($yearRandom)->format('Y-m-d H:i');
-            $sexos = ['Masculino', 'Femenino'];
             $unUsuario = User::create([
                 'name'              => $key,
                 'email'             => $key.'@'.$key.'.com',
