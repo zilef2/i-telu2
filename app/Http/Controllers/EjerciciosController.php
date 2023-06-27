@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\helpers\Myhelp;
 use Inertia\Inertia;
 
 use App\Models\ejercicio;
@@ -14,8 +15,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 
-class EjerciciosController extends Controller
-{
+class EjerciciosController extends Controller {
+
     public function index(Request $request) {
         if(Auth::user()->isAdmin < 1){
             $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
@@ -155,14 +156,15 @@ class EjerciciosController extends Controller
 
     // public function destroy(ejercicio $ejercicio)
     public function destroy($id) {
-        $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
-        log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||ejercicio|| ' );
+        Myhelp::EscribirEnLog($this,get_called_class(),'',false);
 
         DB::beginTransaction();
 
         try {
             $ejercicios = ejercicio::findOrFail($id);
-            Log::info($nombreC." U -> ".Auth::user()->name."La ejercicio id:".$id." y nombre:".$ejercicios->nombre." ha sido borrada correctamente");
+    
+            Myhelp::EscribirEnLog($this,get_called_class(),"el ejercicio id:".$id." y nombre:".$ejercicios->nombre." ha sido borrada correctamente",false);
+
             $ejercicios->delete();
             DB::commit();
             return back()->with('success', __('app.label.deleted_successfully2',['nombre' => $ejercicios->nombre]));

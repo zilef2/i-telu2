@@ -9,6 +9,8 @@ return [
         'stema' => 'sub tema',
         'subtopico' => 'subtopico',
         'subtopicos' => 'subtopicos',
+        //parametros
+        'parametros' => 'parametros',
         //tema
         'temas' => 'temas',
         'tema' => 'tema',

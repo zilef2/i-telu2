@@ -54,7 +54,7 @@ class RoleSeeder extends Seeder
 
         $coordinador_academico->givePermissionTo([
             'read user', 'update user', 'create user',
-            'read universidad', 'update universidad',
+            'read universidad', 'update universidad', 'inscribirUs universidad',
             'read carrera', 'update carrera', 'create carrera', 'inscribirUs carrera',
             'read materia', 'update materia', 'create materia', 'inscribirUs materia',
             'read tema', 'update tema', 'create tema',

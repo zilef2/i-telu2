@@ -157,7 +157,7 @@
                                                 <TrashIcon class="w-4 h-4" />
                                             </DangerButton>
                                             <Link :href="route('universidad.AsignarUsers', clasegenerica.id)"
-                                                v-show="can(['delete universidad'])" 
+                                                v-show="can(['isAdmin'])" 
                                                 type="button"
                                                 class="px-2 -mb-1.5 py-1.5 rounded-none hover:bg-blue-500">
                                                 <UserGroupIcon class="w-4 h-4" />

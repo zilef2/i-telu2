@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 
 use App\Models\Carrera;
 use App\Http\Requests\CarreraRequest;
+use App\Models\Materia;
 use App\Models\Universidad;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -19,26 +20,92 @@ use Inertia\Inertia;
 class CarrerasController extends Controller
 {
 
-    public function CalcularClasePrincipal(&$Carreras) {
+    //! funciones del index
+        public function MapearClasePP(&$Carreras,$permissions) {
 
-        $Carreras = $Carreras->get()->map(function ($carrera){
-            $carrera->hijo = $carrera->universidad_nombre();
-            $CarreraUsers = $carrera->users;
-            $carrera->tresPrimeros = Myhelp::ArrayInString($CarreraUsers->pluck('name'));
-            $carrera->cuantosUs = $CarreraUsers->count();
-            return $carrera;
-        });
+            $Carreras = $Carreras->get()->map(function ($carrera) use($permissions){
+                
+                if ($permissions == 'coordinador_de_programa' || $permissions == 'estudiante' || $permissions == 'profesor') {
+                    $universidadUser = Auth::user()->universidades()->pluck('universidad_id')->toArray();
+                    if(!in_array($carrera->universidad_id,$universidadUser)) return null;
+                    
+                    if ($permissions == 'estudiante' || $permissions == 'profesor') {
+                        $carreraUser = Auth::user()->carreras()->pluck('carrera_id')->toArray();
+                        if(!in_array($carrera->id,$carreraUser)) return null;
+                    }
+                }
+                //# admin o coordinador_academico no tienen restricciones
 
-        // dd($universidads);
-    }
+                $carrera->hijo = $carrera->universidad_nombre();
+                $CarreraUsers = $carrera->users;
+                $carrera->tresPrimeros = Myhelp::ArrayInString($CarreraUsers->pluck('name'));
+                $carrera->cuantosUs = $CarreraUsers->count();
+                return $carrera;
+            })->filter();
+            
+            // $Carreras = $Carreras->reject(function ($value) {
+            //     return $value === null;
+            // });
+
+            // dd($Carreras);
+        }
+
+        //todo:1:Filtros copypaste no se ha tocado
+        public function Filtros($request, &$materias,$permissions) {
+            if ($request->has('selectedUni') && $request->selectedUni != 0) {
+                // dd($request->selectedUni);
+                $carrerasid = Carrera::has('materias')->where('universidad_id', $request->selectedUni)->pluck('id')->toArray();
+                $materias->whereIn('carrera_id',$carrerasid);
+            }
+            if($request->selectedUni == 0) $request->selectedcarr = 0;
+            
+            if ($request->has('search')) {
+                $materias->where('descripcion','LIKE', "%".$request->search."%");
+                // $materias->whereMonth('descripcion', $request->search);
+                // $materias->OrwhereMonth('fecha_fin', $request->search);
+                $materias->orWhere('nombre', 'LIKE', "%" . $request->search . "%");
+            }
+            
+            if ($request->has(['field', 'order'])) {
+                $materias->orderBy($request->field, $request->order);
+            }else{
+                $materias->orderBy('nombre');
+            }
+        }
+        //todo:1:losSelect copypaste no se ha tocado
+
+        public function losSelect(&$carrerasSelect, &$MateriasRequisitoSelect, &$UniversidadSelect,$request,&$materias) {
+            
+            if($request->has('selectedUni')) {
+                $carrerasSelect = Carrera::where('universidad_id', $request->selectedUni)->get();
+            }else{
+                $carrerasSelect = Carrera::all();
+            }
+    
+    
+            if($request->has('selectedcarr') && $request->selectedcarr != 0) {
+                $materias = $materias->whereIn('carrera_id',$request->selectedcarr);
+                // dd(
+                //     $request->selectedcarr,
+                //     $materias
+                // );
+            }
+    
+            // $carrerasSelect = Carrera::has('materias')->get();
+            //todo: solo las necesarias
+            $MateriasRequisitoSelect = Materia::all();
+            $UniversidadSelect = Universidad::has('carreras')->get();
+        }
+    //! fin funciones del index
 
     public function index(Request $request) {
         $permissions = Myhelp::EscribirEnLog($this,'carrera');
 
-
+        
         $titulo = __('app.label.Carreras');
         $permissions = auth()->user()->roles->pluck('name')[0];
         $Carreras = Carrera::query();
+        $this->Filtros($request,$Carreras,$permissions);
         
         if($permissions === "estudiante") {
             $perPage = $request->has('perPage') ? $request->perPage : 10;
@@ -49,10 +116,8 @@ class CarrerasController extends Controller
                 [null,null,null]
             ];
             $nombresTabla[0][] = ["Centro costo","inicio", "fin", "horas trabajadas", "valido", "observaciones"];
-            
             //m for money || t for datetime || d date || i for integer || s string || b boolean 
             $nombresTabla[1][] = ["s_nombre", "s_descripcion"]; 
-            
             //campos ordenables
             $nombresTabla[2][] = ["s_nombre", "s_descripcion"]; 
         }else{ // not estudiante
@@ -84,7 +149,7 @@ class CarrerasController extends Controller
             //campos ordenables
             $nombresTabla[2] = array_merge($nombresTabla[2] , ["s_nombre", "s_descripcion","i_universidad_id","",""]);
         }
-        $this->CalcularClasePrincipal($Carreras);
+        $this->MapearClasePP($Carreras,$permissions);
         
         $page = request('page', 1); // Current page number
         $total = $Carreras->count();

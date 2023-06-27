@@ -3,6 +3,7 @@
 use App\Http\Controllers\CarrerasController;
 use App\Http\Controllers\EjerciciosController;
 use App\Http\Controllers\MateriasController;
+use App\Http\Controllers\parametrosController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoleController;
@@ -76,6 +77,7 @@ Route::middleware('auth', 'verified')->group(function () {
     //otros
     Route::resource('/subtopico', SubtopicosController::class);
     Route::resource('/ejercicio', EjerciciosController::class);
+    Route::resource('/parametro', parametrosController::class);
 
 });
 

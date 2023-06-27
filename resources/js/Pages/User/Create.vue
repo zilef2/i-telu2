@@ -42,8 +42,9 @@ const form = useForm({
     password_confirmation: '',
     role: 'estudiante',
 
-    identificacion: 0,
+    identificacion: 1152194566,
     sexo: 0,
+    // sexo: 'Masculino',
     fecha_nacimiento: anio18+'-12-01T00:00',
     semestre: '1',
     semestre_mas_bajo: 1,
@@ -94,10 +95,7 @@ const roles = props.roles?.map(role => ({
     value: (role.name)
 }))
 
-const sexos = [
-    { label: 'Masculino', value: 0 },
-    { label: 'Femenino', value: 1 },
-];
+const sexos = [ { label: 'Masculino', value: 0 }, { label: 'Femenino', value: 1 } ];
 const daynames = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'];
 
 </script>
@@ -122,6 +120,12 @@ const daynames = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'];
                             :placeholder="lang().placeholder.email" :error="form.errors.email" />
                         <InputError class="mt-2" :message="form.errors.email" />
                     </div>
+                    <div>
+                        <InputLabel for="identificacion" :value="lang().label.identificacion" />
+                        <TextInput id="identificacion" type="text" class="mt-1 block w-full" v-model="form.identificacion"
+                            :placeholder="lang().placeholder.identificacion" :error="form.errors.identificacion" />
+                        <InputError class="mt-2" :message="form.errors.identificacion" />
+                    </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
@@ -133,8 +137,7 @@ const daynames = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'];
                         <!-- otros campos -->
                         <div>
                             <InputLabel for="sexo" :value="lang().label.sexo" />
-                            <SelectInput id="sexo" class="mt-1 block w-full" v-model="form.sexo" required :dataSet="sexos">
-                            </SelectInput>
+                            <SelectInput id="sexo" class="mt-1 block w-full" v-model="form.sexo" required :dataSet="sexos"> </SelectInput>
                             <InputError class="mt-2" :message="form.errors.sexo" />
                         </div>
 

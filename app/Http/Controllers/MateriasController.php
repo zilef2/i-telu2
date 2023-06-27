@@ -29,7 +29,7 @@ class MateriasController extends Controller {
     public $MAX_USAGE_TOTAL = 600;
 
 
-    public function CalcularClasePrincipal(&$materias) {
+    public function MapearClasePP(&$materias) {
         $materias = $materias->get()->map(function ($materia){
             $materia->hijo = $materia->carrera_nombre();
             $materia->muchos = $materia->users_nombres();
@@ -138,7 +138,7 @@ class MateriasController extends Controller {
         }
 
         //hijos materias 
-        $this->CalcularClasePrincipal($materias);
+        $this->MapearClasePP($materias);
 
         $carrerasSelect = $MateriasRequisitoSelect = $UniversidadSelect = null;
         $this->losSelect($carrerasSelect, $MateriasRequisitoSelect, $UniversidadSelect,$request,$materias);
@@ -173,7 +173,8 @@ class MateriasController extends Controller {
     //! STORE & UPDATE & DESTTROY
         public function store(MateriumRequest $request) {
             DB::beginTransaction();
-            $permissions = Myhelp::EscribirEnLog($this,'materia');
+            Myhelp::EscribirEnLog($this,get_called_class(),'',false);
+
 
             try {
                 if($request->cuantosReq != 0){
@@ -211,7 +212,7 @@ class MateriasController extends Controller {
             // dd($request);
             $materia = Materia::find($id);
             DB::beginTransaction();
-            $permissions = Myhelp::EscribirEnLog($this,'materia');
+            Myhelp::EscribirEnLog($this,get_called_class(),'',false);
             if($request->cuantosReq != 0){
                 $req1 = $request->cuantosReq > 0 && $request->requisito1 != '' ? intval($request->requisito1) : null;
                 $req2 = $request->cuantosReq > 1 && $request->requisito2 != '' ? intval($request->requisito2) : null;
@@ -245,14 +246,16 @@ class MateriasController extends Controller {
 
         // public function destroy(materia $materia)
         public function destroy($id) {
-            $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
-            log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||materia|| ' );
+            Myhelp::EscribirEnLog($this,get_called_class(),'',false);
 
             DB::beginTransaction();
 
             try {
                 $materias = materia::findOrFail($id);
-                Log::info($nombreC." U -> ".Auth::user()->name."La materia id:".$id." y nombre:".$materias->nombre." ha sido borrada correctamente");
+                Myhelp::EscribirEnLog($this,get_called_class(),
+                    "La materia id:".$id." y nombre:".$materias->nombre." ha sido borrada correctamente",false);
+                
+                
                 $materias->delete();
                 DB::commit();
                 return back()->with('success', __('app.label.deleted_successfully2',['nombre' => $materias->nombre]));

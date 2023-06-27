@@ -85,108 +85,111 @@ class UserController extends Controller
     }
 
 
-    //! STORE functions
-        public function updatingDate($date) {
-            if($date === null || $date == '1969-12-31'){
-                return null;
+    //! STORE - UPDATE - DELETE
+        //! STORE functions
+            public function updatingDate($date) {
+                if($date === null || $date == '1969-12-31'){
+                    return null;
+                }
+                return date("Y-m-d",strtotime($date));
             }
-            return date("Y-m-d",strtotime($date));
-        }
 
-        public function store(UserStoreRequest $request) {
-            $permissions = Myhelp::EscribirEnLog($this,'STORE:users');
+            public function store(UserStoreRequest $request) {
+                $permissions = Myhelp::EscribirEnLog($this,'STORE:users');
+
+                DB::beginTransaction();
+                try {
+                    $user = User::create([
+                        'name' => $request->name,
+                        'email' => $request->email,
+                        'password' => Hash::make($request->password),
+
+                        'identificacion' => $request->identificacion,
+                        'sexo' => $request->sexo == 0 ? 'Masculino' : 'Femenino',
+                        'fecha_nacimiento' => $this->updatingDate($request->fecha_nacimiento),
+                        'semestre' => $request->semestre,
+                        'semestre_mas_bajo' => $request->semestre_mas_bajo,
+                        'limite_token_general' => 3,
+                        'limite_token_leccion' => $request->limite_token_leccion,
+                        'pgrado' => $request->pgrado,
+                    ]);
+                    $user->assignRole($request->role);
+                    DB::commit();
+                    Myhelp::EscribirEnLog($this,'STORE:users', 'usuario id:'.$user->id.' | '.$user->name.' guardado',false);
+                    
+                    return back()->with('success', __('app.label.created_successfully', ['name' => $user->name]));
+                } catch (\Throwable $th) {
+                    DB::rollback();
+                    Myhelp::EscribirEnLog($this,'STORE:users', 'usuario id:'.$user->id.' | '.$user->name.' fallo en el guardado',false);
+                    return back()->with('error', __('app.label.created_error', ['name' => __('app.label.user')]) . $th->getMessage());
+                }
+            
+            }
+        //fin store functions
+
+        public function show($id) { }
+        public function edit($id) { }
+        public function update(UserUpdateRequest $request, $id) {
+            Myhelp::EscribirEnLog($this,'UPDATE:users','',false);
 
             DB::beginTransaction();
             try {
-                $user = User::create([
-                    'name' => $request->name,
-                    'email' => $request->email,
-                    'password' => Hash::make($request->password),
+                $user = User::findOrFail($id);
+                $user->update([
+                    'name'      => $request->name,
+                    'email'     => $request->email,
+                    'password'  => $request->password ? Hash::make($request->password) : $user->password,
 
                     'identificacion' => $request->identificacion,
                     'sexo' => $request->sexo,
+                    // 'sexo' => $request->sexo == 0 ? 'Masculino' : 'Femenino',
                     'fecha_nacimiento' => $this->updatingDate($request->fecha_nacimiento),
                     'semestre' => $request->semestre,
                     'semestre_mas_bajo' => $request->semestre_mas_bajo,
-                    'limite_token_general' => 3,
+                    'limite_token_general' => $request->limite_token_general,
                     'limite_token_leccion' => $request->limite_token_leccion,
-                    'pgrado' => $request->pgrado,
                 ]);
-                $user->assignRole($request->role);
+                $user->syncRoles($request->role);
                 DB::commit();
-                Myhelp::EscribirEnLog($this,'STORE:users', 'usuario id:'.$user->id.' | '.$user->name.' guardado',false);
+                Myhelp::EscribirEnLog($this,'UPDATE:users', 'usuario id:'.$user->id.' | '.$user->name.' actualizado',false);
                 
-                return back()->with('success', __('app.label.created_successfully', ['name' => $user->name]));
+                return back()->with('success', __('app.label.updated_successfully', ['name' => $user->name]));
             } catch (\Throwable $th) {
                 DB::rollback();
-                Myhelp::EscribirEnLog($this,'STORE:users', 'usuario id:'.$user->id.' | '.$user->name.' fallo en el guardado',false);
-                return back()->with('error', __('app.label.created_error', ['name' => __('app.label.user')]) . $th->getMessage());
+                Myhelp::EscribirEnLog($this,'UPDATE:users', 'usuario id:'.$user->id.' | '.$user->name.'  fallo en el actualizado',false);
+                return back()->with('error', __('app.label.updated_error', ['name' => $user->name]) . $th->getMessage());
             }
-        
         }
-    //fin store functions
 
-    public function show($id) { }
-    public function edit($id) { }
-    public function update(UserUpdateRequest $request, $id) {
-        Myhelp::EscribirEnLog($this,'UPDATE:users','',false);
+        /**
+         * Remove the specified resource from storage.
+         *
+         * @param  int  $id
+         * @return \Illuminate\Http\Response
+         */
+        public function destroy(User $user) {
+            $permissions = Myhelp::EscribirEnLog($this,'DELETE:users');
 
-        DB::beginTransaction();
-        try {
-            $user = User::findOrFail($id);
-            $user->update([
-                'name'      => $request->name,
-                'email'     => $request->email,
-                'password'  => $request->password ? Hash::make($request->password) : $user->password,
-
-                'identificacion' => $request->identificacion,
-                'sexo' => $request->sexo,
-                'fecha_nacimiento' => $request->fecha_nacimiento,
-                'semestre' => $request->semestre,
-                'semestre_mas_bajo' => $request->semestre_mas_bajo,
-                'limite_token_general' => $request->limite_token_general,
-                'limite_token_leccion' => $request->limite_token_leccion,
-            ]);
-            $user->syncRoles($request->role);
-            DB::commit();
-            Myhelp::EscribirEnLog($this,'UPDATE:users', 'usuario id:'.$user->id.' | '.$user->name.' actualizado',false);
-            
-            return back()->with('success', __('app.label.updated_successfully', ['name' => $user->name]));
-        } catch (\Throwable $th) {
-            DB::rollback();
-            Myhelp::EscribirEnLog($this,'UPDATE:users', 'usuario id:'.$user->id.' | '.$user->name.'  fallo en el actualizado',false);
-            return back()->with('error', __('app.label.updated_error', ['name' => $user->name]) . $th->getMessage());
+            try {
+                $user->delete();
+                Myhelp::EscribirEnLog($this,'DELETE:users', 'usuario id:'.$user->id.' | '.$user->name.' borrado',false);
+                return back()->with('success', __('app.label.deleted_successfully', ['name' => $user->name]));
+            } catch (\Throwable $th) {
+                Myhelp::EscribirEnLog($this,'DELETE:users', 'usuario id:'.$user->id.' | '.$user->name.' fallo en el borrado:: '.$th->getMessage(),false);
+                return back()->with('error', __('app.label.deleted_error', ['name' => $user->name]) . $th->getMessage());
+            }
         }
-    }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(User $user) {
-        $permissions = Myhelp::EscribirEnLog($this,'DELETE:users');
-
-        try {
-            $user->delete();
-            Myhelp::EscribirEnLog($this,'DELETE:users', 'usuario id:'.$user->id.' | '.$user->name.' borrado',false);
-            return back()->with('success', __('app.label.deleted_successfully', ['name' => $user->name]));
-        } catch (\Throwable $th) {
-            Myhelp::EscribirEnLog($this,'DELETE:users', 'usuario id:'.$user->id.' | '.$user->name.' fallo en el borrado:: '.$th->getMessage(),false);
-            return back()->with('error', __('app.label.deleted_error', ['name' => $user->name]) . $th->getMessage());
+        public function destroyBulk(Request $request) {
+            try {
+                $user = User::whereIn('id', $request->id);
+                $user->delete();
+                return back()->with('success', __('app.label.deleted_successfully', ['name' => count($request->id) . ' ' . __('app.label.user')]));
+            } catch (\Throwable $th) {
+                return back()->with('error', __('app.label.deleted_error', ['name' => count($request->id) . ' ' . __('app.label.user')]) . $th->getMessage());
+            }
         }
-    }
-
-    public function destroyBulk(Request $request) {
-        try {
-            $user = User::whereIn('id', $request->id);
-            $user->delete();
-            return back()->with('success', __('app.label.deleted_successfully', ['name' => count($request->id) . ' ' . __('app.label.user')]));
-        } catch (\Throwable $th) {
-            return back()->with('error', __('app.label.deleted_error', ['name' => count($request->id) . ' ' . __('app.label.user')]) . $th->getMessage());
-        }
-    }
+    //FIN : STORE - UPDATE - DELETE
 
     public function ControllerPersonalImport(Request $request){
         Myhelp::EscribirEnLog($this,get_called_class(),'Empezo a importar',false);

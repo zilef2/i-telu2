@@ -33,9 +33,6 @@ class User extends Authenticatable
         'posicion_id',
         'pgrado', //bachiller, pregrado, postgrado
     ];
-
- 
-
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -67,8 +64,9 @@ class User extends Authenticatable
     public function reportes() {
 		return $this->hasMany('App\Models\Reporte');
 	}
+    
 
-    public function materias(): BelongsToMany {
-        return $this->BelongsToMany(Materia::class);
-    }
+    public function materias(): BelongsToMany { return $this->BelongsToMany(Materia::class); }
+    public function carreras(): BelongsToMany { return $this->BelongsToMany(Carrera::class); }
+    public function universidades(): BelongsToMany { return $this->BelongsToMany(Universidad::class); }
 }

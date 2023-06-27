@@ -33,6 +33,8 @@ class PermissionSeeder extends Seeder
             'tema',
             'subtopico',
             'ejercicio',
+            
+            'parametro',
         ];
         foreach ($Models as $model) {
             foreach ($crudCompleto as $crud) {

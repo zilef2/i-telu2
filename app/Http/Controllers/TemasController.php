@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\TemaRequest;
 use App\Models\Materia;
-use GuzzleHttp\Promise\Coroutine;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -99,7 +98,7 @@ class TemasController extends Controller
             
         }
 
-        //CalcularClasePrincipal
+        //MapearClasePP
         
         $temas = $temas->get()->map(function ($tema){
             $tema->hijo = $tema->materia_nombre();
@@ -134,8 +133,7 @@ class TemasController extends Controller
     public function create() { }
     public function store(TemaRequest $request) {
         DB::beginTransaction();
-        $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
-        log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||tema|| ' );
+        Myhelp::EscribirEnLog($this,get_called_class(),'',false);
 
         try {
             $tema = tema::create([
@@ -186,14 +184,15 @@ class TemasController extends Controller
 
     // public function destroy(tema $tema)
     public function destroy($id) {
-        $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
-        log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||tema|| ' );
+        Myhelp::EscribirEnLog($this,get_called_class(),'',false);
 
         DB::beginTransaction();
 
         try {
             $temas = tema::findOrFail($id);
-            Log::info($nombreC." U -> ".Auth::user()->name."La tema id:".$id." y nombre:".$temas->nombre." ha sido borrada correctamente");
+            Myhelp::EscribirEnLog($this,get_called_class(),"La tema id:".$id." y nombre:".$temas->nombre." ha sido borrada correctamente",false);
+
+            
             $temas->delete();
             DB::commit();
             return back()->with('success', __('app.label.deleted_successfully2',['nombre' => $temas->nombre]));
@@ -205,7 +204,7 @@ class TemasController extends Controller
         }
     }
     
-
+//todo: borrar y dejar el que es
     public function temasCreate() {
         return 'Un subtopico de ejemplo';
     }

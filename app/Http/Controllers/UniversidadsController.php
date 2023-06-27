@@ -18,7 +18,7 @@ use Inertia\Inertia;
 class UniversidadsController extends Controller
 {
 
-    public function CalcularClasePrincipal(&$universidads) {
+    public function MapearClasePP(&$universidads) {
         $universidads = $universidads->get()->map(function ($universidad){
 
             $universidad->tresPrimeros = Myhelp::ArrayInString($universidad->users->pluck('name'));
@@ -82,7 +82,7 @@ class UniversidadsController extends Controller
             $nombresTabla[2] = array_merge($nombresTabla[2] , ["s_nombre","",""]);
         }
 
-        $this->CalcularClasePrincipal($Universidads);
+        $this->MapearClasePP($Universidads);
         
         $page = request('page', 1); // Current page number
         $paginated = new LengthAwarePaginator(

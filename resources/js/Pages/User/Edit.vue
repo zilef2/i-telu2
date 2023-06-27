@@ -8,6 +8,7 @@ import SelectInput from '@/Components/SelectInput.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { useForm } from '@inertiajs/vue3';
 import { watchEffect } from 'vue';
+import VueDatePicker from '@vuepic/vue-datepicker';
 
 const props = defineProps({
     show: Boolean,
@@ -66,6 +67,8 @@ watchEffect(() => {
 
 const roles = props.roles?.map(role => ({ label: role.name, value: role.name }))
 
+const sexos = [ { label: 'Masculino', value: 'Masculino' }, { label: 'Femenino', value: 'Femenino' } ];
+
 </script>
 
 <template>
@@ -88,12 +91,17 @@ const roles = props.roles?.map(role => ({ label: role.name, value: role.name }))
                             :placeholder="lang().placeholder.email" :error="form.errors.email" />
                         <InputError class="mt-2" :message="form.errors.email" />
                     </div>
+                    <div>
+                        <InputLabel for="identificacion" :value="lang().label.identificacion" />
+                        <TextInput id="identificacion" type="text" class="mt-1 block w-full" v-model="form.identificacion"
+                            :placeholder="lang().placeholder.identificacion" :error="form.errors.identificacion" />
+                        <InputError class="mt-2" :message="form.errors.identificacion" />
+                    </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <InputLabel for="role" :value="lang().label.role" />
-                            <SelectInput id="role" class="mt-1 block w-full" v-model="form.role" required :dataSet="roles">
-                            </SelectInput>
+                            <SelectInput id="role" class="mt-1 block w-full" v-model="form.role" required :dataSet="roles"> </SelectInput>
                             <InputError class="mt-2" :message="form.errors.role" />
                         </div>
                         <!-- otros campos -->
@@ -143,7 +151,7 @@ const roles = props.roles?.map(role => ({ label: role.name, value: role.name }))
 
 
                     <!-- pass -->
-                    <div>
+                    <!-- <div>
                         <InputLabel for="password" :value="lang().label.password" />
                         <TextInput id="password" type="password" class="mt-1 block w-full" v-model="form.password"
                             :placeholder="lang().placeholder.password" :error="form.errors.password" />
@@ -155,7 +163,7 @@ const roles = props.roles?.map(role => ({ label: role.name, value: role.name }))
                             v-model="form.password_confirmation" :placeholder="lang().placeholder.password_confirmation"
                             :error="form.errors.password_confirmation" />
                         <InputError class="mt-2" :message="form.errors.password_confirmation" />
-                    </div>
+                    </div> -->
                 </div>
                 <div class="flex justify-end">
                     <SecondaryButton :disabled="form.processing" @click="emit('close')"> {{ lang().button.close }}

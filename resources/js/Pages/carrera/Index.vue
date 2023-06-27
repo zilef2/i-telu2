@@ -161,7 +161,7 @@ const PapaSelect = props.PapaSelect?.map(universidad => ({
                                                 <TrashIcon class="w-4 h-4" />
                                             </DangerButton>
                                             <Link :href="route('carrera.AsignarUsers', clasegenerica.id)"
-                                                v-show="can(['delete carrera'])" 
+                                                v-show="can(['isAdmin'])" 
                                                 type="button"
                                                 class="px-2 -mb-1.5 py-1.5 rounded-none hover:bg-blue-500">
                                                 <UserGroupIcon class="w-4 h-4" />
@@ -170,11 +170,11 @@ const PapaSelect = props.PapaSelect?.map(universidad => ({
                                     </div>
                                 </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (index+1) }}</td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.nombre) }} </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.descripcion) }} </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.hijo) }} </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.cuantosUs) }} </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.tresPrimeros) }} </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica?.nombre) }} </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica?.descripcion) }} </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica?.hijo) }} </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica?.cuantosUs) }} </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica?.tresPrimeros) }} </td>
                             </tr>
                         </tbody>
                     </table>

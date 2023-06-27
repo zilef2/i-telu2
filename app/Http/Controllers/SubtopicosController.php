@@ -155,8 +155,7 @@ class subtopicosController extends Controller
 
     // public function destroy(subtopico $subtopico)
     public function destroy($id) {
-        $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
-        log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||subtopico|| ' );
+                Myhelp::EscribirEnLog($this,get_called_class(),'',false);
 
         DB::beginTransaction();
 
