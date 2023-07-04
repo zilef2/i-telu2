@@ -117,9 +117,9 @@ watchEffect(() => {
                         {{ lang().button.add }}
                     </PrimaryButton>
                     <Create :show="data.createOpen" @close="data.createOpen = false" :roles="props.roles"
-                        :title="props.title" />
+                        v-if="can(['create user'])" :title="props.title" />
                     <Edit :show="data.editOpen" @close="data.editOpen = false" :user="data.user" :roles="props.roles"
-                        :title="props.title" />
+                        v-if="can(['update user'])" :title="props.title" />
                     <Delete :show="data.deleteOpen" @close="data.deleteOpen = false" :user="data.user"
                         :title="props.title" />
                     <DeleteBulk :show="data.deleteBulkOpen"
@@ -141,11 +141,13 @@ watchEffect(() => {
                                 Formato estudiantes
                             </label>
                             <small class="mx-2 ">{{ data.ArchivoNombre }}</small>
-                            <input class="hidden" type="file" id="archivo1" @input="form.archivo1 = $event.target.files[0]" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+                            <input class="hidden" type="file" id="archivo1" @input="form.archivo1 = $event.target.files[0]"
+                                accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
                             <progress v-if="form.progress" :value="form.progress.percentage" max="100">
                                 {{ form.progress.percentage }}%
                             </progress>
-                            <PrimaryButton v-show="can(['create user']) && form.archivo1"  :disabled="form.archivo1 == null" class="rounded-none mt-1">
+                            <PrimaryButton v-show="can(['create user']) && form.archivo1" :disabled="form.archivo1 == null"
+                                class="rounded-none mt-1">
                                 {{ lang().button.subir }}
                             </PrimaryButton>
                         </form>
@@ -171,16 +173,51 @@ watchEffect(() => {
                                     <div class="flex justify-between items-center"> <span>{{ lang().label.email }}</span> <ChevronUpDownIcon class="w-4 h-4" /> </div>
                                 </th> -->
                                 <th class="px-2 py-4">{{ lang().label.role }}</th>
-                                
-                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('identificacion')"> <div class="flex justify-between items-center"> <span>{{ lang().label.identificacion }}</span> <ChevronUpDownIcon class="w-4 h-4" /> </div> </th>
-                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('sexo')"> <div class="flex justify-between items-center"> <span>{{ lang().label.sexo }}</span> <ChevronUpDownIcon class="w-4 h-4" /> </div> </th>
-                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('fecha_nacimiento')"> <div class="flex justify-between items-center"> <span>{{ lang().label.edad }}</span> <ChevronUpDownIcon class="w-4 h-4" /> </div> </th>
-                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('pgrado')"> <div class="flex justify-between items-center"> <span>{{ lang().label.pgrado }}</span> <ChevronUpDownIcon class="w-4 h-4" /> </div> </th>
-                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('semestre')"> <div class="flex justify-between items-center"> <span>{{ lang().label.semestre }}</span> <ChevronUpDownIcon class="w-4 h-4" /> </div> </th>
+
+                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('identificacion')">
+                                    <div class="flex justify-between items-center"> <span>{{ lang().label.identificacion
+                                                                                }}</span>
+                                        <ChevronUpDownIcon class="w-4 h-4" />
+                                    </div>
+                                </th>
+                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('sexo')">
+                                    <div class="flex justify-between items-center"> <span>{{ lang().label.sexo }}</span>
+                                        <ChevronUpDownIcon class="w-4 h-4" />
+                                    </div>
+                                </th>
+                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('fecha_nacimiento')">
+                                    <div class="flex justify-between items-center"> <span>{{ lang().label.edad }}</span>
+                                        <ChevronUpDownIcon class="w-4 h-4" />
+                                    </div>
+                                </th>
+                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('pgrado')">
+                                    <div class="flex justify-between items-center"> <span>{{ lang().label.pgrado }}</span>
+                                        <ChevronUpDownIcon class="w-4 h-4" />
+                                    </div>
+                                </th>
+                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('semestre')">
+                                    <div class="flex justify-between items-center"> <span>{{ lang().label.semestre }}</span>
+                                        <ChevronUpDownIcon class="w-4 h-4" />
+                                    </div>
+                                </th>
                                 <!-- <th class="px-2 py-4 cursor-pointer" v-on:click="order('semestre_mas_bajo')"> <div class="flex justify-between items-center"> <span>{{ lang().label.semestre_mas_bajo }}</span> <ChevronUpDownIcon class="w-4 h-4" /> </div> </th> -->
-                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('limite_token_general')"> <div class="flex justify-between items-center"> <span>{{ lang().label.limite_token_general }}</span> <ChevronUpDownIcon class="w-4 h-4" /> </div> </th>
-                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('limite_token_leccion')"> <div class="flex justify-between items-center"> <span>{{ lang().label.limite_token_lec }}</span> <ChevronUpDownIcon class="w-4 h-4" /> </div> </th>
-                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('pgrado')"> <div class="flex justify-between items-center"> <span>{{ lang().label.pgrado }}</span> <ChevronUpDownIcon class="w-4 h-4" /> </div> </th>
+                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('limite_token_general')">
+                                    <div class="flex justify-between items-center"> <span>{{
+                                                                                lang().label.limite_token_general }}</span>
+                                        <ChevronUpDownIcon class="w-4 h-4" />
+                                    </div>
+                                </th>
+                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('limite_token_leccion')">
+                                    <div class="flex justify-between items-center"> <span>{{ lang().label.limite_token_lec
+                                                                                }}</span>
+                                        <ChevronUpDownIcon class="w-4 h-4" />
+                                    </div>
+                                </th>
+                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('pgrado')">
+                                    <div class="flex justify-between items-center"> <span>{{ lang().label.pgrado }}</span>
+                                        <ChevronUpDownIcon class="w-4 h-4" />
+                                    </div>
+                                </th>
 
                                 <th class="px-2 py-4">Accion</th>
                             </tr>
@@ -203,20 +240,23 @@ watchEffect(() => {
                                     <span class="flex justify-start items-center text-sm text-gray-600">
                                         {{ user.email }}
                                     </span>
-                                    
+
                                 </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{
-                                    user.roles.length == 0 ? 'not selected' : user.roles[0].name
-                                }}</td>
+                                                                    user.roles.length == 0 ? 'not selected' : user.roles[0].name
+                                                                    }}</td>
                                 <!-- <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.created_at }}</td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.updated_at }}</td> -->
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.identificacion }}</td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.sexo }}</td>
-                                <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">{{ CalcularEdad(user.fecha_nacimiento) }}</td>
+                                <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">{{
+                                                                    CalcularEdad(user.fecha_nacimiento) }}</td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.pgrado }}</td>
                                 <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">{{ user.semestre }}</td>
-                                <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">{{ user.limite_token_general }}</td>
-                                <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">{{ user.limite_token_leccion }}</td>
+                                <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">{{ user.limite_token_general }}
+                                </td>
+                                <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">{{ user.limite_token_leccion }}
+                                </td>
                                 <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">{{ user.pgrado }}</td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">
                                     <div class="flex justify-center items-center">

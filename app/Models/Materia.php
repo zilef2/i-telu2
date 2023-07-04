@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Materia extends Model
 {
@@ -26,9 +27,12 @@ class Materia extends Model
         'req3_materia_id',
     ];
 
-    public function temas(): HasMany {
-        return $this->hasMany(Tema::class, 'materia_id');
-    }
+    public function temas(): HasMany { return $this->hasMany(Tema::class, 'materia_id'); }
+    public function Tsubtemas(): HasManyThrough { return $this->hasManyThrough(Subtopico::class,Tema::class); }
+    // public function Tejercicios(): HasManyThrough {
+    //     return $this->hasManyThrough(Ejercicio::class,Subtopico::class,Tema::class); 
+    // }
+
     public function objetivos(){
         $objetivos = '';
         $objetivos .= $this->objetivo1 != null ? $this->objetivo1 : '';

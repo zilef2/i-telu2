@@ -27,10 +27,16 @@ const props = defineProps({
 
     filters: Object,
 
-    usuariosPorInscribir: Object,
     universidad: Object,
+
     inscritos: Object,
+    usuariosPorInscribir: Object,
+    
+    profesinscritos: Object,
+    profesPorInscribir: Object,
 })
+console.log("🧈 debu inscritos:", props.inscritos);
+console.log("🧈 debu inscrito2s:", props.usuariosPorInscribir);
 
 
 const data = reactive({
@@ -87,14 +93,14 @@ const inscribirSubmit = () => {
     <Breadcrumb :title="title" :breadcrumbs="breadcrumbs" />
 
     <section class="text-gray-600 body-font">
-        <div class="container px-5 py-1 mx-auto">
+        <div class="py-1 grid justify-items-center mx-6">
             <div class="flex flex-col text-center w-full mb-12">
                 <h1 class="sm:text-3xl text-2xl font-medium title-font mb-2 text-gray-900">Matricular a la universidad</h1>
                 <p class="w-full mx-auto leading-relaxed text-base">
                     Estudiantes que no pertenecen a <b>{{ universidad?.nombre }}</b>
                 </p>
-                <TextInput v-model="data.params.search" type="text" class="my-4 mx-auto block w-4/6 md:w-3/6 lg:w-2/6 rounded-lg"
-                        placeholder="Nombre, correo" />
+                <!-- <TextInput v-model="data.params.search" type="text" class="my-4 mx-auto block w-4/6 md:w-3/6 lg:w-2/6 rounded-lg"
+                        placeholder="Nombre, correo" /> -->
 
                 <div class="flex space-x-2 text-center mx-auto">
                     <InfoButton @click="inscribirSubmit"
@@ -104,45 +110,84 @@ const inscribirSubmit = () => {
                     </InfoButton>
                 </div>
             </div>
-            <div class="flex flex-wrap -m-2">
-                <div v-if="props.usuariosPorInscribir" v-for="(user, index) in props.usuariosPorInscribir" :key="index" 
-                    class="p-1 xl:w-1/4 lg:w-1/2 md:w-1/2 w-full border-gray-200 border rounded-lg">
-                    
-                    <div class="h-full flex items-center">
-                        <img alt="team"
-                            class="w-16 h-16 bg-gray-100 object-cover object-center flex-shrink-0 rounded-full mr-4"
-                            src="https://dummyimage.com/80x80">
-                        <div class="mx-0.5 px-2">
-                            <!-- <Checkbox v-model:checked="data.multipleSelect" @change="selectAll" class="mx-0 p-1 h-8 w-8"/> -->
-                            <input type="checkbox" @change="select" v-model="form.selectedId" :value="user.id"
-                                class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-primary dark:text-primary shadow-sm focus:ring-primary/80 dark:focus:ring-primary dark:focus:ring-offset-gray-800 dark:checked:bg-primary dark:checked:border-primary" />
+
+            <div class="grid grid-cols-2 gap-8 border-b-2 pb-4 border-sky-300">
+                
+                <div class="flex flex-wrap -m-2">
+                    <h2 class="w-full text-xl font-bold">Estudiantes por inscribir</h2>
+                    <div v-if="props.usuariosPorInscribir.length" v-for="(user, index) in props.usuariosPorInscribir" :key="index"
+                        class="p-1 lg:w-1/2 md:w-1/2 w-full border-gray-200 border rounded-lg">
+                
+                        <div class="h-full flex items-center">
+                            <!-- <img alt="team"
+                                class="w-16 h-16 bg-gray-100 object-cover object-center flex-shrink-0 rounded-full mr-4"
+                                src="https://dummyimage.com/80x80"> -->
+                                <div class="rounded-full flex items-center justify-center bg-primary text-gray-300 w-12 h-12 text-4xl uppercase">
+                                    {{ user.name.match(/(^\S\S?|\b\S)?/g).join("").match(/(^\S|\S$)?/g).join("") }}
+                                </div>
+                            <div class="mx-0.5 px-2">
+                                <!-- <Checkbox v-model:checked="data.multipleSelect" @change="selectAll" class="mx-0 p-1 h-8 w-8"/> -->
+                                <input type="checkbox" @change="select" v-model="form.selectedId" :value="user.id"
+                                    class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-primary dark:text-primary shadow-sm focus:ring-primary/80 dark:focus:ring-primary dark:focus:ring-offset-gray-800 dark:checked:bg-primary dark:checked:border-primary" />
+                            </div>
+                            <div class="flex-grow">
+                                <h2 class="text-gray-900 title-font font-medium">{{ user.name }}</h2>
+                                <small class="text-xs text-gray-500 title-font font-medium">{{ user.identificacion }}</small>
+                            </div>
                         </div>
-                        <div class="flex-grow">
-                            <h2 class="text-gray-900 title-font font-medium">{{ user.name }}</h2>
-                            <small class="text-xs text-gray-500 title-font font-medium">{{ user.identificacion }}</small>
-                        </div>
+                
                     </div>
-                    
+                    <div v-else class="p-1 w-full border-gray-200 border rounded-lg text-center">
+                        <p class="w-full mx-auto leading-relaxed text-base text-red-400">
+                            No hay mas estudiantes que no pertenescan a la {{ universidad?.nombre }}
+                        </p>
+                    </div>
                 </div>
-                <div v-else class="p-1 w-full border-gray-200 border rounded-lg text-center">
-                    <p class="w-full mx-auto leading-relaxed text-base text-red-500 bg-red-50">
-                        No existen usuarios con este criterio
-                    </p>
+                <div class="flex flex-wrap -m-2">
+                    <h2 class="w-full text-xl font-bold">Estudiantes Inscritos</h2>
+                    <div  v-if="props.inscritos.length > 0" v-for="(user, index) in props.inscritos" :key="index"
+                        class="p-1 lg:w-1/2 md:w-1/2 w-full border-gray-200 border rounded-lg">
+                
+                        <div class="h-full flex items-center">
+                            <!-- <img alt="team"
+                                class="w-16 h-16 bg-gray-100 object-cover object-center flex-shrink-0 rounded-full mr-4"
+                                src="https://dummyimage.com/80x80"> -->
+                                <div class="rounded-full flex items-center justify-center bg-primary text-gray-300 w-12 h-12 text-4xl uppercase">
+                                    {{ user.name.match(/(^\S\S?|\b\S)?/g).join("").match(/(^\S|\S$)?/g).join("") }}
+                                </div>
+                            <div class="mx-0.5 px-2">
+                                <!-- <Checkbox v-model:checked="data.multipleSelect" @change="selectAll" class="mx-0 p-1 h-8 w-8"/> -->
+                                <input type="checkbox" @change="select" v-model="form.selectedId" :value="user.id"
+                                    class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-primary dark:text-primary shadow-sm focus:ring-primary/80 dark:focus:ring-primary dark:focus:ring-offset-gray-800 dark:checked:bg-primary dark:checked:border-primary" />
+                            </div>
+                            <div class="flex-grow">
+                                <h2 class="text-gray-900 title-font font-medium">{{ user.name }}</h2>
+                                <small class="text-xs text-gray-500 title-font font-medium">{{ user.identificacion }}</small>
+                            </div>
+                        </div>
+                
+                    </div>
+                    <div v-else class="p-1 w-full border-gray-200 border rounded-lg text-center">
+                        <p class="w-full mx-auto leading-relaxed text-base text-red-400">
+                            {{ universidad?.nombre }} no tiene estudiantes
+                        </p>
+                    </div>
                 </div>
+                <!-- <div v-if="props.inscritos.length > 0" class="flex flex-wrap my-8">
+                    <div class="p-4 xl:w-1/3 sm:w-1/2 w-full">
+                        <h2 class="font-medium title-font tracking-widest text-gray-900 mb-4 text-xl text-center sm:text-left">Inscritos</h2>
+
+                        <nav class="flex flex-col sm:items-start sm:text-left text-center items-center -mb-1 space-y-2.5">
+                            <p v-for="(user, index) in inscritos" :key="index">
+                                <span class="bg-indigo-100 text-indigo-500 w-4 h-4 mr-2 rounded-full inline-flex items-center justify-center">
+                                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" class="w-3 h-3" viewBox="0 0 24 24"> <path d="M20 6L9 17l-5-5"></path> </svg>
+                                </span>{{ user.name }} ({{ user.email }})
+                            </p>
+                        </nav>
+                    </div>
+                </div> -->
             </div>
 
-            <div v-if="props.inscritos.length > 0" class="flex flex-wrap my-8">
-                <div class="p-4 xl:w-1/3 sm:w-1/2 w-full">
-                    <h2 class="font-medium title-font tracking-widest text-gray-900 mb-4 text-xl text-center sm:text-left">Inscritos</h2>
-                    <nav class="flex flex-col sm:items-start sm:text-left text-center items-center -mb-1 space-y-2.5">
-                        <p v-for="(user, index) in inscritos" :key="index">
-                            <span class="bg-indigo-100 text-indigo-500 w-4 h-4 mr-2 rounded-full inline-flex items-center justify-center">
-                            <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" class="w-3 h-3" viewBox="0 0 24 24"> <path d="M20 6L9 17l-5-5"></path> </svg>
-                            </span>{{ user.name }} ({{ user.email }})
-                        </p>
-                    </nav>
-                </div>
-            </div>
         </div>
     </section>
 

@@ -91,28 +91,30 @@ const PapaSelect = props.PapaSelect?.map(universidad => ({
 </script>
 
 <template>
-    <Head :title="props.title" ></Head>
+    <Head :title="props.title"></Head>
 
     <AuthenticatedLayout>
         <Breadcrumb :title="title" :breadcrumbs="breadcrumbs" />
         <div class="space-y-4">
             <div class="px-4 sm:px-0">
                 <div class="rounded-lg overflow-hidden w-fit">
-                    <PrimaryButton class="rounded-none" @click="data.createOpen = true">
+                    <PrimaryButton class="rounded-none" @click="data.createOpen = true" v-if="can(['create carrera'])"> 
                         {{ lang().button.add }}
                     </PrimaryButton>
-                    <Create :show="data.createOpen" @close="data.createOpen = false" :title="props.title"  :PapaSelect="PapaSelect"/>
-                    <Edit :show="data.editOpen" @close="data.editOpen = false" :carrera="data.generico" :title="props.title" :PapaSelect="PapaSelect" />
-                    <Delete :show="data.deleteOpen" @close="data.deleteOpen = false" :carrera="data.generico" :title="props.title" />
+                    <Create :show="data.createOpen" @close="data.createOpen = false" :title="props.title" v-if="can(['create carrera'])"
+                        :PapaSelect="PapaSelect" />
+                    <Edit :show="data.editOpen" @close="data.editOpen = false" :carrera="data.generico" :title="props.title" v-if="can(['update carrera'])"
+                        :PapaSelect="PapaSelect" />
+                    <Delete :show="data.deleteOpen" @close="data.deleteOpen = false" :carrera="data.generico" v-if="can(['delete carrera'])"
+                        :title="props.title" />
                 </div>
             </div>
             <div class="relative bg-white dark:bg-gray-800 shadow sm:rounded-lg">
                 <div class="flex justify-between p-2">
                     <div class="flex space-x-2">
                         <SelectInput v-model="data.params.perPage" :dataSet="data.dataSet" />
-                        <DangerButton @click="data.deleteBulkOpen = true"
-                            v-show="data.selectedId.length != 0" class="px-3 py-1.5"
-                            v-tooltip="lang().tooltip.delete_selected">
+                        <DangerButton @click="data.deleteBulkOpen = true" v-show="data.selectedId.length != 0"
+                            class="px-3 py-1.5" v-tooltip="lang().tooltip.delete_selected">
                             <TrashIcon class="w-5 h-5" />
                         </DangerButton>
                     </div>
@@ -161,10 +163,9 @@ const PapaSelect = props.PapaSelect?.map(universidad => ({
                                                 <TrashIcon class="w-4 h-4" />
                                             </DangerButton>
                                             <Link :href="route('carrera.AsignarUsers', clasegenerica.id)"
-                                                v-show="can(['isAdmin'])" 
-                                                type="button"
+                                                v-show="can(['isAdmin'])" type="button"
                                                 class="px-2 -mb-1.5 py-1.5 rounded-none hover:bg-blue-500">
-                                                <UserGroupIcon class="w-4 h-4" />
+                                            <UserGroupIcon class="w-4 h-4" />
                                             </Link>
                                         </div>
                                     </div>

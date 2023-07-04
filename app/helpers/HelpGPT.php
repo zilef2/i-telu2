@@ -15,7 +15,7 @@ class HelpGPT{
     const MAX_USAGE_TOTAL = 600;
 
     
-    public static function ApartarSujerencias($respuestaGPT,$plantillaPracticar, $pp, &$finishingReason) {
+    public static function ApartarSujerencias($respuestaGPT,$plantillaPracticar) {
             $vectorEjercicios = explode("\n", $respuestaGPT);
             $vectorEjercicios = array_filter($vectorEjercicios, 'trim');
     
@@ -50,7 +50,6 @@ class HelpGPT{
             }else{
                 $soloEjercicios = ['Sin sugerencias'];
             }
-            $finishingReason = $pp[0]["finish_reason"];
     
             session(['tresEjercicios' => $soloEjercicios]);
             return $soloEjercicios;
@@ -69,6 +68,25 @@ class HelpGPT{
         return $restarAlToken;
     }
 
+    public static function maxToken(){
+        return 600; // Adjust the response length as needed
+    }
 
+    public static function nivelesAplicativo(){
+
+        $niveles = [
+            'bachillerato',
+            'universitario',
+            'Postgrado'
+        ];
+
+        foreach ($niveles as $key => $value) {
+            $result[] = [ 'label' => $value, 'value' => $key ];
+        }
+        return [
+            $niveles,
+            $result
+        ];
+    }
 
 }

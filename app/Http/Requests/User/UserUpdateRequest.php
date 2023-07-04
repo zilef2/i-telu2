@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\User;
 
+use App\Models\User;
+
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Password;
 
@@ -25,11 +27,18 @@ class UserUpdateRequest extends FormRequest
     public function rules()
     {
         return [
-            'name'                  => ['required', 'string', 'max:255'],
-            'email'                 => 'required|unique:users,email,' . $this->user,
-            'password'              => ['nullable', 'confirmed', Password::defaults()],
-            'password_confirmation' => 'sometimes|required_with:password|same:password',
-            'role'                  => ['required'],
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255',
+            // 'email' => 'required|string|email|max:255|unique:' . User::class,
+
+            'identificacion' => 'nullable|Integer',
+            'sexo' => 'nullable',
+            'fecha_nacimiento' => 'nullable',
+            'semestre' => 'nullable',
+            'semestre_mas_bajo' => 'nullable',
+            'limite_token_general' => 'nullable|Integer',
+            'limite_token_leccion' => 'nullable|Integer',
+            'pgrado' => 'nullable',
         ];
     }
 }

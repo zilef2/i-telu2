@@ -5,6 +5,8 @@ return [
         //asignar - materia
         
         'no_permission' => 'Accion no autorizada',
+        //ejercicios
+        'ejercicios' => 'Ejercicios',
         //subtema
         'stema' => 'sub tema',
         'subtopico' => 'subtopico',
@@ -15,6 +17,7 @@ return [
         'temas' => 'temas',
         'tema' => 'tema',
         //materia
+        'preguntaria' => 'preguntar a la IA',
         'cuantosObj' => 'cuantos Objetivos?',
         'objetivo' => 'objetivo',
         'tieneRequisitos' => 'tiene Requisitos?',
@@ -190,11 +193,15 @@ return [
         'observaciones' => 'observaciones',
     ],
     'tooltip' => [
-        'edit' => 'Edit',
+        'ver' => 'ver',
+        'inscribir' => 'inscribir',
+        'preguntaria' => 'preguntar a la IA',
+
+        'edit' => 'Editar',
         'delete' => 'borrar',
         'delete_selected' => 'borrar todo lo seleccionado',
-        'dark_mode' => 'Light/Dark Mode',
-        'detail' => 'Click to detail',
+        'dark_mode' => 'Modo claro/oscuro',
+        'detail' => 'Click para detalles',
         'locale' => 'Change to Indonesian',
     ],
     'profile' => [

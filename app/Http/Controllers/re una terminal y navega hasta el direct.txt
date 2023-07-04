@@ -1,0 +1,85 @@
+re una terminal y navega hasta el directorio raíz de tu proyecto Laravel.
+
+Ejecuta el siguiente comando para crear un nuevo comando:
+
+bash
+Copy code
+php artisan make:command PruebaGenerarControlador
+Esto creará un nuevo archivo llamado GenerarControlador.php dentro del directorio app/Console/Commands. Abre ese archivo y encontrarás una clase que se ve así:
+
+php
+Copy code
+<?php
+
+namespace App\Console\Commands;
+
+use Illuminate\Console\Command;
+
+class GenerarControlador extends Command
+{
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
+    protected $signature = 'generar:controlador';
+
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Genera un controlador con la línea de código "$personas = User::all();"';
+
+    /**
+     * Execute the console command.
+     *
+     * @return int
+     */
+    public function handle()
+    {
+        $codigo = '$personas = User::all();';
+
+        // Generar el controlador con la línea de código
+        // Puedes ajustar la ruta y el nombre del controlador según tus necesidades
+        file_put_contents(app_path('Http/Controllers/NuevoControlador.php'), "
+            <?php\n
+
+            \n
+            namespace App\Http\Controllers;\n
+            \n
+            use App\Http\Controllers\Controller;\n
+            use App\Models\User;\n
+            \n
+            class NuevoControlador extends Controller\n
+            {\n
+                public function index()\n
+                {\n
+                    $codigo\n
+                }\n
+            }
+        ");
+
+        $this->info('El controlador ha sido generado exitosamente.');
+
+        return 0;
+    }
+}
+En el método handle(), se genera el controlador con la línea de código proporcionada. Si deseas cambiar la ruta o el nombre del controlador, puedes ajustar el valor pasado a file_put_contents. Actualmente, el controlador se generará en la ruta app/Http/Controllers/NuevoControlador.php.
+
+Guarda y cierra el archivo.
+
+Ahora, debes registrar tu nuevo comando en Laravel. Abre el archivo app/Console/Kernel.php y busca el método protected $commands. Agrega la ruta de la clase de tu comando (App\Console\Commands\GenerarControlador::class) a la matriz de comandos registrados. El código se verá así:
+
+php
+Copy code
+protected $commands = [
+    // Otras clases de comando...
+    \App\Console\Commands\PruebaGenerarControlador::class,
+];
+Guarda y cierra el archivo.
+
+¡Listo! Ahora puedes ejecutar tu comando personalizado. En la terminal, ejecuta el siguiente comando:
+
+Copy code
+php artisan generar:controlador

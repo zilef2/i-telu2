@@ -58,7 +58,7 @@ Route::middleware('auth', 'verified')->group(function () {
     Route::resource('/materia', MateriasController::class);
     Route::get('/AsignarMateria/{materiaid}', [MateriasController::class,'AsignarUsers'])->name('materia.AsignarUsers');
     Route::post('/AsignarMateria', [MateriasController::class,'SubmitAsignarUsers'])->name('materia.SubmitAsignarUsers');
-    Route::get('/materiaEstudiar/{id}/{temaSelec?}/{subtopicoSelec?}/{ejercicioSelec?}', [MateriasController::class,'VistaTema'])->name('materia.VistaTema');
+    Route::get('/materiaEstudiar/{materiaID}/{ejercicioID?}/{nivel?}', [MateriasController::class,'VistaTema'])->name('materia.VistaTema');
     // Route::get('/masPreguntas/{id}/{nuevaPregunta}', [MateriasController::class,'masPreguntas'])->name('materia.masPreguntas');
     Route::get('/masPreguntas', [MateriasController::class,'masPreguntas'])->name('materia.masPreguntas');
     // Route::post('/masPreguntasPost', [MateriasController::class,'masPreguntasPost'])->name('materia.masPreguntasPost');
@@ -77,7 +77,7 @@ Route::middleware('auth', 'verified')->group(function () {
     //otros
     Route::resource('/subtopico', SubtopicosController::class);
     Route::resource('/ejercicio', EjerciciosController::class);
-    Route::resource('/parametro', parametrosController::class);
+    Route::resource('/parametro', ParametrosController::class);
 
 });
 

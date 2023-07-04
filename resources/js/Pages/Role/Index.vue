@@ -81,7 +81,6 @@ const select = () => {
 </script>
 
 <template>
-
     <Head :title="props.title" />
 
     <AuthenticatedLayout>
@@ -90,7 +89,7 @@ const select = () => {
             <div class="px-4 sm:px-0">
                 <div class="rounded-lg overflow-hidden w-fit">
                     <PrimaryButton v-show="can(['create role'])" class="rounded-none" @click="data.createOpen = true">
-                        {{ lang().button.add }} 
+                        {{ lang().button.add }}
                     </PrimaryButton>
                     <Create :show="data.createOpen" @close="data.createOpen = false" :permissions="props.permissions"
                         :title="props.title" />

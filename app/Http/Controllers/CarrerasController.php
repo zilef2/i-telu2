@@ -43,37 +43,65 @@ class CarrerasController extends Controller
                 return $carrera;
             })->filter();
             
-            // $Carreras = $Carreras->reject(function ($value) {
-            //     return $value === null;
-            // });
-
-            // dd($Carreras);
         }
 
-        //todo:1:Filtros copypaste no se ha tocado
-        public function Filtros($request, &$materias,$permissions) {
-            if ($request->has('selectedUni') && $request->selectedUni != 0) {
-                // dd($request->selectedUni);
-                $carrerasid = Carrera::has('materias')->where('universidad_id', $request->selectedUni)->pluck('id')->toArray();
-                $materias->whereIn('carrera_id',$carrerasid);
+        public function fNombresTabla($numberPermissions) {
+            if($numberPermissions < 2) { //estudiante
+                //todo: esto ni se muestra a los estudiantes
+    
+                $nombresTabla =[//0: como se ven //1 como es la BD //2??
+                    ["Acciones","#"],
+                    [],
+                    [null,null,null]
+                ];
+                array_push($nombresTabla[0], "nombre", "observaciones");
+                //m for money || t for datetime || d date || i for integer || s string || b boolean
+                $nombresTabla[1][] = ["s_nombre", "s_descripcion"];
+                //se puede ordenar?
+                $nombresTabla[2][] = ["s_nombre", "s_descripcion"];
             }
-            if($request->selectedUni == 0) $request->selectedcarr = 0;
+            else{
+            // if($numberPermissions < 3){ //profesor
+    
+
+                //0: como se ven //1 como es la BD //2 orden
+                $nombresTabla =[
+                    ["Acciones","#"],
+                    [],
+                    [null,null]
+                ];
+                $nombresTabla[0] = array_merge($nombresTabla[0] , ["nombre","descripcion","Universidad","# Inscritos","Inscritos"]);
+                //m for money || t for datetime || d date || i for integer || s string || b boolean 
+                $nombresTabla[1] = array_merge($nombresTabla[1] , ["s_nombre", "s_descripcion","i_universidad_id","i_inscritos","s_inscritos"]);
+                //campos ordenables
+                $nombresTabla[2] = array_merge($nombresTabla[2] , ["s_nombre", "s_descripcion","i_universidad_id","",""]);
+            }
+            // dd($nombresTabla);
+            //coordinador_academico
+            // coordinador_de_programa
+    
             
+            return $nombresTabla;
+        }
+        
+
+        public function Filtros($request, &$Carreras) {
             if ($request->has('search')) {
-                $materias->where('descripcion','LIKE', "%".$request->search."%");
-                // $materias->whereMonth('descripcion', $request->search);
-                // $materias->OrwhereMonth('fecha_fin', $request->search);
-                $materias->orWhere('nombre', 'LIKE', "%" . $request->search . "%");
+                $Carreras->where('descripcion','LIKE', "%".$request->search."%");
+                // $Carreras->whereMonth('descripcion', $request->search);
+                // $Carreras->OrwhereMonth('fecha_fin', $request->search);
+                $Carreras->orWhere('nombre', 'LIKE', "%" . $request->search . "%");
             }
             
             if ($request->has(['field', 'order'])) {
-                $materias->orderBy($request->field, $request->order);
+                $Carreras->orderBy(substr($request->field,2), $request->order);
             }else{
-                $materias->orderBy('nombre');
+                $Carreras->orderBy('nombre');
             }
         }
+        
+        
         //todo:1:losSelect copypaste no se ha tocado
-
         public function losSelect(&$carrerasSelect, &$MateriasRequisitoSelect, &$UniversidadSelect,$request,&$materias) {
             
             if($request->has('selectedUni')) {
@@ -107,47 +135,22 @@ class CarrerasController extends Controller
         $Carreras = Carrera::query();
         $this->Filtros($request,$Carreras,$permissions);
         
-        if($permissions === "estudiante") {
-            $perPage = $request->has('perPage') ? $request->perPage : 10;
+        $perPage = $request->has('perPage') ? $request->perPage : 10;
 
-            $nombresTabla =[//0: como se ven //1 como es la BD //2??
-                ["Acciones","#"],
-                [],
-                [null,null,null]
-            ];
-            $nombresTabla[0][] = ["Centro costo","inicio", "fin", "horas trabajadas", "valido", "observaciones"];
-            //m for money || t for datetime || d date || i for integer || s string || b boolean 
-            $nombresTabla[1][] = ["s_nombre", "s_descripcion"]; 
-            //campos ordenables
-            $nombresTabla[2][] = ["s_nombre", "s_descripcion"]; 
+
+        // retorna un numero referente a los permisos(0:error, 1:estudiante,  2: profesor, 3:++ )
+        $numberPermissions = Myhelp::getPermissionToNumber($permissions);
+
+        if($permissions === "estudiante") {
+            $nombresTabla = $this->fNombresTabla($numberPermissions);
+
         }else{ // not estudiante
-            $titulo = 'Carrera';
+            $this->Filtros($request,$Carreras);
             
-            if ($request->has('search')) {
-                $Carreras->where('descripcion','LIKE', "%".$request->search."%");
-                // $Carreras->whereMonth('descripcion', $request->search);
-                // $Carreras->OrwhereMonth('fecha_fin', $request->search);
-                $Carreras->orWhere('nombre', 'LIKE', "%" . $request->search . "%");
-            }
-            
-            if ($request->has(['field', 'order'])) {
-                $Carreras->orderBy(substr($request->field,2), $request->order);
-            }else{
-                $Carreras->orderBy('nombre');
-            }
-            $perPage = $request->has('perPage') ? $request->perPage : 10;
 
             //0: como se ven //1 como es la BD //2 orden
-            $nombresTabla =[
-                ["Acciones","#"],
-                [],
-                [null,null]
-            ];
-            $nombresTabla[0] = array_merge($nombresTabla[0] , ["nombre","descripcion","Universidad","# Inscritos","Inscritos"]);
-            //m for money || t for datetime || d date || i for integer || s string || b boolean 
-            $nombresTabla[1] = array_merge($nombresTabla[1] , ["s_nombre", "s_descripcion","i_universidad_id","i_inscritos","s_inscritos"]);
-            //campos ordenables
-            $nombresTabla[2] = array_merge($nombresTabla[2] , ["s_nombre", "s_descripcion","i_universidad_id","",""]);
+            $nombresTabla = $this->fNombresTabla($numberPermissions);
+
         }
         $this->MapearClasePP($Carreras,$permissions);
         

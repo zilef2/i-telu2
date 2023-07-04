@@ -82,7 +82,7 @@ class UserSeeder extends Seeder
             $unUsuario = User::create([
                 'name'              => $key,
                 'email'             => $key.'@'.$key.'.com',
-                'password'          => bcrypt('asd+-*/'),
+                'password'          => bcrypt('asd+-*'),
                 'email_verified_at' => date('Y-m-d H:i'),
                 'fecha_nacimiento' => $anios,
                 'sexo' => $sexos[rand(0,1)],

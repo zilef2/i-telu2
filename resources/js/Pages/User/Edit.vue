@@ -27,6 +27,7 @@ const form = useForm({
     role: '',
 
     sexo:'',
+    identificacion:'',
     fecha_nacimiento:'',
     semestre:'',
     semestre_mas_bajo:1,

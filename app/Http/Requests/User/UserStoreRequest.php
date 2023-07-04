@@ -29,7 +29,17 @@ class UserStoreRequest extends FormRequest
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:' . User::class,
             'password' => ['required', 'confirmed', Password::defaults()],
-            'role' => ['required'],
+            // 'role' => ['required'],
+
+            'identificacion' => 'nullable|Integer',
+            'sexo' => 'nullable',
+            'fecha_nacimiento' => 'nullable',
+            'semestre' => 'nullable',
+            'semestre_mas_bajo' => 'nullable',
+            'limite_token_general' => 'nullable|Integer',
+            'limite_token_leccion' => 'nullable|Integer',
+            'pgrado' => 'nullable',
+            
         ];
     }
 }

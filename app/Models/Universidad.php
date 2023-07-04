@@ -25,4 +25,28 @@ class Universidad extends Model
     public function users() {
         return $this->belongsToMany(User::class, 'universidad_user');
     }
+    public function estudiantes($universidadid,$inscrito,$elrol) {
+        if ($inscrito) {
+            $result = $this->belongsToMany(User::class, 'universidad_user')
+            ->wherePivot('universidad_id',$universidadid)
+            ->WhereHas('roles',function ($query) use ($elrol){
+                $query->where('name', $elrol );
+            }) ;
+            
+        } else {
+            $result = $this->belongsToMany(User::class, 'universidad_user')
+            ->wherePivot('universidad_id','<>',$universidadid)
+            ->WhereHas('roles',function ($query) use ($elrol){
+                $query->where('name', $elrol );
+            }) ;
+            
+        }
+
+        return $result;
+    }
+    public function profesores($universidadid) {
+        return
+        $this->belongsToMany(User::class, 'universidad_user')
+            ->wherePivot('universidad_id',$universidadid);
+    }
 }

@@ -78,7 +78,6 @@ const select = () => {
 </script>
 
 <template>
-
     <Head :title="props.title" />
 
     <AuthenticatedLayout>
@@ -86,8 +85,7 @@ const select = () => {
         <div class="space-y-4">
             <div class="px-4 sm:px-0">
                 <div class="rounded-lg overflow-hidden w-fit">
-                    <PrimaryButton v-show="can(['create permission'])" class="rounded-none"
-                        @click="data.createOpen = true">
+                    <PrimaryButton v-show="can(['create permission'])" class="rounded-none" @click="data.createOpen = true" >
                         {{ lang().button.add }}
                     </PrimaryButton>
                     <Create :show="data.createOpen" @close="data.createOpen = false" :title="props.title" />
@@ -154,8 +152,7 @@ const select = () => {
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-center">
                                     <input
                                         class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-primary dark:text-primary shadow-sm focus:ring-primary/80 dark:focus:ring-primary dark:focus:ring-offset-gray-800 dark:checked:bg-primary dark:checked:border-primary"
-                                        type="checkbox" @change="select" :value="permission.id"
-                                        v-model="data.selectedId" />
+                                        type="checkbox" @change="select" :value="permission.id" v-model="data.selectedId" />
                                 </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-center">{{ ++index }}</td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ permission.name }}</td>

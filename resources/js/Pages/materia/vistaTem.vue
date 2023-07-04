@@ -2,6 +2,8 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import Breadcrumb from '@/Components/Breadcrumb.vue';
+import SelectInput from '@/Components/SelectInput.vue';
+
 import { reactive, watch, ref,watchEffect } from 'vue';
 import pkg from 'lodash';
 import { router, useForm, Link } from '@inertiajs/vue3';
@@ -30,6 +32,8 @@ const props = defineProps({
     restarAlToken: Number,
     soloEjercicios: Array,
     materia: Object,
+    nivelSelect: Object,
+    ChosenNivel: String,
 
 })
 
@@ -50,11 +54,11 @@ const form = useForm({
     respuestagpt: props.respuesta
 });
 watchEffect(() => {
-   console.log('asd')
+//    console.log('asd')
 })
 
-const submitToGPT = (temaSelec, subtopicoSelec, ejercicioSelec) => {
-    form.get(route('materia.VistaTema', [props.elid, temaSelec, subtopicoSelec, ejercicioSelec]), {
+const submitToGPT = (ejercicioID) => {
+    form.get(route('materia.VistaTema', [props.elid,ejercicioID,form.nivel]), {
         preserveScroll: true,
         onSuccess: () => { },
         onError: () => alert(JSON.stringify(form.errors, null, 4)),
@@ -107,16 +111,16 @@ const IrPreguntas = (pregunta) => {
                                     <div
                                         class="h-full border-2 border-gray-200 border-opacity-60 rounded-lg overflow-hidden">
 
-                                        <div class="p-6">
-                                            <h2 class="tracking-widest text-md title-font font-medium text-gray-400 mb-1">
+                                        <div class="p-6 my-2">
+                                            <h2 class="tracking-widest text-md title-font font-medium text-gray-400 mb-3 pb-2">
                                                 {{ clasegenerica.nombre }}
                                             </h2>
                                             <!-- <h1 class="title-font text-lg font-medium text-gray-900 mb-3">
                                                 {{ clasegenerica.nombre }}
                                             </h1> -->
-                                            <p class="leading-relaxed mb-3">{{ clasegenerica.descripcion }}.</p>
+                                            <!-- <p class="leading-relaxed mb-3">{{ clasegenerica.descripcion }}</p> -->
 
-                                            <div v-if="clasegenerica.sub.length" class="flex flex-col">
+                                            <div v-if="clasegenerica.sub.length" class="flex flex-col mt-4">
                                                 <div v-for="(subtopicos, Jindex) in clasegenerica.sub" :key="Jindex"
                                                     class="flex items-center">
                                                     <!-- <input id="toggle" type="checkbox"
@@ -174,6 +178,11 @@ const IrPreguntas = (pregunta) => {
                                 Subtopico: <b>{{ data.temaSelectedName }} </b>
                             </p>
                         </div>
+                        <div>
+                        <InputLabel for="nivel" :value="lang().label.nivel" />
+                            <SelectInput v-model="form.nivel" :dataSet="props.nivelSelect" class="mt-1 block w-full" />
+                            <InputError class="mt-2" :message="form.errors.nivel" />
+                        </div>
                     </div>
                     <section v-if="data.temaSelected != null" class="text-gray-600 body-font">
                         <div class="container px-5 py-3 mx-auto">
@@ -184,7 +193,7 @@ const IrPreguntas = (pregunta) => {
                                     <div
                                         class="h-full border-2 border-gray-200 border-opacity-60 rounded-lg overflow-hidden">
                                         <div class="p-6">
-                                            <p @click="submitToGPT(data.temaSelectedName, data.temaSelectedName, ejercicio.nombre)"
+                                            <p @click="submitToGPT(ejercicio.id)"
                                                 class="underline text-sky-300 cursor-help leading-relaxed mb-3">
                                                 {{ ejercicio.nombre }}.
                                             </p>
@@ -204,12 +213,22 @@ const IrPreguntas = (pregunta) => {
             </div>
 
 
-            <section v-if="props.limite > 0" v-show="props.respuesta" class="text-gray-600 body-font relative">
-                <div class="container px-5 py-24 mx-auto">
+
+
+
+
+
+            <!-- button esperee -->
+
+            <section v-if="props.limite > -1 && !form.processing" v-show="props.respuesta" class="text-gray-600 body-font relative">
+                <div class="container px-5 py-12 mx-auto">
                     <div class="flex flex-col text-center w-full mb-12">
                         <h1 class="sm:text-3xl text-2xl font-medium title-font mb-4 text-gray-900">{{ temaSelec }}</h1>
-                        <p class="lg:w-2/3 mx-auto leading-relaxed text-base">
+                        <p class="lg:w-2/3 mx-auto leading-relaxed text-xl">
                             {{ subtopicoSelec }}
+                        </p>
+                        <p v-if="props.ChosenNivel" class="lg:w-2/3 mx-auto leading-relaxed text-transparent text-black underline">
+                            Nivel seleccionado: {{ props.ChosenNivel }}
                         </p>
                     </div>
                     <div class="w-full mx-auto">
@@ -218,8 +237,7 @@ const IrPreguntas = (pregunta) => {
                                 <div class="p-2 w-1/2">
                                     <div v-if="form.respuestagpt != 'Tema no seleccionado'" class="relative">
                                         <label for="name" class="leading-7 text-sm text-gray-600">Objetivo</label>
-                                        <p
-                                            class="w-full bg-gray-100 bg-opacity-50 rounded border border-gray-300 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-800 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out">
+                                        <p class="w-full bg-gray-100 bg-opacity-50 rounded border border-gray-300 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-800 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out">
                                             {{ props.objetivosCarrera }}
                                         </p>
                                         <!-- <SelectInput v-model="nivel" :dataSet="props.objetivosCarrera" class="mt-1 block w-full" /> -->
@@ -228,8 +246,7 @@ const IrPreguntas = (pregunta) => {
                                 <div v-if="form.respuestagpt != 'Tema no seleccionado'" class="p-2 w-1/2">
                                     <div class="relative">
                                         <label for="pregunta" class="leading-7 text-sm text-gray-600">Pregunta</label>
-                                        <p
-                                            class="w-full bg-gray-100 bg-opacity-50 rounded border border-gray-300 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out">
+                                        <p class="w-full bg-gray-100 bg-opacity-50 rounded border border-gray-300 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out">
                                             {{ props.ejercicioSelec }}?
                                         </p>
                                     </div>

@@ -12,7 +12,7 @@ import pkg from 'lodash';
 import { router, usePage, Link } from '@inertiajs/vue3';
 
 import Pagination from '@/Components/Pagination.vue';
-import { CursorArrowRippleIcon, ChevronUpDownIcon, EyeIcon, PencilIcon, TrashIcon, UserGroupIcon } from '@heroicons/vue/24/solid';
+import { CursorArrowRippleIcon, ChevronUpDownIcon,QuestionMarkCircleIcon, EyeIcon, PencilIcon, TrashIcon, UserGroupIcon } from '@heroicons/vue/24/solid';
 
 import Create from '@/Pages/materia/Create.vue';
 import Edit from '@/Pages/materia/Edit.vue';
@@ -115,6 +115,11 @@ onMounted(() =>{
     // data.MateriasRequisitoSelect = vectorSelect(data.MateriasRequisitoSelect,props.MateriasRequisitoSelect,'una')
     console.log("🧈 debu data.MateriasRequisitoSelect:", data.MateriasRequisitoSelect);
 })
+
+const vistaIA = (elid)=>{
+    const vista = route(route('materia.VistaTema', elid).url());
+    page.visit(vista)
+}
 </script>
 
 <template>
@@ -128,15 +133,17 @@ onMounted(() =>{
         <div v-else class="space-y-4">
             <div class="px-4 sm:px-0">
                 <div class="rounded-lg overflow-hidden w-fit">
-                    <PrimaryButton class="rounded-none" @click="data.createOpen = true">
+                    <PrimaryButton class="rounded-none" @click="data.createOpen = true" v-if="can(['create materia'])">
                         {{ lang().button.add }}
                     </PrimaryButton>
                     <Create :show="data.createOpen" @close="data.createOpen = false" :title="props.title"
-                        :carrerasSelect="data.carrerasDeUSel" :MateriasRequisitoSelect="props.MateriasRequisitoSelect" />
+                        v-if="can(['create materia'])" :carrerasSelect="data.carrerasDeUSel"
+                        :MateriasRequisitoSelect="props.MateriasRequisitoSelect" />
                     <Edit :show="data.editOpen" @close="data.editOpen = false" :materia="data.generico" :title="props.title"
-                        :carrerasSelect="data.carrerasDeUSel" :MateriasRequisitoSelect="props.MateriasRequisitoSelect" />
+                        v-if="can(['update materia'])" :carrerasSelect="data.carrerasDeUSel"
+                        :MateriasRequisitoSelect="props.MateriasRequisitoSelect" />
                     <Delete :show="data.deleteOpen" @close="data.deleteOpen = false" :materia="data.generico"
-                        :title="props.title" />
+                        v-if="can(['delete materia'])" :title="props.title" />
                 </div>
             </div>
             <div class="relative bg-white dark:bg-gray-800 shadow sm:rounded-lg">
@@ -156,7 +163,7 @@ onMounted(() =>{
                             <TrashIcon class="w-5 h-5" />
                         </DangerButton> -->
                     </div>
-                    <TextInput v-model="data.params.search" type="text" class="block w-3/6 md:w-2/6 lg:w-1/6 rounded-lg"
+                    <TextInput v-if="can(['create materia'])" v-model="data.params.search" type="text" class="block w-3/6 md:w-2/6 lg:w-1/6 rounded-lg"
                         :placeholder="lang().placeholder.search" />
                 </div>
 
@@ -170,12 +177,9 @@ onMounted(() =>{
                                 <th v-for="(titulos, indiceN) in nombresTabla[0]" :key="indiceN"
                                     v-on:click="order(nombresTabla[2][indiceN])"
                                     class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
-                                    <div v-if="nombresTabla[2][indiceN] !== null" class="flex justify-between items-center">
+                                    <div class="flex justify-between items-center">
                                         <span>{{ titulos }}</span>
-                                        <ChevronUpDownIcon class="w-4 h-4" />
-                                    </div>
-                                    <div v-else class="flex justify-between items-center">
-                                        <span>{{ titulos }}</span>
+                                        <ChevronUpDownIcon v-if="nombresTabla[2][indiceN] !== null" class="w-4 h-4" />
                                     </div>
                                 </th>
                             </tr>
@@ -191,32 +195,45 @@ onMounted(() =>{
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">
                                     <div class="flex justify-start items-center">
                                         <div class="rounded-md overflow-hidden">
+                                            <!-- <InfoButton type="button" class="py-1.5 rounded-none"
+                                                v-tooltip="lang().tooltip.ver">
+                                                <Link :href="route('materia.show', clasegenerica.id)">
+                                                <EyeIcon class="w-6 h-4 px-0.5" />
+                                                </Link>
+                                            </InfoButton> -->
                                             <InfoButton type="button"
                                                 @click="(data.editOpen = true), (data.generico = clasegenerica)"
                                                 class="px-2 py-1.5 rounded-none" v-tooltip="lang().tooltip.edit">
                                                 <PencilIcon class="w-4 h-4" />
+                                            </InfoButton>
+                                            <InfoButton type="button" class="py-1.5 rounded-none"
+                                                v-tooltip="lang().tooltip.preguntaria">
+                                                <Link :href="route('materia.VistaTema', clasegenerica.id)">
+                                                <QuestionMarkCircleIcon class="w-6 h-4 px-0.5" />
+                                                </Link>
+                                            </InfoButton>
+                                            <InfoButton type="button" class="py-1.5 rounded-none"
+                                                v-tooltip="lang().tooltip.inscribir">
+                                                <Link :href="route('materia.AsignarUsers', clasegenerica.id)">
+                                                <UserGroupIcon class="w-6 h-4 px-0.5" />
+                                                </Link>
                                             </InfoButton>
                                             <DangerButton type="button"
                                                 @click="(data.deleteOpen = true), (data.generico = clasegenerica)"
                                                 class="px-2 py-1.5 rounded-none" v-tooltip="lang().tooltip.delete">
                                                 <TrashIcon class="w-4 h-4" />
                                             </DangerButton>
-                                            <Link :href="route('materia.VistaTema', clasegenerica.id)"
-                                                v-show="can(['read materia'])" type="button"
-                                                class="px-2 -mb-1.5 py-1.5 rounded-none hover:bg-blue-500">
-                                            <CursorArrowRippleIcon class="w-4 h-4" />
-                                            </Link>
-                                            <Link :href="route('materia.AsignarUsers', clasegenerica.id)"
-                                                v-show="can(['isAdmin'])" type="button"
-                                                class="px-2 -mb-1.5 py-1.5 rounded-none hover:bg-blue-500">
-                                            <UserGroupIcon class="w-4 h-4" />
-                                            </Link>
                                         </div>
                                     </div>
                                 </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (index + 1) }}</td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.hijo) }} </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.nombre) }} </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3 underline text-sky-700">
+                                    <Link :href="route('materia.show', clasegenerica.id)">
+                                        {{ (clasegenerica.nombre) }}
+                                    </Link>
+                                 </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-sm text-gay-600">{{ (clasegenerica.papa) }} </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-sm text-gay-600">{{ (clasegenerica.cuantoshijos) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.muchos) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.numRequisitos) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.objetivs) }} </td>
@@ -235,5 +252,4 @@ onMounted(() =>{
 
 
 
-    </AuthenticatedLayout>
-</template>
+    </AuthenticatedLayout></template>

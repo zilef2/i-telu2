@@ -13,11 +13,12 @@ class Ejercicio extends Model
     protected $fillable = [
         'nombre',
         'descripcion',
+        'seHaPreguntado', //1jul2023
         'subtopico_id',
     ];
 
     public function subtopico(): BelongsTo {
-        return $this->belongsTo(subtopico::class, 'subtopico_id');
+        return $this->belongsTo(Subtopico::class, 'subtopico_id');
     }
     public function subtopico_nombre(): string {
         return $this->subtopico->nombre;

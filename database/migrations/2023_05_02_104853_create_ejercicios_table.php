@@ -23,6 +23,8 @@ class CreateEjerciciosTable extends Migration
                     ->references('id')
                     ->on('subtopicos')
                     ->onDelete('cascade');
+
+			$table->integer('seHaPreguntado')->default(0);
             $table->timestamps();
         });
     }

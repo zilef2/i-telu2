@@ -5,11 +5,11 @@ namespace App\Http\Controllers;
 use App\helpers\Myhelp;
 use Inertia\Inertia;
 
-use App\Models\ejercicio;
+use App\Models\Ejercicio;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ejercicioRequest;
+use App\Http\Requests\EjercicioRequest;
 use App\Models\Subtopico;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
@@ -17,67 +17,43 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class EjerciciosController extends Controller {
 
-    public function index(Request $request) {
-        if(Auth::user()->isAdmin < 1){
-            $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
-            // log::channel('soloadmin')->info('Vista:' . $nombreC. '|  U:'.Auth::user()->name );
-            log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||ejercicio|| ' );
+    public function Filtros($request, &$ejercicios) {
+        if ($request->has('search')) {
+            $ejercicios->where('descripcion','LIKE', "%".$request->search."%");
+            // $ejercicios->whereMonth('descripcion', $request->search);
+            // $ejercicios->OrwhereMonth('fecha_fin', $request->search);
+            $ejercicios->orWhere('nombre', 'LIKE', "%" . $request->search . "%");
         }
-
-        $titulo = __('app.label.ejercicios');
-        $permissions = auth()->user()->roles->pluck('name')[0];
-        $ejercicios = ejercicio::query();
         
-        if($permissions === "estudiante") {
-            $perPage = $request->has('perPage') ? $request->perPage : 10;
-
-            $nombresTabla =[//0: como se ven //1 como es la BD //2??
-                ["Acciones","#"],
-                [],
-                [null,null,null]
-            ];
-            $nombresTabla[0][] = ["nombre", "observaciones"];
-            
-            //m for money || t for datetime || d date || i for integer || s string || b boolean 
-            $nombresTabla[1][] = ["s_nombre", "s_descripcion"]; 
-            
-            //campos ordenables
-            $nombresTabla[2][] = ["s_nombre", "s_descripcion"]; 
-        }else{ // not estudiante
-            $titulo = 'ejercicio';
-            
-            if ($request->has('search')) {
-                $ejercicios->where('descripcion','LIKE', "%".$request->search."%");
-                // $ejercicios->whereMonth('descripcion', $request->search);
-                // $ejercicios->OrwhereMonth('fecha_fin', $request->search);
-                $ejercicios->orWhere('nombre', 'LIKE', "%" . $request->search . "%");
-            }
-            
-            if ($request->has(['field', 'order'])) {
-                $ejercicios->orderBy($request->field, $request->order);
-            }else{
-                $ejercicios->orderBy('nombre');
-            }
-            $perPage = $request->has('perPage') ? $request->perPage : 10;
-
-            //0: como se ven //1 como es la BD //2 orden
-            $nombresTabla =[
-                ["Acciones","#"],
-                [],
-                [null,null]
-            ];
-            $nombresTabla[0] = array_merge($nombresTabla[0] , ["nombre","descripcion","subtopico"]);
-            //m for money || t for datetime || d date || i for integer || s string || b boolean 
-            $nombresTabla[1] = array_merge($nombresTabla[1] , ["s_nombre", "s_descripcion","i_subtopico_id"]);
-            //campos ordenables
-            $nombresTabla[2] = array_merge($nombresTabla[2] , ["nombre", "descripcion",""]);
+        if ($request->has(['field', 'order'])) {
+            $ejercicios->orderBy($request->field, $request->order);
+        }else{
+            $ejercicios->orderBy('nombre');
         }
+    }
+    public function MapearClasePP(&$ejercicios) {
         $ejercicios = $ejercicios->get()->map(function ($ejercicio){
             $ejercicio->hijo = $ejercicio->subtopico_nombre();
             return $ejercicio;
         });
-        //todo: organizar el regero
+    }
 
+    public function index(Request $request) {
+        Myhelp::EscribirEnLog($this,'ejercicio');
+
+        $titulo = __('app.label.ejercicios');
+        $permissions = auth()->user()->roles->pluck('name')[0];
+        $ejercicios = Ejercicio::query();
+        
+        $perPage = $request->has('perPage') ? $request->perPage : 10;
+        if($permissions === "estudiante") {
+            //todo: validar que no pueda buscar
+        }else{ // not estudiante
+            
+            $this->Filtros($request, $ejercicios);
+        }
+
+        $this->MapearClasePP($ejercicios);
         // dd($ejercicios);
         $page = request('page', 1); // Current page number
         $total = $ejercicios->count();
@@ -96,21 +72,21 @@ class EjerciciosController extends Controller {
             'fromController' =>  $paginated,
             'breadcrumbs'    =>  [['label' => __('app.label.ejercicios'), 
                                     'href' => route('ejercicio.index')]],
-            'nombresTabla'   =>  $nombresTabla,
             'subtemasSelect'   =>  Subtopico::all(),
 
         ]);
     }//fin index
+    
 
     public function create() { }
 
-    public function store(ejercicioRequest $request) {
+    public function store(EjercicioRequest $request) {
         DB::beginTransaction();
                 $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
                 log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||ejercicio|| ' );
 
         try {
-            $ejercicio = ejercicio::create([
+            $ejercicio = Ejercicio::create([
                 'nombre' => $request->nombre,
                 'descripcion' => $request->descripcion,
                 'subtopico_id' => $request->subtopico_id,
@@ -131,7 +107,7 @@ class EjerciciosController extends Controller {
     public function edit(ejercicio $ejercicio) { }
 
     public function update(Request $request, $id) {
-        $ejercicio = ejercicio::find($id);
+        $ejercicio = Ejercicio::find($id);
         DB::beginTransaction();
             $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
             log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||ejercicio|| ' );
@@ -161,7 +137,7 @@ class EjerciciosController extends Controller {
         DB::beginTransaction();
 
         try {
-            $ejercicios = ejercicio::findOrFail($id);
+            $ejercicios = Ejercicio::findOrFail($id);
     
             Myhelp::EscribirEnLog($this,get_called_class(),"el ejercicio id:".$id." y nombre:".$ejercicios->nombre." ha sido borrada correctamente",false);
 

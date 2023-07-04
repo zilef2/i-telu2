@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\helpers\Myhelp;
 use Inertia\Inertia;
 
-use App\Models\subtopico;
+use App\Models\Subtopico;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
@@ -16,35 +17,9 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class subtopicosController extends Controller
 {
-    public function index(Request $request) {
-        if(Auth::user()->isAdmin < 1){
-            $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
-            // log::channel('soloadmin')->info('Vista:' . $nombreC. '|  U:'.Auth::user()->name );
-            log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||subtopico|| ' );
-        }
 
-        $titulo = __('app.label.subtopicos');
-        $permissions = auth()->user()->roles->pluck('name')[0];
-        $subtopicos = subtopico::query();
-        
-        if($permissions === "estudiante") {
-            $perPage = $request->has('perPage') ? $request->perPage : 10;
-
-            $nombresTabla =[//0: como se ven //1 como es la BD //2??
-                ["Acciones","#"],
-                [],
-                [null,null,null]
-            ];
-            $nombresTabla[0][] = ["nombre", "observaciones"];
-            
-            //m for money || t for datetime || d date || i for integer || s string || b boolean 
-            $nombresTabla[1][] = ["s_nombre", "s_descripcion"]; 
-            
-            //campos ordenables
-            $nombresTabla[2][] = ["s_nombre", "s_descripcion"]; 
-        }else{ // not estudiante
-            $titulo = 'subtopico';
-            
+    // - MapearClasePP, Filtros
+        public function Filtros($request, &$subtopicos) {
             if ($request->has('search')) {
                 $subtopicos->where('descripcion','LIKE', "%".$request->search."%");
                 // $subtopicos->whereMonth('descripcion', $request->search);
@@ -57,24 +32,30 @@ class subtopicosController extends Controller
             }else{
                 $subtopicos->orderBy('nombre');
             }
-            $perPage = $request->has('perPage') ? $request->perPage : 10;
-
-            //0: como se ven //1 como es la BD //2 orden
-            $nombresTabla =[
-                ["Acciones","#"],
-                [],
-                [null,null]
-            ];
-            $nombresTabla[0] = array_merge($nombresTabla[0] , ["nombre","descripcion","tema"]);
-            //m for money || t for datetime || d date || i for integer || s string || b boolean 
-            $nombresTabla[1] = array_merge($nombresTabla[1] , ["s_nombre", "s_descripcion","i_tema_id"]);
-            //campos ordenables
-            $nombresTabla[2] = array_merge($nombresTabla[2] , ["nombre", "descripcion",""]);
         }
-        $subtopicos = $subtopicos->get()->map(function ($subtopico){
-            $subtopico->hijo = $subtopico->tema_nombre();
-            return $subtopico;
-        });
+        public function MapearClasePP(&$subtopicos) {
+            $subtopicos = $subtopicos->get()->map(function ($subtopico){
+                $subtopico->hijo = $subtopico->tema_nombre();
+                return $subtopico;
+            });
+        }
+    // -fin : MapearClasePP, Filtros
+    
+    public function index(Request $request) {
+        Myhelp::EscribirEnLog($this,'subtopico');
+
+        $titulo = __('app.label.subtopicos');
+        $permissions = auth()->user()->roles->pluck('name')[0];
+        $subtopicos = Subtopico::query();
+        
+        $perPage = $request->has('perPage') ? $request->perPage : 10;
+        if($permissions === "estudiante") {
+
+        }else{ // not estudiante
+            $this->Filtros($request, $subtopicos);
+
+        }
+        $this->MapearClasePP($subtopicos);
         // dd($subtopicos);
         $page = request('page', 1); // Current page number
         $total = $subtopicos->count();
@@ -93,7 +74,6 @@ class subtopicosController extends Controller
             'fromController' =>  $paginated,
             'breadcrumbs'    =>  [['label' => __('app.label.subtopicos'), 
                                     'href' => route('subtopico.index')]],
-            'nombresTabla'   =>  $nombresTabla,
             'temasSelect'   =>  Tema::all(),
 
         ]);
@@ -107,7 +87,7 @@ class subtopicosController extends Controller
                 log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||subtopico|| ' );
 
         try {
-            $subtopico = subtopico::create([
+            $subtopico = Subtopico::create([
                 'nombre' => $request->nombre,
                 'descripcion' => $request->descripcion,
                 //otrosCampos
@@ -130,7 +110,7 @@ class subtopicosController extends Controller
     public function edit(subtopico $subtopico) { }
 
     public function update(Request $request, $id) {
-        $subtopico = subtopico::find($id);
+        $subtopico = Subtopico::find($id);
         DB::beginTransaction();
             $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
             log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||subtopico|| ' );
@@ -155,14 +135,13 @@ class subtopicosController extends Controller
 
     // public function destroy(subtopico $subtopico)
     public function destroy($id) {
-                Myhelp::EscribirEnLog($this,get_called_class(),'',false);
+        Myhelp::EscribirEnLog($this,get_called_class(),'',false);
 
         DB::beginTransaction();
-
         try {
-            $subtopicos = subtopico::findOrFail($id);
-            Log::info($nombreC." U -> ".Auth::user()->name."La subtopico id:".$id." y nombre:".$subtopicos->nombre." ha sido borrada correctamente");
+            $subtopicos = Subtopico::findOrFail($id);
             $subtopicos->delete();
+            Myhelp::EscribirEnLog($this,get_called_class(),"La subtopico id:".$id." y nombre:".$subtopicos->nombre." ha sido borrada correctamente",false);
             DB::commit();
             return back()->with('success', __('app.label.deleted_successfully2',['nombre' => $subtopicos->nombre]));
             

@@ -30,7 +30,6 @@
         perPage: Number,
 
         fromController: Object,
-        nombresTabla: Array,
         subtemasSelect: Object,
 
     })
@@ -90,30 +89,30 @@
 </script>
 
 <template>
-    <Head :title="props.title" ></Head>
+    <Head :title="props.title"></Head>
 
     <AuthenticatedLayout>
         <Breadcrumb :title="title" :breadcrumbs="breadcrumbs" />
         <div class="space-y-4">
             <div class="px-4 sm:px-0">
                 <div class="rounded-lg overflow-hidden w-fit">
-                    <PrimaryButton class="rounded-none" @click="data.createOpen = true">
+                    <PrimaryButton class="rounded-none" @click="data.createOpen = true" v-show="can(['create ejercicio'])">
                         {{ lang().button.add }}
                     </PrimaryButton>
-                    <Create :show="data.createOpen" @close="data.createOpen = false" :title="props.title" 
-                        :subtemasSelect="data.subtemasSelect"/>
-                    <Edit :show="data.editOpen" @close="data.editOpen = false" :ejercicio="data.generico" :title="props.title" 
-                        :subtemasSelect="data.subtemasSelect"/>
-                    <Delete :show="data.deleteOpen" @close="data.deleteOpen = false" :ejercicio="data.generico" :title="props.title" />
+                    <Create :show="data.createOpen" @close="data.createOpen = false" :title="props.title"
+                        v-if="can(['create ejercicio'])" :subtemasSelect="data.subtemasSelect" />
+                    <Edit :show="data.editOpen" @close="data.editOpen = false" :ejercicio="data.generico"
+                        v-if="can(['update ejercicio'])" :title="props.title" :subtemasSelect="data.subtemasSelect" />
+                    <Delete :show="data.deleteOpen" @close="data.deleteOpen = false" :ejercicio="data.generico"
+                        v-if="can(['delete ejercicio'])" :title="props.title" />
                 </div>
             </div>
             <div class="relative bg-white dark:bg-gray-800 shadow sm:rounded-lg">
                 <div class="flex justify-between p-2">
                     <div class="flex space-x-2">
                         <SelectInput v-model="data.params.perPage" :dataSet="data.dataSet" />
-                        <DangerButton @click="data.deleteBulkOpen = true"
-                            v-show="data.selectedId.length != 0" class="px-3 py-1.5"
-                            v-tooltip="lang().tooltip.delete_selected">
+                        <DangerButton @click="data.deleteBulkOpen = true" v-show="data.selectedId.length != 0"
+                            class="px-3 py-1.5" v-tooltip="lang().tooltip.delete_selected">
                             <TrashIcon class="w-5 h-5" />
                         </DangerButton>
                     </div>
@@ -127,15 +126,47 @@
                                 <th class="px-2 py-4 text-center">
                                     <Checkbox v-model:checked="data.multipleSelect" @change="selectAll" />
                                 </th>
-                                <th v-for="(titulos, indiceN) in nombresTabla[0]" :key="indiceN"
-                                    v-on:click="order(nombresTabla[2][indiceN])"
-                                    class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
-                                    <div v-if="nombresTabla[2][indiceN] !== null" class="flex justify-between items-center">
-                                        <span>{{ titulos }}</span>
+                                <th class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
+                                    <div class="flex justify-between items-center">
+                                        <span>
+                                            Acciones
+                                        </span>
                                         <ChevronUpDownIcon class="w-4 h-4" />
                                     </div>
-                                    <div v-else class="flex justify-between items-center">
-                                        <span>{{ titulos }}</span>
+                                </th>
+                                <th class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
+                                    <div class="flex justify-between items-center">
+                                        <span>
+                                            #
+                                        </span>
+                                        <ChevronUpDownIcon class="w-4 h-4" />
+                                    </div>
+                                </th>
+                                <th v-on:click="order('nombre')"
+                                    class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
+                                    <div class="flex justify-between items-center">
+                                        <span>
+                                            Nombre
+                                        </span>
+                                        <ChevronUpDownIcon class="w-4 h-4" />
+                                    </div>
+                                </th>
+                                <th v-on:click="order('nombre')"
+                                    class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
+                                    <div class="flex justify-between items-center">
+                                        <span>
+                                            Subtopico
+                                        </span>
+                                        <ChevronUpDownIcon class="w-4 h-4" />
+                                    </div>
+                                </th>
+                                <th v-on:click="order('observaciones')"
+                                    class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
+                                    <div class="flex justify-between items-center">
+                                        <span>
+                                            Observaciones
+                                        </span>
+                                        <ChevronUpDownIcon class="w-4 h-4" />
                                     </div>
                                 </th>
                             </tr>
@@ -166,9 +197,8 @@
                                 </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (index+1) }}</td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.nombre) }} </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.descripcion) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.hijo) }} </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.muchos) }} </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.descripcion) }} </td>
                             </tr>
                         </tbody>
                     </table>

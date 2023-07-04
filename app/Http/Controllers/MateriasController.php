@@ -8,8 +8,9 @@ use App\Models\User;
 
 use Inertia\Inertia;
 use App\helpers\Myhelp;
+use App\helpers\WolframAlphaService;
 use App\Models\Carrera;
-use App\Models\materia;
+use App\Models\Materia;
 use App\Models\Universidad;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +19,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 
 use App\Http\Requests\MateriumRequest;
+use App\Models\Ejercicio;
+use App\Models\Subtopico;
+use App\Models\Tema;
 use Illuminate\Pagination\LengthAwarePaginator;
 // use OpenAI\Exceptions\ErrorException;
 
@@ -29,95 +33,96 @@ class MateriasController extends Controller {
     public $MAX_USAGE_TOTAL = 600;
 
 
-    public function MapearClasePP(&$materias) {
-        $materias = $materias->get()->map(function ($materia){
-            $materia->hijo = $materia->carrera_nombre();
-            $materia->muchos = $materia->users_nombres();
+    //! index functions ()
 
-            $materia->r1 = $materia->requisito1_nombre();
-            $materia->r2 = $materia->requisito2_nombre();
-            $materia->r3 = $materia->requisito3_nombre();
-            $exister1 = $materia->r1 == '' ? 0 : 1;
-            $exister2 = $materia->r2 == '' ? 0 : 1;
-            $exister3 = $materia->r3 == '' ? 0 : 1;
-            $sumaRequisitos = $exister1 + $exister2 + $exister3;
-            $materia->numRequisitos = $sumaRequisitos == 0 ? 'Sin requisitos' : $sumaRequisitos;
+        public function NombresTabla($estudiante) {
+                
+            $nombresTabla =[//0: como se ven //1 como es la BD //2orden
+                ["Acciones","#"],
+                [],
+                [null,null,null]
+            ];
 
-            $materia->objetivs = $materia->objetivos();
-            return $materia;
-        });
-        // dd($materias);
-    }
-    public function Filtros($request, &$materias) {
-        if ($request->has('selectedUni') && $request->selectedUni != 0) {
-            // dd($request->selectedUni);
-            $carrerasid = Carrera::has('materias')->where('universidad_id', $request->selectedUni)->pluck('id')->toArray();
-            $materias->whereIn('carrera_id',$carrerasid);
+            if($estudiante){
+                //todo: $nombresTabla[0][] = ["nombre", "observaciones"];
+                $nombresTabla[0] = array_merge($nombresTabla[0] , ["nombre","carrera","Temas","usuarios","Requisitos","Objetivos","descripcion"]);
+                $nombresTabla[2] = array_merge($nombresTabla[2] , ["nombre","carrera_id","", "","","descripcion"]);
+
+
+            }else{//not estudiante
+                //todo: funcion order not working
+                $nombresTabla[0] = array_merge($nombresTabla[0] , ["nombre","carrera","Temas","usuarios","Requisitos","Objetivos","descripcion"]);
+                //campos ordenables
+                $nombresTabla[2] = array_merge($nombresTabla[2] , ["nombre","carrera_id","", "","","descripcion"]);
+            }
+
+            return $nombresTabla;
         }
-        if($request->selectedUni == 0) $request->selectedcarr = 0;
-        
-        if ($request->has('search')) {
-            $materias->where('descripcion','LIKE', "%".$request->search."%");
-            // $materias->whereMonth('descripcion', $request->search);
-            // $materias->OrwhereMonth('fecha_fin', $request->search);
-            $materias->orWhere('nombre', 'LIKE', "%" . $request->search . "%");
+        public function MapearClasePP(&$materias) {
+            $materias = $materias->get()->map(function ($materia){
+                $materia->papa = $materia->carrera_nombre();
+                $materia->cuantoshijos = count($materia->temas);
+
+                $materia->muchos = $materia->users_nombres();
+
+                $materia->r1 = $materia->requisito1_nombre();
+                $materia->r2 = $materia->requisito2_nombre();
+                $materia->r3 = $materia->requisito3_nombre();
+                $exister1 = $materia->r1 == '' ? 0 : 1;
+                $exister2 = $materia->r2 == '' ? 0 : 1;
+                $exister3 = $materia->r3 == '' ? 0 : 1;
+                $sumaRequisitos = $exister1 + $exister2 + $exister3;
+                $materia->numRequisitos = $sumaRequisitos == 0 ? 'Sin requisitos' : $sumaRequisitos;
+
+                $materia->objetivs = $materia->objetivos();
+                return $materia;
+            });
+            // dd($materias);
         }
-        
-        if ($request->has(['field', 'order'])) {
-            $materias->orderBy($request->field, $request->order);
-        }else{
-            $materias->orderBy('nombre');
+        public function Filtros($request, &$materias) {
+            if ($request->has('selectedUni') && $request->selectedUni != 0) {
+                // dd($request->selectedUni);
+                $carrerasid = Carrera::has('materias')->where('universidad_id', $request->selectedUni)->pluck('id')->toArray();
+                $materias->whereIn('carrera_id',$carrerasid);
+            }
+            if($request->selectedUni == 0) $request->selectedcarr = 0;
+            
+            if ($request->has('search')) {
+                $materias->where('descripcion','LIKE', "%".$request->search."%");
+                // $materias->whereMonth('descripcion', $request->search);
+                // $materias->OrwhereMonth('fecha_fin', $request->search);
+                $materias->orWhere('nombre', 'LIKE', "%" . $request->search . "%");
+            }
+            
+            if ($request->has(['field', 'order'])) {
+                $materias->orderBy($request->field, $request->order);
+            }else{
+                $materias->orderBy('nombre');
+            }
         }
-    }
-    public function losSelect(&$carrerasSelect, &$MateriasRequisitoSelect, &$UniversidadSelect,$request,&$materias) {
-        
-        if($request->has('selectedUni')) {
-            $carrerasSelect = Carrera::where('universidad_id', $request->selectedUni)->get();
-        }else{
-            $carrerasSelect = Carrera::all();
+        public function losSelect(&$carrerasSelect, &$MateriasRequisitoSelect, &$UniversidadSelect,$request,&$materias) {
+            
+            if($request->has('selectedUni')) {
+                $carrerasSelect = Carrera::where('universidad_id', $request->selectedUni)->get();
+            }else{
+                $carrerasSelect = Carrera::all();
+            }
+
+
+            if($request->has('selectedcarr') && $request->selectedcarr != 0) {
+                $materias = $materias->whereIn('carrera_id',$request->selectedcarr);
+                // dd(
+                //     $request->selectedcarr,
+                //     $materias
+                // );
+            }
+
+            // $carrerasSelect = Carrera::has('materias')->get();
+            //todo: solo las necesarias
+            $MateriasRequisitoSelect = Materia::all();
+            $UniversidadSelect = Universidad::has('carreras')->get();
         }
-
-
-        if($request->has('selectedcarr') && $request->selectedcarr != 0) {
-            $materias = $materias->whereIn('carrera_id',$request->selectedcarr);
-            // dd(
-            //     $request->selectedcarr,
-            //     $materias
-            // );
-        }
-
-        // $carrerasSelect = Carrera::has('materias')->get();
-        //todo: solo las necesarias
-        $MateriasRequisitoSelect = materia::all();
-        $UniversidadSelect = Universidad::has('carreras')->get();
-    }
-    public function NombresTabla($estudiante) {
-        
-        $nombresTabla =[//0: como se ven //1 como es la BD //2orden
-            ["Acciones","#"],
-            [],
-            [null,null,null]
-        ];
-
-        if($estudiante){
-
-            $nombresTabla[0][] = ["nombre", "observaciones"];
-            //m for money || t for datetime || d date || i for integer || s string || b boolean 
-            $nombresTabla[1][] = ["s_nombre", "s_descripcion"]; 
-            //campos ordenables
-            $nombresTabla[2][] = ["s_nombre", "s_descripcion"]; 
-
-
-        }else{//not estudiante
-            $nombresTabla[0] = array_merge($nombresTabla[0] , ["carrera","nombre","usuarios","Requisitos","Objetivos","descripcion"]);
-            //m for money || t for datetime || d date || i for integer || s string || b boolean 
-            $nombresTabla[1] = array_merge($nombresTabla[1] , ["s_carrera_id","s_nombre", "s_usuarios","s_Requisitos","Objetivos","s_descripcion"]);
-            //campos ordenables
-            $nombresTabla[2] = array_merge($nombresTabla[2] , ["carrera_id","nombre", "","","descripcion"]);
-        }
-
-        return $nombresTabla;
-    }
+       
 
 
     public function index(Request $request) {
@@ -125,7 +130,7 @@ class MateriasController extends Controller {
         
         $titulo = __('app.label.materias');
         $perPage = $request->has('perPage') ? $request->perPage : 10;
-        $materias = materia::query();
+        $materias = Materia::query();
         if($permissions === "estudiante") {
             $nombresTabla = $this->NombresTabla(1);
             
@@ -159,8 +164,7 @@ class MateriasController extends Controller {
             'filters'        =>  $request->all(['search', 'field', 'order','selectedUni','selectedcarr']),
             'perPage'        =>  (int) $perPage,
             'fromController' =>  $paginated,
-            'breadcrumbs'    =>  [['label' => __('app.label.materias'), 
-                                    'href' => route('materia.index')]],
+            'breadcrumbs'    =>  [['label' => __('app.label.materias'), 'href' => route('materia.index')]],
             'nombresTabla'   =>  $nombresTabla,
             'errorMessage' => $errorMessage,
             'carrerasSelect' => $carrerasSelect,
@@ -170,7 +174,7 @@ class MateriasController extends Controller {
     }//fin index
 
 
-    //! STORE & UPDATE & DESTTROY
+    //! STORE & SHOW & UPDATE & DESTTROY
         public function store(MateriumRequest $request) {
             DB::beginTransaction();
             Myhelp::EscribirEnLog($this,get_called_class(),'',false);
@@ -182,7 +186,7 @@ class MateriasController extends Controller {
                     $req2 = $request->cuantosReq > 1 && $request->requisito2 != '' ? intval($request->requisito2) : null;
                     $req3 = $request->cuantosReq > 2 && $request->requisito3 != '' ? intval($request->requisito3) : null;
                 }
-                $materia = materia::create([
+                $materia = Materia::create([
                     'nombre' => $request->nombre,
                     //otrosCampos
                     'descripcion' => $request->descripcion,
@@ -205,7 +209,27 @@ class MateriasController extends Controller {
             }
         }
 
-        public function show(materia $materia) { }
+        public function show($id) { 
+            $materia = Materia::find($id);
+            $temas = $materia->temas;
+
+            foreach ($temas as $temaKey => $tema) {
+                $tema->sub = $tema->subtopicos;
+                $ArrayEjercicios = [];
+                foreach ($tema->sub as $key => $subtopico) {
+                    $ArrayEjercicios[$key] = $subtopico->ejercicios->pluck('id','nombre')->toArray();
+                }
+                $tema->sub->ejercis = $ArrayEjercicios;
+            }
+
+            return Inertia::render('materia/show', [ //carpeta
+                'title'          =>  'Ver materia',
+                // 'filters'        =>  $request->all(['search', 'field', 'order','selectedUni','selectedcarr']),
+                'fromController' =>  $materia,
+                'temas' =>  $temas,
+                'breadcrumbs'    =>  [['label' => __('app.label.materias'), 'href' => route('materia.index')]],
+            ]);
+        }
         public function edit(materia $materia) { }
 
         public function update(Request $request, $id) {
@@ -244,14 +268,14 @@ class MateriasController extends Controller {
             }
         }
 
-        // public function destroy(materia $materia)
+        
         public function destroy($id) {
             Myhelp::EscribirEnLog($this,get_called_class(),'',false);
 
             DB::beginTransaction();
 
             try {
-                $materias = materia::findOrFail($id);
+                $materias = Materia::findOrFail($id);
                 Myhelp::EscribirEnLog($this,get_called_class(),
                     "La materia id:".$id." y nombre:".$materias->nombre." ha sido borrada correctamente",false);
                 
@@ -266,6 +290,7 @@ class MateriasController extends Controller {
                 return back()->with('error', __('app.label.deleted_error', ['name' => __('app.label.materias')]) . $th->getMessage());
             }
         }
+    //STORE & UPDATE & DESTROY
 
 
     
@@ -278,7 +303,7 @@ class MateriasController extends Controller {
             // $nombresTabla = $this->NombresTabla(0);
         }
 
-        $materia = materia::find($materiaid);
+        $materia = Materia::find($materiaid);
         $carrera = Carrera::find($materia->carrera_id);
         $universidad = Universidad::find($carrera->universidad_id);
 
@@ -330,7 +355,7 @@ class MateriasController extends Controller {
         Myhelp::EscribirEnLog($this,' materia');
 
         try {
-            $materia = materia::find($request->materiaid);
+            $materia = Materia::find($request->materiaid);
             // dd($request->selectedId);
             $materia->users()->attach(
                 $request->selectedId
@@ -348,8 +373,8 @@ class MateriasController extends Controller {
         }
     }
 
-    public function lookForTemas($id) {
-        $materia = Materia::find($id);
+    public function lookForTemas($materiaid) {
+        $materia = Materia::find($materiaid);
         $temas = $materia->temas;
         foreach ($temas as $key => $value) {
             // $temas[$key]->preguntas = 'asd';
@@ -368,95 +393,126 @@ class MateriasController extends Controller {
         // $valoresSelect[] = [ 'label' => $objetivo, 'value' => 1];
         // $valoresSelect[] = [ 'label' => 'Intermedio', 'value' => 2];
         // $valoresSelect[] = [ 'label' => 'Preparacion', 'value' => 3];
-
         return [$temas, null];
     }
 
-    public function VistaTema($id,$temaSelec = "", $subtopicoSelec = "", $ejercicioSelec = "") {
-        // dd( $temaSelec,$subtopicoSelec,$ejercicioSelec);
-        $usuario = Auth::user();
-        $materia = materia::find($id);
-        
-        $limite = $usuario->limite_token_leccion;
-        $restarAlToken = 0;
-        set_time_limit(120);
 
-        if($limite > 0) {
-                // 'Eres un experto en la materia universitaria: '.$pregunta.', se lo mas cordial posible. Propon 2 ejercicios, 1 muy sencillo y otro mas dificil, para estudiantes que desean estudiar para un parcial de la materia '.$pregunta.'. Antes de darles los ejercicios, dales un contexto de almenos 20 palabras.'
-                // eres un academico con exp en la asignatura X con mas de 20 años, responda: X2 , con un nivel X3. con un nivel (Bachillerato, pregrado o posgrado)
-                // 'Eres un experto en la materia universitaria: Fisica mecanica. se desea saber '.$ejercicioSelec.' para estudiantes. Antes de resolver la pregunta, genera un contexto, si es posible, de entre 20 y 40 palabras.',
 
-            if($temaSelec != '') {
-                $plantillaPracticar = 'Ejercicios para practicar';
-                // dd(env('GTP_SELECT'));
-                $client = OpenAI::client(env('GTP_SELECT'));
-                $result = $client->completions()->create([
-                    'model' => 'text-davinci-003',
-                    'prompt' =>
-                    'Eres un academico, experto en la asignatura de '.$materia->nombre.' con años de experiencia enseñandola, el tema es: '.$temaSelec.', el sub-tema es: '.$subtopicoSelec.' 
-                            responda el siguiente ejercicio: '.$ejercicioSelec
-                            .'. La respuesta debe tener el nivel de un estudiante '.$usuario->pgrado
-                            .'. Antes de resolver la pregunta, genera un contexto, si es posible, de entre 20 y 40 palabras. Cuando finalices el contexto, deja un renglon vacio.'
-                            .'. Al finalizar la respuesta. sujiere 3 ejercicios para preguntarle a una inteligencia artificial (ponle de titulo '.$plantillaPracticar.') y seguir aprendiendo de '.$temaSelec,
-                    'max_tokens' => 600 // Adjust the response length as needed
-                ]);
-                $respuesta = substr($result['choices'][0]["text"],2);
-                // // dd($result);
 
-                $PP=[];
-                $PP[0] = ["finish_reason" => 'stop'];
 
-                $R_finishReason = $result['choices'][0]["finish_reason"] ?? 'fallo R_finishReason';
-                $R_index = $result['choices'][0]["index"] ?? 'fallo R_index';
-                $R_logprobs = $result['choices'][0]["logprobs"] ?? 'fallo R_logprobs';
 
-                // $usageEntrada = $result['usage']["promptTokens"]; //~  240
-                $usageRespuesta = $result['usage']["completion_tokens"]; //~ 260
-                $usageTotal = $result['usage']["total_tokens"]; //~ 500
-                $usageRespuesta = HelpGPT::CalcularTokenConsumidos($usageRespuesta,$usageTotal);
 
-                    // $respuesta = '
-                    // .
-                    // La energía potencial es un concepto clave en la física ya que representa la cantidad de energía disponible que un cuerpo posee en un sistema conservativo debido a su posición en el espacio. En este caso, para un cuerpo de masa m=1 kg a una altura h=2 m, la energía potencial se puede calcular como Ep=m*g*h, donde g es la aceleración de la gravedad. La energía potencial en este caso es 1 * 9.81 m/s2 * 2 m = 19.62 J. ◀La energía potencial es un concepto clave en la física ya que representa la cantidad de energía disponible que un cuerpo posee en un sistema conservativo debido ▶
+
+
+    private function gptPart1($pregunta,$nivel,$materia_nombre,$usuario,&$soloEjercicios, $debug=false ){
+
+        if($debug) {
+            $plantillaPracticar = 'Ejercicios para practicar';
+
+            $client = OpenAI::client(env('GTP_SELECT'));
+            $result = $client->completions()->create([
+                'model' => 'text-davinci-003',
+                'prompt' => 'Eres un academico, experto en la asignatura de '.$materia_nombre.' con años de experiencia enseñandola,
+                        responda el siguiente ejercicio: '.$pregunta
+                        .'. La respuesta lo debe entender un estudiante'.$nivel
+                        .'. Antes de resolver la pregunta, genera un contexto, si es posible, de entre 20 y 40 palabras. Cuando finalices el contexto, deja un renglon vacio.'
+                        .'. Al finalizar la respuesta. sugiere 3 ejercicios para preguntarle a una inteligencia artificial(ponle de titulo '.$plantillaPracticar.') y seguir aprendiendo de '.$materia_nombre,
+                'max_tokens' => HelpGPT::maxToken() // Adjust the response length as needed
+            ]);
+            $respuesta = $result['choices'][0]["text"];
+            $finishReason = $result['choices'][0];
+            $finishingReason = $finishReason["finish_reason"] ?? '';
+            
+            
+            // $respuesta = 'wenas';
+            // $finishingReason = 'stop';
+
+            if($finishingReason == 'stop'){
+                // dd($result['usage']);
+                    $usageRespuesta = 260;
+                    $usageRespuestaTotal = 500;
+                    $usageRespuesta = intval($result['usage']["completion_tokens"]); //~ 260
+                    $usageRespuestaTotal = intval($result['usage']["total_tokens"]); //~ 500
                     
-                    // Ejercicios para preguntar a una IA: 
-                    // 1. ¿Cuál es la fórmula para calcular la energía cinética? 
-                    // 2. ¿Cómo se relaciona la energía cinética y la energía potencial? 
-                    // 3. ¿Cuáles son algunas aplicaciones prácticas de la energía cinética y potencial?';
-                    $finishingReason = '';
-
-                $soloEjercicios = HelpGPT::ApartarSujerencias($respuesta,$plantillaPracticar,$PP,$finishingReason);
-
-                if($finishingReason != 'stop'){
-                    $respuesta = 'El servicio no esta disponible';
-                }else{
+                    $restarAlToken = HelpGPT::CalcularTokenConsumidos($usageRespuesta,$usageRespuestaTotal);
                     $usuario->update([ 'limite_token_leccion' => (intval($usuario->limite_token_leccion)) - $restarAlToken ]);
-                }
 
-            } else {
-                $respuesta = 'Tema no selecionado';
+                    $soloEjercicios = HelpGPT::ApartarSujerencias($respuesta,$plantillaPracticar);
+                    return [$respuesta,$restarAlToken];
+            }else{
+                if($finishingReason == 'length'){
+                    return [$this->respuestaLarga,0];
+                }else{
+                    return ['El servicio no esta disponible',0];
+                }
             }
+        }
+        return ['GPT desabilitado',0];
+    }
+    public function VistaTema($materiaid,$ejercicioid = null,$idnivel=null) { //$ejercicioid
+    // $wolf = WolframAlphaService::query('integral of x^2');
+        $vectorYSelecNiveles = HelpGPT::nivelesAplicativo();
+        if($idnivel){
+
+            $ChosenNivel = $vectorYSelecNiveles[0][$idnivel];
         }else{
-            $respuesta = $this->respuestaLimite;
+            $ChosenNivel = '';
         }
 
-        $temasYValores = $this->lookForTemas(intval($id));
+        $usuario = Auth::user();
+
+        $restarAlToken = 0;
+        set_time_limit(180);
+
+        
+        $materia = Materia::find($materiaid);
+        $limite = $usuario->limite_token_leccion;
+        
+        if($ejercicioid != null){
+            $ejercicio = Ejercicio::find($ejercicioid);
+            $ejercicioSelec = $ejercicio->nombre;
+
+            // $temaSelec = $materia->Tsubtemas;
+            // $subtopicoSelec = $materia->temas;
+            $subtopicoSelec = Subtopico::find($ejercicio->subtopico_id);
+            $temaSelec = Tema::find($subtopicoSelec->tema_id)->nombre;
+            $subtopicoSelec = $subtopicoSelec->nombre;
+            if($limite > 0) {
+                $soloEjercicios = '';
+
+                $gpt = $this->gptPart1($ejercicioSelec, $ChosenNivel,$materia->nombre,$usuario,$soloEjercicios,true);
+                $respuesta = preg_replace("/^\n\n/", "", $gpt[0]);
+                
+                $restarAlToken = $gpt[1];
+                $limite = $usuario->limite_token_leccion;
+            }else{//no le quedan mas tokens
+                $respuesta = $this->respuestaLimite;
+            }
+        }else{
+            $respuesta = '';
+        }
+
+        $temasYValores = $this->lookForTemas(intval($materiaid));
+        $nivelSelect = $vectorYSelecNiveles[1];
+
         set_time_limit(70);
 
         return Inertia::render('materia/vistaTem', [ //carpeta
-            'elid'              =>  intval($id),
+            'elid'              =>  intval($materiaid),
             'title'             =>  'Seleccione una leccion',
             'perPage'           =>  10,
             'fromController'    =>  $temasYValores[0],
             'respuesta'         =>  $respuesta,
             'objetivosCarrera'  =>  $materia->objetivos(),
-            'temaSelec'         => $temaSelec,
-            'subtopicoSelec'    => $subtopicoSelec,
-            'ejercicioSelec'    => $ejercicioSelec,
+            'temaSelec'         => $temaSelec ?? 'Aqui vera el tema',
+            'subtopicoSelec'    => $subtopicoSelec ?? 'Aqui vera el subtopico',
+            'ejercicioSelec'    => $ejercicioSelec ?? 'Aqui vera el ejercicio/pregunta',
             'limite'            => $limite,
             'usuario'           => $usuario,
             'materia'           => $materia,
             'restarAlToken'    => $restarAlToken,
+            'nivelSelect'       => $nivelSelect,
+            'ChosenNivel'       => $ChosenNivel,
             'soloEjercicios'    => $soloEjercicios ?? '',
             'breadcrumbs'       =>  [['label' => __('app.label.materias'), 
                                     'href' => route('materia.index')]],
@@ -480,7 +536,7 @@ class MateriasController extends Controller {
         // );
         if(isset($request->materiaid) && $request->materiaid != null){
 
-            $materia = materia::find($request->materiaid);
+            $materia = Materia::find($request->materiaid);
             $materia->TodosObjetivos = $materia->objetivos();
 
             $limite = $usuario->limite_token_general;
@@ -488,7 +544,7 @@ class MateriasController extends Controller {
             $restarAlToken = 0;
             $respuesta = 'Probando';
             if($limite > 0) {
-                $gpt = $this->gptPart($request,$materia,$usuario);
+                $gpt = $this->gptPart($request,$materia,$usuario); //todo: usar gptpart 1
                 $respuesta = preg_replace("/^\n\n/", "", $gpt[0]);
                 $restarAlToken = $gpt[1];
             }else{//no le quedan mas tokens
@@ -560,6 +616,8 @@ class MateriasController extends Controller {
                     
                     $restarAlToken = HelpGPT::CalcularTokenConsumidos($usageRespuesta,$usageRespuestaTotal);
                     $usuario->update([ 'limite_token_general' => (intval($usuario->limite_token_general)) - $restarAlToken ]);
+                    $soloEjercicios = HelpGPT::ApartarSujerencias($respuesta,$plantillaPracticar);
+
                     return [$respuesta,$restarAlToken];
             }else{
                 if($finishingReason == 'length'){

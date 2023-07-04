@@ -103,7 +103,6 @@ class UserController extends Controller
                         'name' => $request->name,
                         'email' => $request->email,
                         'password' => Hash::make($request->password),
-
                         'identificacion' => $request->identificacion,
                         'sexo' => $request->sexo == 0 ? 'Masculino' : 'Femenino',
                         'fecha_nacimiento' => $this->updatingDate($request->fecha_nacimiento),
@@ -130,15 +129,14 @@ class UserController extends Controller
         public function show($id) { }
         public function edit($id) { }
         public function update(UserUpdateRequest $request, $id) {
-            Myhelp::EscribirEnLog($this,'UPDATE:users','',false);
-
+            Myhelp::EscribirEnLog($this,'UP:users','',false);
             DB::beginTransaction();
             try {
                 $user = User::findOrFail($id);
                 $user->update([
                     'name'      => $request->name,
                     'email'     => $request->email,
-                    'password'  => $request->password ? Hash::make($request->password) : $user->password,
+                    // 'password'  => $request->password ? Hash::make($request->password) : $user->password,
 
                     'identificacion' => $request->identificacion,
                     'sexo' => $request->sexo,

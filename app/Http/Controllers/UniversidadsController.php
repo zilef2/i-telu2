@@ -30,15 +30,9 @@ class UniversidadsController extends Controller
         // dd($universidads);
     }
 
-
-    public function index(Request $request) {
-        $permissions = Myhelp::EscribirEnLog($this,'INDEX:universidad');
-
-        $titulo = __('app.label.Universidads');
-        $Universidads = Universidad::query();
-        
-        if($permissions === "estudiante") {
-            $perPage = $request->has('perPage') ? $request->perPage : 10;
+    public function fNombresTabla($numberPermissions) {
+        if($numberPermissions < 2) { //estudiante
+            //todo: esto ni se muestra a los estudiantes
 
             $nombresTabla =[//0: como se ven //1 como es la BD //2??
                 ["Acciones","#"],
@@ -52,21 +46,9 @@ class UniversidadsController extends Controller
             
             //campos ordenables
             $nombresTabla[2][] = ["s_nombre", "s_descripcion"]; 
-        }else{ // not estudiante
-            $titulo = 'Universidad';
-            
-            if ($request->has('search')) {
-                // $Universidads->whereMonth('descripcion', $request->search);
-                // $Universidads->OrwhereMonth('fecha_fin', $request->search);
-                $Universidads->orWhere('nombre', 'LIKE', "%" . $request->search . "%");
-            }
-            
-            if ($request->has(['field', 'order'])) {
-                $Universidads->orderBy(substr($request->field,2), $request->order);
-            }else{
-                $Universidads->orderBy('nombre');
-            }
-            $perPage = $request->has('perPage') ? $request->perPage : 10;
+        }
+
+        if($numberPermissions < 3){ //profesor
 
             $nombresTabla =[//0: como se ven //1 como es la BD //2 orden
                 ["Acciones","#"],
@@ -74,16 +56,45 @@ class UniversidadsController extends Controller
                 [null,null]
             ];
             $nombresTabla[0] = array_merge($nombresTabla[0] , ["nombre","# Inscritos","Inscritos"]);
-            
-            //m for money || t for datetime || d date || i for integer || s string || b boolean 
-            $nombresTabla[1] = array_merge($nombresTabla[1] , ["s_nombre","i_inscritos","s_inscritos"]);
-            
             //campos ordenables
             $nombresTabla[2] = array_merge($nombresTabla[2] , ["s_nombre","",""]);
         }
+        return $nombresTabla;
+    }
+    public function Filtros($request, &$Universidads) {
+        if ($request->has('search')) {
+            // $Universidads->whereMonth('descripcion', $request->search);
+            // $Universidads->OrwhereMonth('fecha_fin', $request->search);
+            $Universidads->orWhere('nombre', 'LIKE', "%" . $request->search . "%");
+        }
+        
+        if ($request->has(['field', 'order'])) {
+            $Universidads->orderBy(substr($request->field,2), $request->order);
+        }else{
+            $Universidads->orderBy('nombre');
+        }
+    }
+
+    // public function losSelect() {}
+
+    public function index(Request $request) {
+        $permissions = Myhelp::EscribirEnLog($this,'INDEX:universidad');
+
+        $titulo = __('app.label.Universidads');
+        $Universidads = Universidad::query();
+        
+        $numberPermissions = Myhelp::getPermissionToNumber($permissions);
+        if($permissions === "estudiante") {
+            $nombresTabla = $this->fNombresTabla($numberPermissions);
+
+        }else{ // not estudiante
+            $nombresTabla = $this->fNombresTabla($numberPermissions);
+            $this->Filtros($request, $Universidads);
+        }
 
         $this->MapearClasePP($Universidads);
-        
+
+        $perPage = $request->has('perPage') ? $request->perPage : 10;
         $page = request('page', 1); // Current page number
         $paginated = new LengthAwarePaginator(
             $Universidads->forPage($page, $perPage),
@@ -119,45 +130,56 @@ class UniversidadsController extends Controller
         $universidad = universidad::find($universidadid);
         $users = User::query();
         $filtroUser = $this->UsuariosSinLosInscritos($universidad,$users);
-        if(count($filtroUser->si) > 0){
-            $users->whereNotIn('users.id',$filtroUser->no)
-                ->whereIn('users.id',$filtroUser->si);
+        // if(count($filtroUser->si) > 0){
+        //     $users->whereNotIn('users.id',$filtroUser->no)
+        //         ->whereIn('users.id',$filtroUser->si);
 
-            if ($request->has('search')) {
-                $users->Where(function($query) use ($request){
-                    $query->where('name', 'LIKE', "%" . $request->search . "%");
-                    $query->orWhere('email', 'LIKE', "%" . $request->search . "%");
-                    $query->orWhere('identificacion', 'LIKE', "%" . $request->search . "%");
-                });
-            }
-        }else{
-            $users->where('id',0);
-        }
-
-       
+        //     if ($request->has('search')) {
+        //         $users->Where(function($query) use ($request){
+        //             $query->where('name', 'LIKE', "%" . $request->search . "%");
+        //             $query->orWhere('email', 'LIKE', "%" . $request->search . "%");
+        //             $query->orWhere('identificacion', 'LIKE', "%" . $request->search . "%");
+        //         });
+        //     }
+        // }else{
+        //     $users->where('id',0);
+        // }
 
         return Inertia::render('universidad/AsignarUsers', [ //carpeta
             'title'          =>  $titulo,
             'breadcrumbs'    =>  [['label' => __('app.label.universidad'), 'href' => route('universidad.index')]],
             'filters'       => $request->all(['search']),
 
-            'usuariosPorInscribir' =>  $users->get(),
-            'inscritos' => $universidad->users,
+            'usuariosPorInscribir' =>  $filtroUser->no->get(),
+            'inscritos' => $filtroUser->si->get(),
+
+            'profesinscritos' =>  $filtroUser->profesors->get(),
+            'profesPorInscribir' => $filtroUser->noprofesors->get(),
+
             'universidad' =>  $universidad,
             // 'UniversidadSelect' => $UniversidadSelect,
         ]);
     }
-
     public function UsuariosSinLosInscritos($modelo,$users) {
-        $estudiantes = $users->whereHas('roles', function ($query) {
-            return $query->where('name', 'estudiante');
-        })->pluck('id');
-        $usuariosDeLaU = $modelo->users;
+        // $estudiantes = $users->whereHas('roles', function ($query) {
+        //     $query->where('name', 'estudiante');
+        //     return $query;
 
+        // })->pluck('id');
+
+        $estudiantesDeLaU = $modelo->estudiantes($modelo->id,true,'estudiante');//->pluck('users.id');
+        $estudiantesDeOtraU = $modelo->estudiantes($modelo->id,false,'estudiante');//->pluck('users.id');
+        $profDeLaU = $modelo->estudiantes($modelo->id,true,'profesor');
+        $profDeOtraU = $modelo->estudiantes($modelo->id,false,'profesor');
+
+        // dd($profDeOtraU);
         return (object) [
-            'si'=>$estudiantes,
-            'no'=>$usuariosDeLaU->pluck('id'),
-            'siNames'=>$usuariosDeLaU->pluck('name'),
+            'si'=>$estudiantesDeLaU,
+            'no'=>$estudiantesDeOtraU,
+            // 'siNames'=>$estudiantesDeLaU->pluck('name'),
+
+            'profesors'=>$profDeLaU,
+            'noprofesors'=>$profDeOtraU,
         ];
     }
 

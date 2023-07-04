@@ -91,28 +91,30 @@
 </script>
 
 <template>
-    <Head :title="props.title" ></Head>
+    <Head :title="props.title"></Head>
 
     <AuthenticatedLayout>
         <Breadcrumb :title="title" :breadcrumbs="breadcrumbs" />
         <div class="space-y-4">
             <div class="px-4 sm:px-0">
                 <div class="rounded-lg overflow-hidden w-fit">
-                    <PrimaryButton class="rounded-none" @click="data.createOpen = true">
+                    <PrimaryButton class="rounded-none" @click="data.createOpen = true" v-show="can(['create tema'])">
                         {{ lang().button.add }}
                     </PrimaryButton>
-                    <Create :show="data.createOpen" @close="data.createOpen = false" :title="props.title" :MateriasSelect="data.MateriasSelect"/>
-                    <Edit :show="data.editOpen" @close="data.editOpen = false" :tema="data.generico" :title="props.title" :MateriasSelect="data.MateriasSelect"/>
-                    <Delete :show="data.deleteOpen" @close="data.deleteOpen = false" :tema="data.generico" :title="props.title" />
+                    <Create :show="data.createOpen" @close="data.createOpen = false" :title="props.title"
+                        v-if="can(['create tema'])" :MateriasSelect="data.MateriasSelect" />
+                    <Edit :show="data.editOpen" @close="data.editOpen = false" :tema="data.generico" :title="props.title"
+                        v-if="can(['update tema'])" :MateriasSelect="data.MateriasSelect" />
+                    <Delete :show="data.deleteOpen" @close="data.deleteOpen = false" :tema="data.generico"
+                        v-if="can(['delete tema'])" :title="props.title" />
                 </div>
             </div>
             <div class="relative bg-white dark:bg-gray-800 shadow sm:rounded-lg">
                 <div class="flex justify-between p-2">
                     <div class="flex space-x-2">
                         <SelectInput v-model="data.params.perPage" :dataSet="data.dataSet" />
-                        <DangerButton @click="data.deleteBulkOpen = true"
-                            v-show="data.selectedId.length != 0" class="px-3 py-1.5"
-                            v-tooltip="lang().tooltip.delete_selected">
+                        <DangerButton @click="data.deleteBulkOpen = true" v-show="data.selectedId.length != 0"
+                            class="px-3 py-1.5" v-tooltip="lang().tooltip.delete_selected">
                             <TrashIcon class="w-5 h-5" />
                         </DangerButton>
                     </div>

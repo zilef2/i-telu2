@@ -6,7 +6,7 @@ use App\helpers\HelpGPT;
 use App\helpers\Myhelp;
 use Inertia\Inertia;
 
-use App\Models\tema;
+use App\Models\Tema;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
@@ -73,18 +73,17 @@ class TemasController extends Controller
             'MateriasSelect' => $MateriasSelect
         ];
     }
-
+    public function MapearClasePP(&$temas) {
+        $temas = $temas->get()->map(function ($tema){
+            $tema->hijo = $tema->materia_nombre();
+            return $tema;
+        });
+    }
 
     public function index(Request $request) {
-        if(Auth::user()->isAdmin < 1){
-            $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
-            // log::channel('soloadmin')->info('Vista:' . $nombreC. '|  U:'.Auth::user()->name );
-            log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||tema|| ' );
-        }
-
+        $permissions = Myhelp::EscribirEnLog($this,' temas','');
         $titulo = __('app.label.temas');
-        $permissions = auth()->user()->roles->pluck('name')[0];
-        $temas = tema::query();
+        $temas = Tema::query();
         
         $perPage = $request->has('perPage') ? $request->perPage : 10;
         $numberPermissions = Myhelp::getPermissionToNumber($permissions);
@@ -97,13 +96,7 @@ class TemasController extends Controller
             $nombresTabla = $this->fNombresTabla($numberPermissions);
             
         }
-
-        //MapearClasePP
-        
-        $temas = $temas->get()->map(function ($tema){
-            $tema->hijo = $tema->materia_nombre();
-            return $tema;
-        });
+        $this->MapearClasePP($temas);
 
         $Select = $this->losSelect();
         // dd($temas);
@@ -136,7 +129,7 @@ class TemasController extends Controller
         Myhelp::EscribirEnLog($this,get_called_class(),'',false);
 
         try {
-            $tema = tema::create([
+            $tema = Tema::create([
                 'nombre' => $request->nombre,
                 //otrosCampos
                 'descripcion' => $request->descripcion,
@@ -159,7 +152,7 @@ class TemasController extends Controller
     public function edit(tema $tema) { }
 
     public function update(Request $request, $id) {
-        $tema = tema::find($id);
+        $tema = Tema::find($id);
         DB::beginTransaction();
             $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
             log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||tema|| ' );
@@ -189,7 +182,7 @@ class TemasController extends Controller
         DB::beginTransaction();
 
         try {
-            $temas = tema::findOrFail($id);
+            $temas = Tema::findOrFail($id);
             Myhelp::EscribirEnLog($this,get_called_class(),"La tema id:".$id." y nombre:".$temas->nombre." ha sido borrada correctamente",false);
 
             
@@ -218,7 +211,7 @@ class TemasController extends Controller
         //     $request
         // );
 
-            $materia = materia::find($request->materiaid);
+            $materia = Materia::find($request->materiaid);
             $materia->TodosObjetivos = $materia->objetivos();
 
             $limite = $usuario->limite_token_general;
@@ -255,12 +248,6 @@ class TemasController extends Controller
             $finishReason = $result['choices'][0];
             $finishingReason = $finishReason["finish_reason"] ?? '';
             // dd($respuesta,$finishReason,$finishingReason,$request->nivel);
-
-
-            // $respuesta = 'a';
-            // $finishingReason ='length';
-            // $result['usage']["completionTokens"] = 100;
-
             if($finishingReason == 'stop'){
                 // dd($result['usage']);
                     $usageRespuesta = intval($result['usage']["completion_tokens"]); //~ 260

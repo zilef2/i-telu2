@@ -18,7 +18,6 @@ class PersonalImport implements ToModel
     public function model(array $row) {
         // if (User::where('email', $row['correo'])->exists()) {
         $countfilas = session('CountFilas',0);
-
         if (User::where('email', $row[1])->exists()) {
             return null;
         }
@@ -32,7 +31,6 @@ class PersonalImport implements ToModel
         if(strtolower($row[3]) != 'femenino' && strtolower($row[3]) != 'masculino'){
             return null;
         }
-
 
         //todo:poner contador de errores e imprimilos en la notificacion
         session(['CountFilas' => $countfilas+1]);
