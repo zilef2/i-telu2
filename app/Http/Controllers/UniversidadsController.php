@@ -168,9 +168,19 @@ class UniversidadsController extends Controller
         // })->pluck('id');
 
         $estudiantesDeLaU = $modelo->estudiantes($modelo->id,true,'estudiante');//->pluck('users.id');
-        $estudiantesDeOtraU = $modelo->estudiantes($modelo->id,false,'estudiante');//->pluck('users.id');
+        // $estudiantesDeOtraU = $modelo->estudiantes($modelo->id,false,'estudiante');//->pluck('users.id');
+
+        $estudiantesDeOtraU = User::whereNotIn('id',$estudiantesDeLaU->pluck('users.id'))
+            ->WhereHas('roles',function ($query){
+                $query->where('name', 'estudiante');
+        });
+        
         $profDeLaU = $modelo->estudiantes($modelo->id,true,'profesor');
-        $profDeOtraU = $modelo->estudiantes($modelo->id,false,'profesor');
+        // $profDeOtraU = $modelo->estudiantes($modelo->id,false,'profesor');
+        $profDeOtraU = User::whereNotIn('id',$profDeLaU->pluck('users.id'))
+            ->WhereHas('roles',function ($query){
+                $query->where('name', 'profesor');
+        });
 
         // dd($profDeOtraU);
         return (object) [
@@ -225,6 +235,33 @@ class UniversidadsController extends Controller
 
             // return back()->with('success', __('app.label.created_success'));
             return redirect()->route('universidad.index')->with('success', __('app.label.created_success'));
+
+        } catch (\Throwable $th) {
+            DB::rollback();
+            Log::alert("U -> ".Auth::user()->name." fallo en matricular(universidad) - ".$th->getMessage());
+            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.Universidad')]) . $th->getMessage());
+        }
+    }
+    public function toEraseId(Request $request) {
+        DB::beginTransaction();
+        $permission = Myhelp::EscribirEnLog($this,' universidad','Inicio de quitar estudiante de universidad');
+        
+        try {
+            if($permission == 'coordinador_academico' || $permission == 'coordinador_academico'){
+
+                $Universidad = Universidad::find($request->universidadid);
+                // dd($request->selectedId);
+                $Universidad->users()->deatach(
+                    $request->toEraseId
+                );
+
+                DB::commit();
+                Log::info("U -> ".Auth::user()->name." desmatriculo a la universidad ".count($request->selectedId)." estudiantes correctamente");
+                
+                // return back()->with('success', __('app.label.created_success'));
+                return redirect()->route('universidad.index')->with('success', 'Usuarios desmatriculados con exito');
+            }
+            Log::critical("U -> ".Auth::user()->name." desmatriculo a la universidad ".count($request->selectedId)." estudiantes. Fallo en seguridad.");
 
         } catch (\Throwable $th) {
             DB::rollback();

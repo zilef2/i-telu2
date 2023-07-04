@@ -38,15 +38,10 @@ class Universidad extends Model
             ->wherePivot('universidad_id','<>',$universidadid)
             ->WhereHas('roles',function ($query) use ($elrol){
                 $query->where('name', $elrol );
-            }) ;
+            });
             
         }
 
         return $result;
-    }
-    public function profesores($universidadid) {
-        return
-        $this->belongsToMany(User::class, 'universidad_user')
-            ->wherePivot('universidad_id',$universidadid);
     }
 }

@@ -66,6 +66,7 @@ Route::middleware('auth', 'verified')->group(function () {
     // #universidad
     Route::get('/AsignaruserUni/{universidadid}', [UniversidadsController::class,'AsignarUsers'])->name('universidad.AsignarUsers');
     Route::post('/AsignaruserUni', [UniversidadsController::class,'SubmitAsignarUsers'])->name('universidad.SubmitAsignarUsers');
+    Route::post('/AsignaruserUni2', [UniversidadsController::class,'toEraseId'])->name('universidad.toEraseId');
     
     // #carrera
     Route::get('/AsignaruserCarrera/{carreraid}', [CarrerasController::class,'AsignarUsers'])->name('carrera.AsignarUsers');
