@@ -53,19 +53,23 @@ class Myhelp{
         return '';
     }
 
-    public static function EscribirEnLog( $thiis, $clase = '',$mensaje='',$returnPermission=true) {
-        
+    public static function EscribirEnLog( $thiis, $clase = '',$mensaje='',$returnPermission = true,$critico = false) {
         $permissions = $returnPermission ? auth()->user()->roles->pluck('name')[0] : null;
         $ListaControladoresYnombreClase = (explode('\\', get_class($thiis))); $nombreC = end($ListaControladoresYnombreClase);
-        $Elpapa = (explode('\\', get_parent_class($thiis))); $nombreP = end($Elpapa);
+        if(!$critico){
 
-        if($permissions == 'admin' || $permissions == 'superadmin') {
-            $ElMensaje = $mensaje != '' ? ' Mensaje: '.$mensaje : '';
-            Log::channel('soloadmin')->info('Vista:' . $nombreC.' Padre: '.$nombreP. '|  U:'.Auth::user()->name.$ElMensaje);
-        } else {
-            Log::info('Vista: ' . $nombreC.' Padre: '.$nombreP. 'U:'.Auth::user()->name. ' ||'.$clase.'|| '.' Mensaje: '.$mensaje); 
+            $Elpapa = (explode('\\', get_parent_class($thiis))); $nombreP = end($Elpapa);
+
+            if($permissions == 'admin' || $permissions == 'superadmin') {
+                $ElMensaje = $mensaje != '' ? ' Mensaje: '.$mensaje : '';
+                Log::channel('soloadmin')->info('Vista:' . $nombreC.' Padre: '.$nombreP. '|  U:'.Auth::user()->name.$ElMensaje);
+            } else {
+                Log::info('Vista: ' . $nombreC.' Padre: '.$nombreP. 'U:'.Auth::user()->name. ' ||'.$clase.'|| '.' Mensaje: '.$mensaje); 
+            }
+            return $permissions;
+        }else{
+            Log::critical('Vista: ' . $nombreC.'U:'.Auth::user()->name. ' ||'.$clase.'|| '.' Mensaje: '.$mensaje); 
         }
-        return $permissions;
     }
 
     public static function ArrayInString($Elarray,$limite = 3) {
@@ -93,6 +97,8 @@ class Myhelp{
         if($permissions == 'profesor') return 2;
         if($permissions == 'coordinador_academico') return 3;
         if($permissions == 'coordinador_de_programa') return 4;
+        if($permissions == 'admin') return 5;
+        if($permissions == 'superadmin') return 6;
         return 0;
     }
 

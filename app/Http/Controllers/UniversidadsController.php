@@ -18,67 +18,70 @@ use Inertia\Inertia;
 class UniversidadsController extends Controller
 {
 
-    public function MapearClasePP(&$universidads) {
-        $universidads = $universidads->get()->map(function ($universidad){
+    //! index functions
+        public function MapearClasePP(&$universidads) {
+            $universidads = $universidads->get()->map(function ($universidad){
 
-            $universidad->tresPrimeros = Myhelp::ArrayInString($universidad->users->pluck('name'));
+                $universidad->tresPrimeros = Myhelp::ArrayInString($universidad->users->pluck('name'));
 
-            $universidad->cuantosUs = $universidad->users->count();
-        
-            return $universidad;
-        });
-        // dd($universidads);
-    }
-
-    public function fNombresTabla($numberPermissions) {
-        if($numberPermissions < 2) { //estudiante
-            //todo: esto ni se muestra a los estudiantes
-
-            $nombresTabla =[//0: como se ven //1 como es la BD //2??
-                ["Acciones","#"],
-                [],
-                [null,null,null]
-            ];
-            $nombresTabla[0][] = ["nombre", "observaciones"];
+                $universidad->cuantosUs = $universidad->users->count();
             
-            //m for money || t for datetime || d date || i for integer || s string || b boolean 
-            $nombresTabla[1][] = ["s_nombre", "s_descripcion"]; 
+                return $universidad;
+            });
+            // dd($universidads);
+        }
+
+        public function fNombresTabla($numberPermissions) {
+            if($numberPermissions < 2) { //estudiante
+                //todo: esto ni se muestra a los estudiantes
+
+                $nombresTabla =[//0: como se ven //1 como es la BD //2??
+                    ["Acciones","#"],
+                    [],
+                    [null,null,null]
+                ];
+                $nombresTabla[0][] = ["nombre", "observaciones"];
+                
+                //m for money || t for datetime || d date || i for integer || s string || b boolean 
+                $nombresTabla[1][] = ["s_nombre", "s_descripcion"]; 
+                
+                //campos ordenables
+                $nombresTabla[2][] = ["s_nombre", "s_descripcion"]; 
+                return $nombresTabla;
+            }
+
+            // if($numberPermissions < 3){ //profesor
+
+                $nombresTabla =[//0: como se ven //1 como es la BD //2 orden
+                    ["Acciones","#"],
+                    [],
+                    [null,null]
+                ];
+                $nombresTabla[0] = array_merge($nombresTabla[0] , ["nombre","# Inscritos","Inscritos"]);
+                //campos ordenables
+                $nombresTabla[2] = array_merge($nombresTabla[2] , ["s_nombre","",""]);
+                return $nombresTabla;
+            // }
+        }
+        public function Filtros($request, &$Universidads) {
+            if ($request->has('search')) {
+                // $Universidads->whereMonth('descripcion', $request->search);
+                // $Universidads->OrwhereMonth('fecha_fin', $request->search);
+                $Universidads->orWhere('nombre', 'LIKE', "%" . $request->search . "%");
+            }
             
-            //campos ordenables
-            $nombresTabla[2][] = ["s_nombre", "s_descripcion"]; 
+            if ($request->has(['field', 'order'])) {
+                $Universidads->orderBy(substr($request->field,2), $request->order);
+            }else{
+                $Universidads->orderBy('nombre');
+            }
         }
 
-        if($numberPermissions < 3){ //profesor
-
-            $nombresTabla =[//0: como se ven //1 como es la BD //2 orden
-                ["Acciones","#"],
-                [],
-                [null,null]
-            ];
-            $nombresTabla[0] = array_merge($nombresTabla[0] , ["nombre","# Inscritos","Inscritos"]);
-            //campos ordenables
-            $nombresTabla[2] = array_merge($nombresTabla[2] , ["s_nombre","",""]);
-        }
-        return $nombresTabla;
-    }
-    public function Filtros($request, &$Universidads) {
-        if ($request->has('search')) {
-            // $Universidads->whereMonth('descripcion', $request->search);
-            // $Universidads->OrwhereMonth('fecha_fin', $request->search);
-            $Universidads->orWhere('nombre', 'LIKE', "%" . $request->search . "%");
-        }
-        
-        if ($request->has(['field', 'order'])) {
-            $Universidads->orderBy(substr($request->field,2), $request->order);
-        }else{
-            $Universidads->orderBy('nombre');
-        }
-    }
-
-    // public function losSelect() {}
+        // public function losSelect() {}
 
     public function index(Request $request) {
         $permissions = Myhelp::EscribirEnLog($this,'INDEX:universidad');
+        $numberPermissions = Myhelp::getPermissionToNumber($permissions);
 
         $titulo = __('app.label.Universidads');
         $Universidads = Universidad::query();
@@ -112,11 +115,12 @@ class UniversidadsController extends Controller
             'breadcrumbs'    =>  [['label' => __('app.label.Universidads'), 
                                     'href' => route('universidad.index')]],
             'nombresTabla'   =>  $nombresTabla,
+            'numberPermissions'   =>  $numberPermissions,
         ]);
     }//fin index
 
     public function AsignarUsers(Request $request, $universidadid){ //get
-        $titulo = 'Seleccione los estudiantes a matricular';
+        $titulo = 'Seleccione el personal a matricular/desvincular';
         $permissions = Myhelp::EscribirEnLog($this,'universidad');
         if($permissions === "estudiante") {
             Myhelp::EscribirEnLog($this,'Criticou');
@@ -126,23 +130,19 @@ class UniversidadsController extends Controller
             // $nombresTabla = $this->laTabla(0);
         }
 
-
         $universidad = universidad::find($universidadid);
-        $users = User::query();
-        $filtroUser = $this->UsuariosSinLosInscritos($universidad,$users);
+        // $users = User::query();
+        $filtroUser = $this->UsuariosSinLosInscritos($universidad,$request);
         // if(count($filtroUser->si) > 0){
         //     $users->whereNotIn('users.id',$filtroUser->no)
         //         ->whereIn('users.id',$filtroUser->si);
 
-        //     if ($request->has('search')) {
-        //         $users->Where(function($query) use ($request){
-        //             $query->where('name', 'LIKE', "%" . $request->search . "%");
-        //             $query->orWhere('email', 'LIKE', "%" . $request->search . "%");
-        //             $query->orWhere('identificacion', 'LIKE', "%" . $request->search . "%");
-        //         });
-        //     }
-        // }else{
-        //     $users->where('id',0);
+        // if ($request->has('search')) {
+        //     $users->Where(function($query) use ($request){
+        //         $query->where('name', 'LIKE', "%" . $request->search . "%");
+        //         $query->orWhere('email', 'LIKE', "%" . $request->search . "%");
+        //         $query->orWhere('identificacion', 'LIKE', "%" . $request->search . "%");
+        //     });
         // }
 
         return Inertia::render('universidad/AsignarUsers', [ //carpeta
@@ -160,27 +160,40 @@ class UniversidadsController extends Controller
             // 'UniversidadSelect' => $UniversidadSelect,
         ]);
     }
-    public function UsuariosSinLosInscritos($modelo,$users) {
-        // $estudiantes = $users->whereHas('roles', function ($query) {
-        //     $query->where('name', 'estudiante');
-        //     return $query;
-
-        // })->pluck('id');
-
+    public function UsuariosSinLosInscritos($modelo,$request) {
         $estudiantesDeLaU = $modelo->estudiantes($modelo->id,true,'estudiante');//->pluck('users.id');
-        // $estudiantesDeOtraU = $modelo->estudiantes($modelo->id,false,'estudiante');//->pluck('users.id');
-
         $estudiantesDeOtraU = User::whereNotIn('id',$estudiantesDeLaU->pluck('users.id'))
             ->WhereHas('roles',function ($query){
                 $query->where('name', 'estudiante');
         });
-        
+       
         $profDeLaU = $modelo->estudiantes($modelo->id,true,'profesor');
-        // $profDeOtraU = $modelo->estudiantes($modelo->id,false,'profesor');
         $profDeOtraU = User::whereNotIn('id',$profDeLaU->pluck('users.id'))
             ->WhereHas('roles',function ($query){
                 $query->where('name', 'profesor');
         });
+        if ($request->has('search')) {
+            $estudiantesDeLaU->Where(function($query) use ($request){
+                $query->where('name', 'LIKE', "%" . $request->search . "%");
+                // $query->orWhere('email', 'LIKE', "%" . $request->search . "%");
+                $query->orWhere('identificacion', 'LIKE', "%" . $request->search . "%");
+            });
+            $estudiantesDeOtraU->Where(function($query) use ($request){
+                $query->where('name', 'LIKE', "%" . $request->search . "%");
+                // $query->orWhere('email', 'LIKE', "%" . $request->search . "%");
+                $query->orWhere('identificacion', 'LIKE', "%" . $request->search . "%");
+            });
+            $profDeLaU->Where(function($query) use ($request){
+                $query->where('name', 'LIKE', "%" . $request->search . "%");
+                // $query->orWhere('email', 'LIKE', "%" . $request->search . "%");
+                $query->orWhere('identificacion', 'LIKE', "%" . $request->search . "%");
+            });
+            $profDeOtraU->Where(function($query) use ($request){
+                $query->where('name', 'LIKE', "%" . $request->search . "%");
+                // $query->orWhere('email', 'LIKE', "%" . $request->search . "%");
+                $query->orWhere('identificacion', 'LIKE', "%" . $request->search . "%");
+            });
+        }
 
         // dd($profDeOtraU);
         return (object) [
@@ -195,8 +208,7 @@ class UniversidadsController extends Controller
 
     public function create() { }
 
-    public function store(UniversidadRequest $request)
-    {
+    public function store(UniversidadRequest $request) {
         DB::beginTransaction();
                 $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
                 log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||Universidad|| ' );
@@ -233,8 +245,8 @@ class UniversidadsController extends Controller
             DB::commit();
             Log::info("U -> ".Auth::user()->name." matriculo a la universidad ".count($request->selectedId)." estudiantes correctamente");
 
-            // return back()->with('success', __('app.label.created_success'));
-            return redirect()->route('universidad.index')->with('success', __('app.label.created_success'));
+            return back()->with('success', 'Usuarios asignados correctamente');
+            // return redirect()->route('universidad.index')->with('success', __('app.label.created_success'));
 
         } catch (\Throwable $th) {
             DB::rollback();
@@ -247,19 +259,19 @@ class UniversidadsController extends Controller
         $permission = Myhelp::EscribirEnLog($this,' universidad','Inicio de quitar estudiante de universidad');
         
         try {
-            if($permission == 'coordinador_academico' || $permission == 'coordinador_academico'){
+            if($permission == 'coordinador_academico' || $permission == 'coordinador_academico' || $permission == 'admin' || $permission = 'superadmin'){
 
                 $Universidad = Universidad::find($request->universidadid);
                 // dd($request->selectedId);
-                $Universidad->users()->deatach(
+                $Universidad->users()->detach(
                     $request->toEraseId
                 );
 
                 DB::commit();
                 Log::info("U -> ".Auth::user()->name." desmatriculo a la universidad ".count($request->selectedId)." estudiantes correctamente");
                 
-                // return back()->with('success', __('app.label.created_success'));
-                return redirect()->route('universidad.index')->with('success', 'Usuarios desmatriculados con exito');
+                return back()->with('success', 'Usuarios desvinculados correctamente');
+                // return redirect()->route('universidad.index')->with('success', 'Usuarios desmatriculados con exito');
             }
             Log::critical("U -> ".Auth::user()->name." desmatriculo a la universidad ".count($request->selectedId)." estudiantes. Fallo en seguridad.");
 
@@ -272,8 +284,7 @@ class UniversidadsController extends Controller
 
     public function show(Universidad $Universidad) { }
     public function edit(Universidad $Universidad) { }
-    public function update(Request $request, Universidad $Universidad)
-    {
+    public function update(Request $request, Universidad $Universidad) {
         DB::beginTransaction();
         Myhelp::EscribirEnLog($this,' UPDATE:universidad ','',false);
 
@@ -302,10 +313,8 @@ class UniversidadsController extends Controller
      * @return \Illuminate\Http\Response
      */
     // public function destroy(Universidad $Universidad)
-    public function destroy($id)
-    {
-        Myhelp::EscribirEnLog($this,'DELETE:universidad','',false);
-
+    public function destroy($id) {
+         Myhelp::EscribirEnLog($this,'DELETE:universidad','',false);
         DB::beginTransaction();
 
         try {

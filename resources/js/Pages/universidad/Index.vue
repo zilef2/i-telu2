@@ -1,89 +1,90 @@
 <script setup>
-    import { reactive, watch,onMounted } from 'vue';
-    import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-    import { Head } from '@inertiajs/vue3';
-    import Breadcrumb from '@/Components/Breadcrumb.vue';
-    import TextInput from '@/Components/TextInput.vue';
-    import PrimaryButton from '@/Components/PrimaryButton.vue';
-    import SelectInput from '@/Components/SelectInput.vue';
-    import DangerButton from '@/Components/DangerButton.vue';
-    import pkg from 'lodash';
-    import { router, usePage, Link } from '@inertiajs/vue3';
+import { reactive, watch, onMounted } from 'vue';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import { Head } from '@inertiajs/vue3';
+import Breadcrumb from '@/Components/Breadcrumb.vue';
+import TextInput from '@/Components/TextInput.vue';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
+import SelectInput from '@/Components/SelectInput.vue';
+import DangerButton from '@/Components/DangerButton.vue';
+import pkg from 'lodash';
+import { router, usePage, Link } from '@inertiajs/vue3';
 
-    import Pagination from '@/Components/Pagination.vue';
-    import { ChevronUpDownIcon, EyeIcon, PencilIcon, TrashIcon, UserGroupIcon } from '@heroicons/vue/24/solid';
+import Pagination from '@/Components/Pagination.vue';
+import { ChevronUpDownIcon, EyeIcon, PencilIcon, TrashIcon, UserGroupIcon } from '@heroicons/vue/24/solid';
 
 
-    import Create from '@/Pages/universidad/Create.vue';
-    import Edit from '@/Pages/universidad/Edit.vue'; 
-    import Delete from '@/Pages/universidad/Delete.vue';
+import Create from '@/Pages/universidad/Create.vue';
+import Edit from '@/Pages/universidad/Edit.vue';
+import Delete from '@/Pages/universidad/Delete.vue';
 
-    import Checkbox from '@/Components/Checkbox.vue';
-    import InfoButton from '@/Components/InfoButton.vue';
+import Checkbox from '@/Components/Checkbox.vue';
+import InfoButton from '@/Components/InfoButton.vue';
 
-    const { _, debounce, pickBy } = pkg
-    const props = defineProps({
-        title: String,
-        filters: Object,
-        breadcrumbs: Object,
-        perPage: Number,
+const { _, debounce, pickBy } = pkg
+const props = defineProps({
+    title: String,
+    filters: Object,
+    breadcrumbs: Object,
+    perPage: Number,
 
-        fromController: Object,
-        nombresTabla: Array,
+    fromController: Object,
+    nombresTabla: Array,
+    numberPermissions: Number,
+})
+
+const data = reactive({
+    params: {
+        search: props.filters.search,
+        field: props.filters.field,
+        order: props.filters.order,
+        perPage: props.perPage,
+    },
+    selectedId: [],
+    multipleSelect: false,
+    createOpen: false,
+    editOpen: false,
+    deleteOpen: false,
+    deleteBulkOpen: false,
+    generico: null,
+    successMessage: '',
+    dataSet: usePage().props.app.perpage,
+
+})
+
+const order = (field) => {
+    console.log("🧈 debu field:", field);
+    data.params.field = field.replace(/ /g, "_")
+
+    data.params.order = data.params.order === "asc" ? "desc" : "asc"
+}
+
+watch(() => _.cloneDeep(data.params), debounce(() => {
+    let params = pickBy(data.params)
+    router.get(route("universidad.index"), params, {
+        replace: true,
+        preserveState: true,
+        preserveScroll: true,
     })
-    
-    const data = reactive({
-        params: {
-            search: props.filters.search,
-            field: props.filters.field,
-            order: props.filters.order,
-            perPage: props.perPage,
-        },
-        selectedId: [],
-        multipleSelect: false,
-        createOpen: false,
-        editOpen: false,
-        deleteOpen: false,
-        deleteBulkOpen: false,
-        generico: null,
-        successMessage: '',
-        dataSet: usePage().props.app.perpage,
-        
-    })
+}, 150))
 
-    const order = (field) => {
-        console.log("🧈 debu field:", field);
-        data.params.field = field.replace(/ /g, "_")
-
-        data.params.order = data.params.order === "asc" ? "desc" : "asc"
-    }
-
-    watch(() => _.cloneDeep(data.params), debounce(() => {
-        let params = pickBy(data.params)
-        router.get(route("universidad.index"), params, {
-            replace: true,
-            preserveState: true,
-            preserveScroll: true,
+const selectAll = (event) => {
+    if (event.target.checked === false) {
+        data.selectedId = []
+    } else {
+        props.fromController?.data.forEach((generico) => {
+            data.selectedId.push(generico.id)
         })
-    }, 150))
+    }
+}
+const select = () => {
+    if (props.fromController?.data.length == data.selectedId.length) {
+        data.multipleSelect = true
+    } else {
+        data.multipleSelect = false
+    }
+}
 
-    const selectAll = (event) => {
-        if (event.target.checked === false) {
-            data.selectedId = []
-        } else {
-            props.fromController?.data.forEach((generico) => {
-                data.selectedId.push(generico.id)
-            })
-        }
-    }
-    const select = () => {
-        if (props.fromController?.data.length == data.selectedId.length) {
-            data.multipleSelect = true
-        } else {
-            data.multipleSelect = false
-        }
-    }
-    
 </script>
 
 <template>
@@ -114,8 +115,8 @@
                             <TrashIcon class="w-5 h-5" />
                         </DangerButton>
                     </div>
-                    <TextInput v-model="data.params.search" type="text" class="block w-3/6 md:w-2/6 lg:w-1/6 rounded-lg"
-                        :placeholder="lang().placeholder.search" />
+                    <TextInput v-if="props.numberPermissions > 1" v-model="data.params.search" type="text"
+                        class="block w-3/6 md:w-2/6 lg:w-1/6 rounded-lg" :placeholder="lang().placeholder.search" />
                 </div>
                 <div class="overflow-x-auto scrollbar-table">
                     <table class="w-full">
@@ -166,7 +167,7 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (index+1) }}</td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (index + 1) }}</td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.nombre) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.cuantosUs) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.tresPrimeros) }} </td>

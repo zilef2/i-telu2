@@ -13,16 +13,20 @@ class Subtopico extends Model
     protected $fillable = [
         'nombre',
         'descripcion',
-        'tema_id',
+        'unidad_id',
+        'resultado_aprendizaje',
     ];
-    public function ejercicios(): HasMany {
+    public function ejercicios(): HasMany
+    {
         return $this->hasMany(Ejercicio::class, 'subtopico_id');
     }
 
-    public function tema(): BelongsTo {
-        return $this->belongsTo(Tema::class, 'tema_id');
+    public function Unidad(): BelongsTo
+    {
+        return $this->belongsTo(Unidad::class, 'unidad_id');
     }
-    public function tema_nombre(): string {
-        return $this->tema->nombre;
+    public function tema_nombre(): string
+    {
+        return $this->Unidad->nombre;
     }
 }

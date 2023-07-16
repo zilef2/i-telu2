@@ -5,7 +5,7 @@
     import TextInput from '@/Components/TextInput.vue';
     import PrimaryButton from '@/Components/PrimaryButton.vue';
     import SelectInput from '@/Components/SelectInput.vue';
-    import { reactive, watch } from 'vue';
+    import { reactive, watch, onMounted } from 'vue';
     import DangerButton from '@/Components/DangerButton.vue';
     import pkg from 'lodash';
     import { router,usePage, Link } from '@inertiajs/vue3';
@@ -20,6 +20,8 @@
     import Checkbox from '@/Components/Checkbox.vue';
     import InfoButton from '@/Components/InfoButton.vue';
 
+    import { PrimerasPalabras, vectorSelect, formatDate, CalcularEdad, CalcularSexo} from '@/global.js';
+
     const { _, debounce, pickBy } = pkg
     const props = defineProps({
         title: String,
@@ -30,6 +32,9 @@
         fromController: Object,
         PapaSelect: Object,
         nombresTabla: Array,
+        numberPermissions: Number,
+
+        UniversidadSelect: Object,
     })
     
     const data = reactive({
@@ -38,6 +43,7 @@
             field: props.filters.field,
             order: props.filters.order,
             perPage: props.perPage,
+            selectedUniID: props.filters.selectedUniID,
         },
         selectedId: [],
         multipleSelect: false,
@@ -49,7 +55,6 @@
         dataSet: usePage().props.app.perpage,
     })
         
-
     const order = (field) => {
         console.log("🧈 debu field:", field);
         data.params.field = field.replace(/ /g, "_")
@@ -82,6 +87,11 @@
             data.multipleSelect = false
         }
     }
+
+    onMounted(() =>{
+        if(typeof data.params.selectedUniID === 'undefined' || data.params.selectedUniID === null) data.params.selectedUniID = 0
+        data.UniversidadSelect = vectorSelect(data.UniversidadSelect,props.UniversidadSelect,'una')
+    })
 
 
 const PapaSelect = props.PapaSelect?.map(universidad => ({ 
@@ -117,8 +127,13 @@ const PapaSelect = props.PapaSelect?.map(universidad => ({
                             class="px-3 py-1.5" v-tooltip="lang().tooltip.delete_selected">
                             <TrashIcon class="w-5 h-5" />
                         </DangerButton>
+                        <!-- filters -->
+                        <div class="bg-gray-100">
+                            <SelectInput v-model="data.params.selectedUniID" id="uni" :dataSet="data.UniversidadSelect" />
+                        </div>
                     </div>
-                    <TextInput v-model="data.params.search" type="text" class="block w-3/6 md:w-2/6 lg:w-1/6 rounded-lg"
+
+                    <TextInput v-if="props.numberPermissions > 1" v-model="data.params.search" type="text" class="block w-3/6 md:w-2/6 lg:w-1/6 rounded-lg"
                         :placeholder="lang().placeholder.search" />
                 </div>
                 <div class="overflow-x-auto scrollbar-table">
@@ -172,10 +187,10 @@ const PapaSelect = props.PapaSelect?.map(universidad => ({
                                 </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (index+1) }}</td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica?.nombre) }} </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica?.descripcion) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica?.hijo) }} </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica?.cuantosUs) }} </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica?.tresPrimeros) }} </td>
+                                <td v-if="props.numberPermissions > 1" class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica?.cuantosUs) }} </td>
+                                <!-- <td v-if="props.numberPermissions > 1" class="whitespace-wrap break-words text-sm py-4 px-2 sm:py-3">{{ (clasegenerica?.tresPrimeros) }} </td> -->
+                                <td v-if="props.numberPermissions > 1" class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica?.descripcion) }} </td>
                             </tr>
                         </tbody>
                     </table>

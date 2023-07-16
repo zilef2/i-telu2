@@ -13,5 +13,6 @@ class Parametro extends Model
         'prompEjercicios',
         'prompObjetivos',
         'NumeroTicketDefecto',
+        'prompExplicarTema',
     ];
 }

@@ -2,20 +2,24 @@
 
 return [
     'label' => [
+        //losPromps
+        'losPromps' => 'Instrucciones',
+        'LosPromps' => 'Instrucciones',
+
+
         //asignar - materia
-        
+        'materias' => 'materias',
         'no_permission' => 'Accion no autorizada',
         //ejercicios
         'ejercicios' => 'Ejercicios',
         //subtema
-        'stema' => 'sub tema',
-        'subtopico' => 'subtopico',
-        'subtopicos' => 'subtopicos',
+        'stema' => 'Tema',
+        'subtopicos' => 'Temas',
         //parametros
         'parametros' => 'parametros',
-        //tema
-        'temas' => 'temas',
-        'tema' => 'tema',
+        //unidad (tema)
+        'unidads' => 'Unidades',
+        'resultAprendizaje' => 'Resultado de Aprendizaje',
         //materia
         'preguntaria' => 'preguntar a la IA',
         'cuantosObj' => 'cuantos Objetivos?',
@@ -27,7 +31,7 @@ return [
         'requisito3' => 'requisito 3',
         'carrera' => 'carrera',
         'descripcion' => 'descripcion',
-        'seeTemas' => 'Temas',
+        'seeTemas' => 'Unidades',
         //user
         'pgrado' => 'Nivel',
         'identificacion' => 'identificacion',
@@ -49,17 +53,14 @@ return [
         'carreras' => 'carreras',
         'UnObjetivo' => 'Describa el objetivo de la materia',
         'otroObjetivo' => 'Puede agregar un objetivo extras a la materia (opcional)',
-        
+
         //each model
         'universidadCarreras' => 'Universidad y Carreras',
-        'universidad' => 'universidad',
-        'universidads' => 'universidad',
         'carrera' => 'carrera',
         'Carreras' => 'carreras',
         'materia' => 'materia',
-        'materias' => 'materias',
-        'tema' => 'tema',
-        'subtopico' => 'subtopico',
+        'Unidad' => 'Unidad',
+        'subtopico' => 'Tema',
         'ejercicio' => 'ejercicio',
 
         'cliente' => 'Cliente',

@@ -1,91 +1,92 @@
 <script setup>
-    import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-    import { Head } from '@inertiajs/vue3';
-    import Breadcrumb from '@/Components/Breadcrumb.vue';
-    import TextInput from '@/Components/TextInput.vue';
-    import PrimaryButton from '@/Components/PrimaryButton.vue';
-    import SelectInput from '@/Components/SelectInput.vue';
-    import { reactive, watch } from 'vue';
-    import DangerButton from '@/Components/DangerButton.vue';
-    import pkg from 'lodash';
-    import { router,usePage } from '@inertiajs/vue3';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import { Head } from '@inertiajs/vue3';
+import Breadcrumb from '@/Components/Breadcrumb.vue';
+import TextInput from '@/Components/TextInput.vue';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
+import SelectInput from '@/Components/SelectInput.vue';
+import { reactive, watch } from 'vue';
+import DangerButton from '@/Components/DangerButton.vue';
+import pkg from 'lodash';
+import { router, usePage } from '@inertiajs/vue3';
 
-    import Pagination from '@/Components/Pagination.vue';
-    import { ChevronUpDownIcon, PencilIcon, TrashIcon } from '@heroicons/vue/24/solid';
+import Pagination from '@/Components/Pagination.vue';
+import { ChevronUpDownIcon, PencilIcon, TrashIcon } from '@heroicons/vue/24/solid';
 
-    import Create from '@/Pages/ejercicio/Create.vue';
-    import Edit from '@/Pages/ejercicio/Edit.vue'; 
-    import Delete from '@/Pages/ejercicio/Delete.vue';
+import Create from '@/Pages/ejercicio/Create.vue';
+import Edit from '@/Pages/ejercicio/Edit.vue';
+import Delete from '@/Pages/ejercicio/Delete.vue';
 
-    import Checkbox from '@/Components/Checkbox.vue';
-    import InfoButton from '@/Components/InfoButton.vue';
-    import {vectorSelect, formatDate, CalcularEdad, CalcularSexo} from '@/global.js';
+import Checkbox from '@/Components/Checkbox.vue';
+import InfoButton from '@/Components/InfoButton.vue';
+import { vectorSelect, formatDate, CalcularEdad, CalcularSexo } from '@/global.js';
 
 
-    const { _, debounce, pickBy } = pkg
-    const props = defineProps({
-        title: String,
-        filters: Object,
-        breadcrumbs: Object,
-        perPage: Number,
+const { _, debounce, pickBy } = pkg
+const props = defineProps({
+    title: String,
+    filters: Object,
+    breadcrumbs: Object,
+    perPage: Number,
 
-        fromController: Object,
-        subtemasSelect: Object,
+    fromController: Object,
+    subUnidadsSelect: Object,
+    numberPermissions: Number, //not used... why?
 
+})
+
+const data = reactive({
+    params: {
+        search: props.filters.search,
+        field: props.filters.field,
+        order: props.filters.order,
+        perPage: props.perPage,
+    },
+    selectedId: [],
+    multipleSelect: false,
+    createOpen: false,
+    editOpen: false,
+    deleteOpen: false,
+    deleteBulkOpen: false,
+    generico: null,
+    dataSet: usePage().props.app.perpage,
+    subUnidadsSelect: null
+})
+data.subUnidadsSelect = vectorSelect(data.subUnidadsSelect, props.subUnidadsSelect, 'un')
+
+const order = (field) => {
+    console.log("🧈 debu field:", field);
+    data.params.field = field.replace(/ /g, "_")
+
+    data.params.order = data.params.order === "asc" ? "desc" : "asc"
+}
+
+watch(() => _.cloneDeep(data.params), debounce(() => {
+    let params = pickBy(data.params)
+    router.get(route("ejercicio.index"), params, {
+        replace: true,
+        preserveState: true,
+        preserveScroll: true,
     })
-    
-    const data = reactive({
-        params: {
-            search: props.filters.search,
-            field: props.filters.field,
-            order: props.filters.order,
-            perPage: props.perPage,
-        },
-        selectedId: [],
-        multipleSelect: false,
-        createOpen: false,
-        editOpen: false,
-        deleteOpen: false,
-        deleteBulkOpen: false,
-        generico: null,
-        dataSet: usePage().props.app.perpage,
-        subtemasSelect: null
-    })
-    data.subtemasSelect = vectorSelect(data.subtemasSelect,props.subtemasSelect,'un')
-        
-    const order = (field) => {
-        console.log("🧈 debu field:", field);
-        data.params.field = field.replace(/ /g, "_")
+}, 150))
 
-        data.params.order = data.params.order === "asc" ? "desc" : "asc"
-    }
-
-    watch(() => _.cloneDeep(data.params), debounce(() => {
-        let params = pickBy(data.params)
-        router.get(route("ejercicio.index"), params, {
-            replace: true,
-            preserveState: true,
-            preserveScroll: true,
+const selectAll = (event) => {
+    if (event.target.checked === false) {
+        data.selectedId = []
+    } else {
+        props.fromController?.data.forEach((generico) => {
+            data.selectedId.push(generico.id)
         })
-    }, 150))
+    }
+}
+const select = () => {
+    if (props.fromController?.data.length == data.selectedId.length) {
+        data.multipleSelect = true
+    } else {
+        data.multipleSelect = false
+    }
+}
 
-    const selectAll = (event) => {
-        if (event.target.checked === false) {
-            data.selectedId = []
-        } else {
-            props.fromController?.data.forEach((generico) => {
-                data.selectedId.push(generico.id)
-            })
-        }
-    }
-    const select = () => {
-        if (props.fromController?.data.length == data.selectedId.length) {
-            data.multipleSelect = true
-        } else {
-            data.multipleSelect = false
-        }
-    }
-    
 </script>
 
 <template>
@@ -100,9 +101,9 @@
                         {{ lang().button.add }}
                     </PrimaryButton>
                     <Create :show="data.createOpen" @close="data.createOpen = false" :title="props.title"
-                        v-if="can(['create ejercicio'])" :subtemasSelect="data.subtemasSelect" />
+                        v-if="can(['create ejercicio'])" :subUnidadsSelect="data.subUnidadsSelect" />
                     <Edit :show="data.editOpen" @close="data.editOpen = false" :ejercicio="data.generico"
-                        v-if="can(['update ejercicio'])" :title="props.title" :subtemasSelect="data.subtemasSelect" />
+                        v-if="can(['update ejercicio'])" :title="props.title" :subUnidadsSelect="data.subUnidadsSelect" />
                     <Delete :show="data.deleteOpen" @close="data.deleteOpen = false" :ejercicio="data.generico"
                         v-if="can(['delete ejercicio'])" :title="props.title" />
                 </div>
@@ -116,8 +117,8 @@
                             <TrashIcon class="w-5 h-5" />
                         </DangerButton>
                     </div>
-                    <TextInput v-model="data.params.search" type="text" class="block w-3/6 md:w-2/6 lg:w-1/6 rounded-lg"
-                        :placeholder="lang().placeholder.search" />
+                    <TextInput v-if="props.numberPermissions > 1" v-model="data.params.search" type="text"
+                        class="block w-3/6 md:w-2/6 lg:w-1/6 rounded-lg" :placeholder="lang().placeholder.search" />
                 </div>
                 <div class="overflow-x-auto scrollbar-table">
                     <table class="w-full">
@@ -151,20 +152,19 @@
                                         <ChevronUpDownIcon class="w-4 h-4" />
                                     </div>
                                 </th>
-                                <th v-on:click="order('nombre')"
+                                <th v-on:click="order('subtopico_id')"
                                     class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
                                     <div class="flex justify-between items-center">
                                         <span>
-                                            Subtopico
-                                        </span>
+                                            unidad </span>
                                         <ChevronUpDownIcon class="w-4 h-4" />
                                     </div>
                                 </th>
-                                <th v-on:click="order('observaciones')"
+                                <th v-on:click="order('descripcion')"
                                     class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
                                     <div class="flex justify-between items-center">
                                         <span>
-                                            Observaciones
+                                            Descripcion
                                         </span>
                                         <ChevronUpDownIcon class="w-4 h-4" />
                                     </div>
@@ -195,7 +195,7 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (index+1) }}</td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (index + 1) }}</td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.nombre) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.hijo) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.descripcion) }} </td>

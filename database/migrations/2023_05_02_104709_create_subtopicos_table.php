@@ -15,14 +15,15 @@ class CreateSubtopicosTable extends Migration
     {
         Schema::create('subtopicos', function (Blueprint $table) {
             $table->id();
-			$table->string('nombre');
-			$table->string('descripcion')->nullable();
-            $table->unsignedBigInteger('tema_id');
-             
-            $table->foreign('tema_id')
-                    ->references('id')
-                    ->on('temas')
-                    ->onDelete('cascade');
+            $table->string('nombre');
+            $table->string('descripcion')->nullable();
+            $table->string('resultado_aprendizaje')->nullable();
+            $table->unsignedBigInteger('unidad_id');
+
+            $table->foreign('unidad_id')
+                ->references('id')
+                ->on('unidads')
+                ->onDelete('cascade');
             $table->timestamps();
         });
     }

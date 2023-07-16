@@ -69,7 +69,7 @@ class PermissionController extends Controller
         DB::beginTransaction();
         try {
             $permission = Permission::create([
-                'name'=> $request->name
+                'name' => $request->name
             ]);
             $superadmin = Role::whereName('superadmin')->first();
             $superadmin->givePermissionTo([$request->name]);

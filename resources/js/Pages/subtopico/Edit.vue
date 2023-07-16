@@ -16,7 +16,7 @@ const props = defineProps({
     show: Boolean,
     title: String,
     subtopico: Object,
-    temasSelect: Object,
+    UnidadsSelect: Object,
 
 })
 
@@ -26,16 +26,16 @@ const data = reactive({
 
 const emit = defineEmits(["close"]);
 
-const justNames =[
+const justNames = [
     'nombre',
     'descripcion',
-    'tema_id',
+    'unidad_id',
 ]
 const form = useForm({ ...Object.fromEntries(justNames.map(field => [field, ''])) });
 
 const printForm = [
-    {idd: 'nombre',label: 'nombre', type:'text', value:form.nombre},
-    {idd: 'descripcion',label: 'descripcion', type:'text', value:form.descripcion},
+    { idd: 'nombre', label: 'nombre', type: 'text', value: form.nombre },
+    { idd: 'descripcion', label: 'descripcion', type: 'text', value: form.descripcion },
 ];
 
 const update = () => {
@@ -56,7 +56,7 @@ watchEffect(() => {
         form.errors = {}
         form.nombre = props.subtopico?.nombre
         form.descripcion = props.subtopico?.descripcion
-        form.tema_id = props.subtopico?.tema_id
+        form.unidad_id = props.subtopico?.unidad_id
     }
 })
 </script>
@@ -72,15 +72,15 @@ watchEffect(() => {
                     <div v-for="(atributosform, indice) in printForm" :key="indice">
                         <InputLabel :for="atributosform.label" :value="atributosform.value" />
                         <TextInput :id="atributosform.idd" :type="atributosform.type" class="mt-1 block w-full"
-                            v-model="form[atributosform.idd]" required
-                            :placeholder="atributosform.label" :error="form.errors[atributosform.idd]" />
+                            v-model="form[atributosform.idd]" required :placeholder="atributosform.label"
+                            :error="form.errors[atributosform.idd]" />
                     </div>
 
                     <div>
-                        <InputLabel for="tema_id" :value="lang().label.tema" />
-                        <SelectInput name="tema_id" class="mt-1 block w-full" v-model="form.tema_id" required
-                            :dataSet="temasSelect"> </SelectInput>
-                        <InputError class="mt-2" :message="form.errors.tema_id" />
+                        <InputLabel for="unidad_id" :value="lang().label.Unidad" />
+                        <SelectInput name="unidad_id" class="mt-1 block w-full" v-model="form.unidad_id" required
+                            :dataSet="UnidadsSelect"> </SelectInput>
+                        <InputError class="mt-2" :message="form.errors.unidad_id" />
                     </div>
                 </div>
                 <div class="flex justify-end">

@@ -114,8 +114,8 @@ const select = () => {
                             <TrashIcon class="w-5 h-5" />
                         </DangerButton>
                     </div>
-                    <TextInput v-model="data.params.search" type="text" class="block w-3/6 md:w-2/6 lg:w-1/6 rounded-lg"
-                        :placeholder="lang().placeholder.search" />
+                    <TextInput v-if="props.numberPermissions > 1" v-model="data.params.search" type="text"
+                        class="block w-3/6 md:w-2/6 lg:w-1/6 rounded-lg" :placeholder="lang().placeholder.search" />
                 </div>
                 <div class="overflow-x-auto scrollbar-table">
                     <table class="w-full">
@@ -162,7 +162,7 @@ const select = () => {
                                         type="checkbox" @change="select" :value="role.id" v-model="data.selectedId" />
                                 </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-center">{{ ++index }}</td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ role.name.replace(/_/g," ") }}</td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ role.name.replace(/_/g, " ") }}</td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ role.guard_name }}</td>
                                 <td v-tooltip="lang().tooltip.detail"
                                     v-if="role.permissions.length == props.permissions.length"

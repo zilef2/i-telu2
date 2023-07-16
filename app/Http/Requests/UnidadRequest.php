@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class TemaRequest extends FormRequest
+class UnidadRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,11 +24,14 @@ class TemaRequest extends FormRequest
     public function rules()
     {
         return
-        [
-			'nombre' => 'required|max:255|min:1',
-			'descripcion' => 'nullable|max:255',
-			'materia_id' => 'required|min:1',
+            [
+                'nombre' => 'required|max:255|min:1',
+                'descripcion' => 'nullable|max:255',
+                'materia_id' => 'required|integer|min:1',
+                'nsubtemas' => 'nullable|max:4|min:0',
+                'subtema' => 'nullable',
+                'resultAprendizaje' => 'nullable',
 
-        ];
+            ];
     }
 }

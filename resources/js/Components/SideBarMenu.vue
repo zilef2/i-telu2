@@ -13,13 +13,13 @@ import { Link } from '@inertiajs/vue3';
 import { reactive, watch } from 'vue';
 
 const data = reactive({
-    showContent:false,
-    showContent2:true
+    showContent: false,
+    showContent2: true
 })
-const toggleContent = () =>{
+const toggleContent = () => {
     data.showContent = !data.showContent
 }
-const toggleContent2 = () =>{
+const toggleContent2 = () => {
     data.showContent2 = !data.showContent2
 }
 
@@ -35,8 +35,10 @@ const toggleContent2 = () =>{
         </div>
         <div class="text-center py-3 px-4 border-b border-gray-700 dark:border-gray-800">
             <span class="flex items-center justify-center">
-                <p class="truncate text-md">{{ $page.props.auth.user.name }}</p> 
-                <div> <CheckBadgeIcon class="ml-[2px] w-4 h-4" v-show="$page.props.auth.user.email_verified_at" /> </div>
+                <p class="truncate text-md">{{ $page.props.auth.user.name }}</p>
+                <div>
+                    <CheckBadgeIcon class="ml-[2px] w-4 h-4" v-show="$page.props.auth.user.email_verified_at" />
+                </div>
             </span>
             <span class="block text-xs font-medium truncate">{{ $page.props.auth.user.email }}</span>
             <span class="block text-sm font-medium truncate">{{ $page.props.auth.user.roles[0].name }}</span>
@@ -47,22 +49,22 @@ const toggleContent2 = () =>{
             <li class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
                 :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('dashboard') }">
                 <Link :href="route('dashboard')" class="flex items-center py-2 px-4">
-                    <HomeIcon class="w-6 h-5" />
-                    <span class="ml-3">Tablero principal</span>
+                <HomeIcon class="w-6 h-5" />
+                <span class="ml-3">Tablero principal</span>
                 </Link>
             </li>
             <!-- <li v-show="can(['read user'])" class="py-2"> <p>{{ lang().label.data }}</p> </li> -->
             <!-- <li v-show="can(['read role', 'read permission'])" class="py-2"> <p>{{ lang().label.access }}</p> </li> -->
-            
+
             <li v-show="can(['read user'])"
                 class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
                 :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('user.index') }">
                 <Link :href="route('user.index')" class="flex items-center py-2 px-4">
-                    <UserIcon class="w-6 h-5" />
-                    <span class="ml-3">{{ lang().label.user }}</span>
+                <UserIcon class="w-6 h-5" />
+                <span class="ml-3">{{ lang().label.user }}</span>
                 </Link>
             </li>
-            <button  v-show="can(['isAdmin'])" @click="toggleContent" class="text-blue-500">
+            <button v-show="can(['isAdmin'])" @click="toggleContent" class="text-blue-500">
                 {{ data.showContent ? 'Ocultar roles' : 'Mostrar roles' }}
             </button>
 
@@ -70,16 +72,16 @@ const toggleContent2 = () =>{
                 class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
                 :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('role.index') }">
                 <Link :href="route('role.index')" class="flex items-center py-2 px-4">
-                    <KeyIcon class="w-6 h-5" />
-                    <span class="ml-3">{{ lang().label.role }}</span>
+                <KeyIcon class="w-6 h-5" />
+                <span class="ml-3">{{ lang().label.role }}</span>
                 </Link>
             </li>
             <li v-if="data.showContent" v-show="can(['read permission'])"
                 class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
                 :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('permission.index') }">
                 <Link :href="route('permission.index')" class="flex items-center py-2 px-4">
-                    <ShieldCheckIcon class="w-6 h-5" />
-                    <span class="ml-3">{{ lang().label.permission }}</span>
+                <ShieldCheckIcon class="w-6 h-5" />
+                <span class="ml-3">{{ lang().label.permission }}</span>
                 </Link>
             </li>
 
@@ -88,10 +90,18 @@ const toggleContent2 = () =>{
             <!-- <li v-show="can(['isAdmin'])" class="py-2"> <p>Parametros</p> </li> -->
             <li v-if="data.showContent" v-show="can(['isAdmin'])"
                 class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
-                :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('universidad.index') }">
+                :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('parametro.index') }">
                 <Link :href="route('parametro.index')" class="flex items-center py-2 px-4">
-                    <PresentationChartLineIcon class="w-6 h-5" />
-                    <span class="ml-3">{{ lang().label.parametros }}</span>
+                <PresentationChartLineIcon class="w-6 h-5" />
+                <span class="ml-3">{{ lang().label.parametros }}</span>
+                </Link>
+            </li>
+            <li v-if="data.showContent" v-show="can(['isAdmin'])"
+                class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
+                :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('LosPromp.index') }">
+                <Link :href="route('LosPromp.index')" class="flex items-center py-2 px-4">
+                <PresentationChartLineIcon class="w-6 h-5" />
+                <span class="ml-3">{{ lang().label.losPromps }}</span>
                 </Link>
             </li>
 
@@ -103,7 +113,8 @@ const toggleContent2 = () =>{
 
             <!-- zone U y C -->
         </ul>
-        <button @click="toggleContent2" v-show="can(['read ejercicio'])" class="text-blue-500">{{ data.showContent2 ? 'Ocultar universidades' : 'Mostrar universidades' }}</button>
+        <button @click="toggleContent2" v-show="can(['read ejercicio'])" class="text-blue-500">{{ data.showContent2 ?
+            'Ocultar universidades' : 'Mostrar universidades' }}</button>
         <ul v-if="data.showContent2" class="space-y-2 my-4">
 
             <!-- <li v-show="can(['read role', 'read permission'])" class="py-2"> <p>{{ lang().label.universidadCarreras }}</p> </li> -->
@@ -111,8 +122,8 @@ const toggleContent2 = () =>{
                 class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
                 :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('universidad.index') }">
                 <Link :href="route('universidad.index')" class="flex items-center py-1 px-4">
-                    <PresentationChartLineIcon class="w-6 h-5" />
-                    <span class="ml-3">{{ lang().label.universidad }}</span>
+                <PresentationChartLineIcon class="w-6 h-5" />
+                <span class="ml-3">{{ lang().label.universidad }}</span>
                 </Link>
             </li>
             <!-- <li  -->
@@ -120,42 +131,41 @@ const toggleContent2 = () =>{
                 class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
                 :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('carrera.index') }">
                 <Link :href="route('carrera.index')" class="flex items-center py-1 px-4">
-                    <PresentationChartLineIcon class="w-6 h-5" />
-                    <span class="ml-3">{{ lang().label.carrera }}</span>
+                <PresentationChartLineIcon class="w-6 h-5" />
+                <span class="ml-3">{{ lang().label.carrera }}</span>
                 </Link>
             </li>
             <li v-show="can(['read materia'])"
                 class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
                 :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('materia.index') }">
                 <Link :href="route('materia.index')" class="flex items-center py-1 px-4">
-                    <PresentationChartLineIcon class="w-6 h-5" />
-                    <span class="ml-3">{{ lang().label.materia }}</span>
+                <PresentationChartLineIcon class="w-6 h-5" />
+                <span class="ml-3">{{ lang().label.materia }} (IA)</span>
                 </Link>
             </li>
-            <li v-show="can(['read tema'])"
+            <li v-show="can(['read Unidad'])"
                 class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
-                :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('tema.index') }">
-                <Link :href="route('tema.index')" class="flex items-center py-1 px-4">
-                    <PresentationChartLineIcon class="w-6 h-5" />
-                    <span class="ml-3">{{ lang().label.tema }}</span>
+                :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('Unidad.index') }">
+                <Link :href="route('Unidad.index')" class="flex items-center py-1 px-4">
+                <PresentationChartLineIcon class="w-6 h-5" />
+                <span class="ml-3">{{ lang().label.Unidad }}</span>
                 </Link>
             </li>
             <li v-show="can(['read subtopico'])"
                 class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
                 :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('subtopico.index') }">
                 <Link :href="route('subtopico.index')" class="flex items-center py-1 px-4">
-                    <PresentationChartLineIcon class="w-6 h-5" />
-                    <span class="ml-3">{{ lang().label.subtopico }}</span>
+                <PresentationChartLineIcon class="w-6 h-5" />
+                <span class="ml-3">{{ lang().label.subtopico }}</span>
                 </Link>
             </li>
             <li v-show="can(['read ejercicio'])"
                 class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
                 :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('ejercicio.index') }">
                 <Link :href="route('ejercicio.index')" class="flex items-center py-1 px-4">
-                    <PresentationChartLineIcon class="w-6 h-5" />
-                    <span class="ml-3">{{ lang().label.ejercicio }}</span>
+                <PresentationChartLineIcon class="w-6 h-5" />
+                <span class="ml-3">{{ lang().label.ejercicio }}</span>
                 </Link>
             </li>
         </ul>
-    </div>
-</template>
+    </div></template>

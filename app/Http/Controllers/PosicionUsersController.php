@@ -16,8 +16,8 @@ class PosicionUsersController extends Controller
      */
     public function index()
     {
-        $posicionusers= PosicionUser::all();
-        return view('posicionusers.index', ['posicionusers'=>$posicionusers]);
+        $posicionusers = PosicionUser::all();
+        return view('posicionusers.index', ['posicionusers' => $posicionusers]);
     }
 
     /**
@@ -39,8 +39,8 @@ class PosicionUsersController extends Controller
     public function store(PosicionUserRequest $request)
     {
         $posicionuser = new PosicionUser;
-		$posicionuser->nombre = $request->input('nombre');
-		$posicionuser->importancia = $request->input('importancia');
+        $posicionuser->nombre = $request->input('nombre');
+        $posicionuser->importancia = $request->input('importancia');
         $posicionuser->save();
 
         return to_route('posicionusers.index');
@@ -55,7 +55,7 @@ class PosicionUsersController extends Controller
     public function show($id)
     {
         $posicionuser = PosicionUser::findOrFail($id);
-        return view('posicionusers.show',['posicionuser'=>$posicionuser]);
+        return view('posicionusers.show', ['posicionuser' => $posicionuser]);
     }
 
     /**
@@ -67,7 +67,7 @@ class PosicionUsersController extends Controller
     public function edit($id)
     {
         $posicionuser = PosicionUser::findOrFail($id);
-        return view('posicionusers.edit',['posicionuser'=>$posicionuser]);
+        return view('posicionusers.edit', ['posicionuser' => $posicionuser]);
     }
 
     /**
@@ -80,8 +80,8 @@ class PosicionUsersController extends Controller
     public function update(PosicionUserRequest $request, $id)
     {
         $posicionuser = PosicionUser::findOrFail($id);
-		$posicionuser->nombre = $request->input('nombre');
-		$posicionuser->importancia = $request->input('importancia');
+        $posicionuser->nombre = $request->input('nombre');
+        $posicionuser->importancia = $request->input('importancia');
         $posicionuser->save();
 
         return to_route('posicionusers.index');

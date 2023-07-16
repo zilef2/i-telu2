@@ -6,12 +6,16 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import AuntheticationIllustration from '@/Components/AuntheticationIllustration.vue';
+import SelectInput from '@/Components/SelectInput.vue';
 
 const form = useForm({
     name: '',
+    sexo: '',
     email: '',
     password: '',
     password_confirmation: '',
+    identificacion: '',
+    fecha_nacimiento: '',
     terms: false,
 });
 
@@ -20,6 +24,8 @@ const submit = () => {
         onFinish: () => form.reset('password', 'password_confirmation'),
     });
 };
+const sexos = [ { label: 'Masculino', value: 'Masculino' }, { label: 'Femenino', value: 'Femenino' } ];
+
 </script>
 
 <template>
@@ -38,6 +44,32 @@ const submit = () => {
                     autocomplete="name" :placeholder="lang().placeholder.name" :error="form.errors.name" />
 
                 <InputError class="mt-2" :message="form.errors.name" />
+            </div>
+            <div>
+                <InputLabel for="sexo" :value="lang().label.sexo" />
+
+                <SelectInput id="sexo" class="mt-1 block w-full" v-model="form.sexo" required :dataSet="sexos"></SelectInput>
+
+
+                <InputError class="mt-2" :message="form.errors.name" />
+            </div>
+            
+            
+            <div>
+                <InputLabel for="identificacion" :value="lang().label.identificacion" />
+
+                <TextInput id="identificacion" type="number" class="mt-1 block w-full" v-model="form.identificacion" required autofocus
+                    autocomplete="identificacion" :placeholder="lang().placeholder.identificacion" :error="form.errors.identificacion" />
+
+                <InputError class="mt-2" :message="form.errors.identificacion" />
+            </div>
+            <div>
+                <InputLabel for="fecha_nacimiento" :value="lang().label.fecha_nacimiento" />
+
+                <TextInput id="fecha_nacimiento" type="date" class="mt-1 block w-full" v-model="form.fecha_nacimiento" required autofocus
+                    autocomplete="fecha_nacimiento" :placeholder="lang().placeholder.fecha_nacimiento" :error="form.errors.fecha_nacimiento" />
+
+                <InputError class="mt-2" :message="form.errors.fecha_nacimiento" />
             </div>
 
             <div class="mt-4">

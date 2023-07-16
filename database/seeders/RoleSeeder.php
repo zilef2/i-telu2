@@ -12,40 +12,42 @@ class RoleSeeder extends Seeder
      *
      * @return void
      */
-    public function run() {
-        
-        $superadmin = Role::create([ 'name'=>'superadmin' ]);
-        $admin = Role::create([ 'name'=>'admin' ]);
+    public function run()
+    {
+
+        $superadmin = Role::create(['name' => 'superadmin']);
+        $admin = Role::create(['name' => 'admin']);
 
 
-        $estudiante = Role::create([ 'name'=>'estudiante' ]);
-        $profesor = Role::create([ 'name'=>'profesor' ]);
-        $coordinador_de_programa = Role::create([ 'name'=>'coordinador_de_programa' ]);
-        $coordinador_academico = Role::create([ 'name'=>'coordinador_academico' ]);
+        $estudiante = Role::create(['name' => 'estudiante']);
+        $profesor = Role::create(['name' => 'profesor']);
+        $coordinador_de_programa = Role::create(['name' => 'coordinador_de_programa']);
+        $coordinador_academico = Role::create(['name' => 'coordinador_academico']);
 
 
-        $Models =[
+        $Models = [
             'user',
             'role',
             'permission',
             'universidad',
             'carrera',
             'materia',
-            'tema',
+            'Unidad',
             'subtopico',
             'ejercicio',
+            'LosPromp',
         ];
-        $crudCompleto = [ 'delete', 'update', 'read', 'create' ];
+        $crudCompleto = ['delete', 'update', 'read', 'create'];
 
 
         foreach ($Models as $model) {
             foreach ($crudCompleto as $crud) {
-                $superadmin->givePermissionTo([ $crud.' '.$model ]);
-                $admin->givePermissionTo([ $crud.' '.$model ]);
+                $superadmin->givePermissionTo([$crud . ' ' . $model]);
+                $admin->givePermissionTo([$crud . ' ' . $model]);
             }
         }
-        $superadmin->givePermissionTo([ 'isSuper', 'isAdmin','isCoorAcademico', 'isCoorPrograma','isProfesor','isEstudiante' ]);
-        $admin->givePermissionTo(['isAdmin','isCoorAcademico', 'isCoorPrograma','isProfesor','isEstudiante' ]);
+        $superadmin->givePermissionTo(['isSuper', 'isAdmin', 'isCoorAcademico', 'isCoorPrograma', 'isProfesor', 'isEstudiante']);
+        $admin->givePermissionTo(['isAdmin', 'isCoorAcademico', 'isCoorPrograma', 'isProfesor', 'isEstudiante']);
 
         $coordinador_academico->givePermissionTo(['isCoorAcademico']);
         $coordinador_de_programa->givePermissionTo(['isCoorPrograma']);
@@ -57,7 +59,7 @@ class RoleSeeder extends Seeder
             'read universidad', 'update universidad', 'inscribirUs universidad',
             'read carrera', 'update carrera', 'create carrera', 'inscribirUs carrera',
             'read materia', 'update materia', 'create materia', 'inscribirUs materia',
-            'read tema', 'update tema', 'create tema',
+            'read Unidad', 'update Unidad', 'create Unidad',
             'read subtopico', 'update subtopico', 'create subtopico',
             'read ejercicio', 'update ejercicio', 'create ejercicio',
         ]);
@@ -65,7 +67,7 @@ class RoleSeeder extends Seeder
         $coordinador_de_programa->givePermissionTo([
             'read carrera', 'cambiarNombre carrera', 'create carrera', 'inscribirUs universidad',
             'read materia', 'update materia', 'create materia', 'inscribirUs carrera',
-            'read tema', 'update tema', 'create tema', 'inscribirUs materia',
+            'read Unidad', 'update Unidad', 'create Unidad', 'inscribirUs materia',
             'read subtopico', 'update subtopico', 'create subtopico',
             'read ejercicio', 'update ejercicio', 'create ejercicio', 'delete ejercicio',
         ]);
@@ -73,7 +75,7 @@ class RoleSeeder extends Seeder
         $profesor->givePermissionTo([
             'read carrera',
             'read materia',
-            'read tema', 'cambiarNombre tema', 'create tema',
+            'read Unidad', 'cambiarNombre Unidad', 'create Unidad',
             'read subtopico', 'update subtopico', 'create subtopico',
             'read ejercicio', 'update ejercicio', 'create ejercicio',
         ]);
@@ -82,7 +84,7 @@ class RoleSeeder extends Seeder
             // 'read universidad',
             'read carrera',
             'read materia',
-            'read tema',
+            'read Unidad',
             'read subtopico',
             'read ejercicio', // 'update ejercicio', // 'create ejercicio', // 'delete ejercicio',
         ]);

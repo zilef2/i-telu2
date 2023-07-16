@@ -36,8 +36,7 @@ class GenerarControlador extends Command
      *
      * @return int
      */
-    public function handle()
-    {
+    public function handle(){
         $codigo = '$personas = User::all();';
 
         // Generar el controlador con la línea de código

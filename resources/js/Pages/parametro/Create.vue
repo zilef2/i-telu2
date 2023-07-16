@@ -1,20 +1,20 @@
 <script setup>
 import InputError from '@/Components/InputError.vue';
-    import InputLabel from '@/Components/InputLabel.vue';
-    import Modal from '@/Components/Modal.vue';
-    import PrimaryButton from '@/Components/PrimaryButton.vue';
-    import SecondaryButton from '@/Components/SecondaryButton.vue';
-    import TextInput from '@/Components/TextInput.vue';
-    import DatetimeInput from '@/Components/DatetimeInput.vue';
-    import { useForm } from '@inertiajs/vue3';
-    // import Checkbox from '@/Components/Checkbox.vue';
-    import { reactive, watchEffect } from 'vue';
-    import SelectInput from '@/Components/SelectInput.vue';
+import InputLabel from '@/Components/InputLabel.vue';
+import Modal from '@/Components/Modal.vue';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
+import SecondaryButton from '@/Components/SecondaryButton.vue';
+import TextInput from '@/Components/TextInput.vue';
+import DatetimeInput from '@/Components/DatetimeInput.vue';
+import { useForm } from '@inertiajs/vue3';
+// import Checkbox from '@/Components/Checkbox.vue';
+import { reactive, watchEffect } from 'vue';
+import SelectInput from '@/Components/SelectInput.vue';
 
 const props = defineProps({
     show: Boolean,
     title: String,
-    subtemasSelect: Object,
+    subUnidadsSelect: Object,
 
 })
 
@@ -25,15 +25,15 @@ const data = reactive({
 })
 const today = new Date();
 
-const justNames =[
+const justNames = [
     'nombre',
     'descripcion',
     'subtopico_id',
 ]
 const form = useForm({ ...Object.fromEntries(justNames.map(field => [field, ''])) });
 const printForm = [
-    {idd: 'nombre',label: 'nombre', type:'text', value:form.nombre},
-    {idd: 'descripcion',label: 'descripcion', type:'text', value:form.descripcion},
+    { idd: 'nombre', label: 'nombre', type: 'text', value: form.nombre },
+    { idd: 'descripcion', label: 'descripcion', type: 'text', value: form.descripcion },
 ];
 
 
@@ -56,7 +56,7 @@ const create = () => {
 watchEffect(() => {
     if (props.show) {
         form.errors = {}
-        
+
     }
 })
 
@@ -73,19 +73,19 @@ watchEffect(() => {
                     <div v-for="(atributosform, indice) in printForm" :key="indice">
                         <InputLabel :for="atributosform.label" :value="atributosform.value" />
                         <TextInput :id="atributosform.idd" :type="atributosform.type" class="mt-1 block w-full"
-                            v-model="form[atributosform.idd]" required
-                            :placeholder="atributosform.label" :error="form.errors[atributosform.idd]" />
+                            v-model="form[atributosform.idd]" required :placeholder="atributosform.label"
+                            :error="form.errors[atributosform.idd]" />
                     </div>
 
 
-                     <div>
+                    <div>
                         <InputLabel for="subtopico_id" :value="lang().label.subtopico" />
                         <SelectInput name="subtopico_id" class="mt-1 block w-full" v-model="form.subtopico_id" required
-                            :dataSet="subtemasSelect"> </SelectInput>
+                            :dataSet="subUnidadsSelect"> </SelectInput>
                         <InputError class="mt-2" :message="form.errors.subtopico_id" />
                     </div>
                 </div>
-                
+
                 <div class="flex justify-end">
                     <SecondaryButton :disabled="form.processing" @click="emit('close')"> {{ lang().button.close }}
                     </SecondaryButton>

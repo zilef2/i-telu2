@@ -34,18 +34,19 @@ const form = useForm({
     nombre: '',
     descripcion: '',
     carrera_id: '',
-    requisito1: '',
-    requisito2: '',
-    requisito3: '',
-    cuantosReq: 1,
-    cuantosObj: 1,
+    cuantosObj: 0,
+    OriginalObj: 0,
     objetivo: [],
 });
 
 watch(form.objetivo, (newValue, oldValue) => { 
     if (props.show) {
-
-        form.cuantosObj = ((form?.objetivo[0]) !== null) + ((form?.objetivo[1]) !== null) + ((form?.objetivo[2]) !== null)
+        form.cuantosObj = 
+            (typeof (form?.objetivo[0]) !== 'undefined') +
+            (typeof (form?.objetivo[1]) !== 'undefined') +
+            (typeof (form?.objetivo[2]) !== 'undefined') +
+            (typeof (form?.objetivo[3]) !== 'undefined') +
+            (typeof (form?.objetivo[4]) !== 'undefined')
     }
 })
 
@@ -62,29 +63,22 @@ const update = () => {
     })
 }
 
-let MateriasRequisitoSelect;
 watchEffect(() => {
     if (props.show) {
         form.errors = {}
 
-
-        MateriasRequisitoSelect = props.MateriasRequisitoSelect?.map(
-            materia => {
-                return { label: materia.nombre, value: materia.id }
-            }
-        )
-        form.nombre = props.materia?.nombre,
-        form.descripcion = props.materia?.descripcion,
-        form.carrera_id = props.materia?.carrera_id,
+        form.nombre = props.materia?.nombre
+        form.descripcion = props.materia?.descripcion
+        form.carrera_id = props.materia?.carrera_id
+        form.cuantosObj = props.materia?.objetivs
+        form.OriginalObj = props.materia?.objetivs
         
-        form.requisito1 = props.materia?.req1_materia_id,
-        form.requisito2 = props.materia?.req2_materia_id,
-        form.requisito3 = props.materia?.req3_materia_id,
-        form.cuantosReq = ((props.materia?.requisito1) !== null) + ((props.materia?.requisito2) !== null) + ((props.materia?.requisito3) !== null)
-
-        form.objetivo[0] = props.materia?.objetivo1
-        form.objetivo[1] = props.materia?.objetivo2
-        form.objetivo[2] = props.materia?.objetivo3
+        props.materia?.objetivos.forEach((element,indexe) => {
+            
+            form.objetivo[indexe] = props.materia?.objetivos[indexe].nombre
+        });
+        // form.objetivo[1] = props.materia?.objetivo2
+        // form.objetivo[2] = props.materia?.objetivo3
     }
 })
 </script>
@@ -96,7 +90,7 @@ watchEffect(() => {
                 <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
                     {{ lang().label.edit }} {{ props.title }}
                 </h2>
-                <div class="my-6 grid grid-cols-2 gap-6">
+                <div class="my-6 grid grid-cols-2 gap-8">
                     <div>
                         <InputLabel for="nombre" :value="lang().label.name" />
                         <TextInput id="nombre" type="text" class="mt-1 block w-full" v-model="form.nombre" required
@@ -113,29 +107,6 @@ watchEffect(() => {
                         <InputLabel for="carrera_id" :value="lang().label.carrera" />
                         <SelectInput id="carrera_id" class="mt-1 block w-full" v-model="form.carrera_id" required :dataSet="carrerasSelect"> </SelectInput>
                         <InputError class="mt-2" :message="form.errors.carrera_id" />
-                    </div>
-
-                    <div>
-                        <InputLabel for="cuantosReq" :value="lang().label.cuantosReq" />
-                        <TextInput id="cuantosReq" type="number" min=0 max=3 class="mt-1 block w-full" v-model="form.cuantosReq" required
-                            :placeholder="lang().placeholder.cuantosReq" />
-                    </div>
-                  
-
-                    <div v-if="form.carrera_id && form.cuantosReq > 0">
-                        <InputLabel for="requisito1" :value="lang().label.requisito1" />
-                        <SelectInput id="requisito1" class="mt-1 block w-full" v-model="form.requisito1" required :dataSet="MateriasRequisitoSelect"> </SelectInput>
-                        <InputError class="mt-2" :message="form.errors.requisito1" />
-                    </div>
-                    <div v-if="form.cuantosReq > 1">
-                        <InputLabel for="requisito2" :value="lang().label.requisito2" />
-                        <SelectInput id="requisito2" class="mt-1 block w-full" v-model="form.requisito2" required :dataSet="MateriasRequisitoSelect"> </SelectInput>
-                        <InputError class="mt-2" :message="form.errors.requisito2" />
-                    </div>
-                    <div v-if="form.cuantosReq > 2">
-                        <InputLabel for="requisito3" :value="lang().label.requisito3" />
-                        <SelectInput id="requisito3" class="mt-1 block w-full" v-model="form.requisito3" required :dataSet="MateriasRequisitoSelect"> </SelectInput>
-                        <InputError class="mt-2" :message="form.errors.requisito3" />
                     </div>
 
                     <!-- objetivos -->

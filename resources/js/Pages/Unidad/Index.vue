@@ -1,93 +1,106 @@
 <script setup>
-    import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-    import { Head } from '@inertiajs/vue3';
-    import Breadcrumb from '@/Components/Breadcrumb.vue';
-    import TextInput from '@/Components/TextInput.vue';
-    import PrimaryButton from '@/Components/PrimaryButton.vue';
-    import SelectInput from '@/Components/SelectInput.vue';
-    import { reactive, watch } from 'vue';
-    import DangerButton from '@/Components/DangerButton.vue';
-    import pkg from 'lodash';
-    import { router,usePage } from '@inertiajs/vue3';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import { Head } from '@inertiajs/vue3';
+import Breadcrumb from '@/Components/Breadcrumb.vue';
+import TextInput from '@/Components/TextInput.vue';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
+import SelectInput from '@/Components/SelectInput.vue';
+import { reactive, watch, onMounted } from 'vue';
+import DangerButton from '@/Components/DangerButton.vue';
+import pkg from 'lodash';
+import { router, usePage } from '@inertiajs/vue3';
 
-    import Pagination from '@/Components/Pagination.vue';
-    import { ChevronUpDownIcon, PencilIcon, TrashIcon } from '@heroicons/vue/24/solid';
+import Pagination from '@/Components/Pagination.vue';
+import { ChevronUpDownIcon, PencilIcon, TrashIcon } from '@heroicons/vue/24/solid';
 
-    import Create from '@/Pages/tema/Create.vue';
-    import Edit from '@/Pages/tema/Edit.vue'; 
-    import Delete from '@/Pages/tema/Delete.vue';
+import Create from '@/Pages/Unidad/Create.vue';
+import Edit from '@/Pages/Unidad/Edit.vue';
+import Delete from '@/Pages/Unidad/Delete.vue';
 
-    import Checkbox from '@/Components/Checkbox.vue';
-    import InfoButton from '@/Components/InfoButton.vue';
-    
-    import {vectorSelect, formatDate, CalcularEdad, CalcularSexo} from '@/global.js';
+import Checkbox from '@/Components/Checkbox.vue';
+import InfoButton from '@/Components/InfoButton.vue';
+
+import { vectorSelect, formatDate, CalcularEdad, CalcularSexo } from '@/global.js';
 
 
-    const { _, debounce, pickBy } = pkg
-    const props = defineProps({
-        title: String,
-        filters: Object,
-        breadcrumbs: Object,
-        perPage: Number,
+const { _, debounce, pickBy } = pkg
+const props = defineProps({
+    title: String,
+    filters: Object,
+    breadcrumbs: Object,
+    perPage: Number,
 
-        fromController: Object,
-        nombresTabla: Array,
-        MateriasSelect: Object,
+    fromController: Object,
+    nombresTabla: Array,
+    MateriasSelect: Object,
+    numberPermissions: Number,
+    selectedMatID: Object,
+    MateriasSelect: Object,
+    showCarrera: Object,
+})
+
+const data = reactive({
+    params: {
+        search: props.filters.search,
+        field: props.filters.field,
+        order: props.filters.order,
+        perPage: props.perPage,
+        selectedMatID: props.filters.selectedMatID,
+
+    },
+    selectedId: [],
+    multipleSelect: false,
+    createOpen: false,
+    editOpen: false,
+    deleteOpen: false,
+    deleteBulkOpen: false,
+    generico: null,
+    MateriasSelect: null,
+    dataSet: usePage().props.app.perpage,
+})
+
+
+const order = (field) => {
+    data.params.field = field.replace(/ /g, "_")
+
+    data.params.order = data.params.order === "asc" ? "desc" : "asc"
+}
+
+watch(() => _.cloneDeep(data.params), debounce(() => {
+    let params = pickBy(data.params)
+    router.get(route("Unidad.index"), params, {
+        replace: true,
+        preserveState: true,
+        preserveScroll: true,
     })
-    
-    const data = reactive({
-        params: {
-            search: props.filters.search,
-            field: props.filters.field,
-            order: props.filters.order,
-            perPage: props.perPage,
-        },
-        selectedId: [],
-        multipleSelect: false,
-        createOpen: false,
-        editOpen: false,
-        deleteOpen: false,
-        deleteBulkOpen: false,
-        generico: null,
-        MateriasSelect: null,
-        dataSet: usePage().props.app.perpage,
-    })
-        
+}, 150))
 
-    const order = (field) => {
-        data.params.field = field.replace(/ /g, "_")
-
-        data.params.order = data.params.order === "asc" ? "desc" : "asc"
-    }
-
-    watch(() => _.cloneDeep(data.params), debounce(() => {
-        let params = pickBy(data.params)
-        router.get(route("tema.index"), params, {
-            replace: true,
-            preserveState: true,
-            preserveScroll: true,
+const selectAll = (event) => {
+    if (event.target.checked === false) {
+        data.selectedId = []
+    } else {
+        props.fromController?.data.forEach((generico) => {
+            data.selectedId.push(generico.id)
         })
-    }, 150))
-
-    const selectAll = (event) => {
-        if (event.target.checked === false) {
-            data.selectedId = []
-        } else {
-            props.fromController?.data.forEach((generico) => {
-                data.selectedId.push(generico.id)
-            })
-        }
     }
-    const select = () => {
-        if (props.fromController?.data.length == data.selectedId.length) {
-            data.multipleSelect = true
-        } else {
-            data.multipleSelect = false
-        }
+}
+const select = () => {
+    if (props.fromController?.data.length == data.selectedId.length) {
+        data.multipleSelect = true
+    } else {
+        data.multipleSelect = false
     }
+}
+onMounted(() =>{
+    if(typeof data.params.selectedMatID === 'undefined') data.params.selectedMatID = 0
+    if(data.params.selectedMatID === null) data.params.selectedMatID = 0
 
     data.MateriasSelect = vectorSelect(data.MateriasSelect,props.MateriasSelect,'una')
-    
+    console.log("🧈 debu data.params.selectedMatID:", data.params.selectedMatID);
+})
+
+// data.MateriasSelect = vectorSelect(data.MateriasSelect, props.MateriasSelect, 'una')
+
 </script>
 
 <template>
@@ -98,15 +111,15 @@
         <div class="space-y-4">
             <div class="px-4 sm:px-0">
                 <div class="rounded-lg overflow-hidden w-fit">
-                    <PrimaryButton class="rounded-none" @click="data.createOpen = true" v-show="can(['create tema'])">
+                    <PrimaryButton class="rounded-none" @click="data.createOpen = true" v-show="can(['create Unidad'])">
                         {{ lang().button.add }}
                     </PrimaryButton>
                     <Create :show="data.createOpen" @close="data.createOpen = false" :title="props.title"
-                        v-if="can(['create tema'])" :MateriasSelect="data.MateriasSelect" />
-                    <Edit :show="data.editOpen" @close="data.editOpen = false" :tema="data.generico" :title="props.title"
-                        v-if="can(['update tema'])" :MateriasSelect="data.MateriasSelect" />
-                    <Delete :show="data.deleteOpen" @close="data.deleteOpen = false" :tema="data.generico"
-                        v-if="can(['delete tema'])" :title="props.title" />
+                        v-if="can(['create Unidad'])" :MateriasSelect="data.MateriasSelect" />
+                    <Edit :show="data.editOpen" @close="data.editOpen = false" :Unidad="data.generico" :title="props.title"
+                        v-if="can(['update Unidad'])" :MateriasSelect="data.MateriasSelect" />
+                    <Delete :show="data.deleteOpen" @close="data.deleteOpen = false" :Unidad="data.generico"
+                        v-if="can(['delete Unidad'])" :title="props.title" />
                 </div>
             </div>
             <div class="relative bg-white dark:bg-gray-800 shadow sm:rounded-lg">
@@ -117,9 +130,13 @@
                             class="px-3 py-1.5" v-tooltip="lang().tooltip.delete_selected">
                             <TrashIcon class="w-5 h-5" />
                         </DangerButton>
+                        <div class="bg-gray-100">
+                            <SelectInput v-model="data.params.selectedMatID" id="uni" :dataSet="data.MateriasSelect" />
+                            <small v-if="showCarrera" class="mx-3 bg-white dark:bg-black"> {{ showCarrera.nombre }}</small>
+                        </div>
                     </div>
-                    <TextInput v-model="data.params.search" type="text" class="block w-3/6 md:w-2/6 lg:w-1/6 rounded-lg"
-                        :placeholder="lang().placeholder.search" />
+                    <TextInput v-if="props.numberPermissions > 1" v-model="data.params.search" type="text"
+                        class="block w-3/6 md:w-2/6 lg:w-1/6 rounded-lg" :placeholder="lang().placeholder.search" />
                 </div>
                 <div class="overflow-x-auto scrollbar-table">
                     <table class="w-full">
@@ -165,10 +182,10 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (index+1) }}</td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (index + 1) }}</td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.nombre) }} </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.descripcion) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.hijo) }} </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.descripcion) }} </td>
                             </tr>
                         </tbody>
                     </table>

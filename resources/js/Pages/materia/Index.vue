@@ -21,7 +21,7 @@ import Delete from '@/Pages/materia/Delete.vue';
 import Checkbox from '@/Components/Checkbox.vue';
 import InfoButton from '@/Components/InfoButton.vue';
 import { useForm } from '@inertiajs/vue3';
-import {vectorSelect, formatDate, CalcularEdad, CalcularSexo} from '@/global.js';
+import { PrimerasPalabras, vectorSelect, formatDate, CalcularEdad, CalcularSexo} from '@/global.js';
 
 const { _, debounce, pickBy } = pkg
 const props = defineProps({
@@ -37,6 +37,7 @@ const props = defineProps({
     carrerasSelect: Object,
     MateriasRequisitoSelect: Object,
     UniversidadSelect: Object,
+    numberPermissions:Number,
 })
 
 
@@ -108,12 +109,12 @@ const select = () => {
     }
 }
 
-onMounted(() =>{
-    if(data.params.selectedcarr === null) data.params.selectedcarr = 0
+onMounted(() => {
+    if(typeof data.params.selectedcarr === 'undefined' || data.params.selectedcarr === null) data.params.selectedcarr = 0
+
     data.UniversidadSelect = vectorSelect(data.UniversidadSelect,props.UniversidadSelect,'una')
     data.carrerasDeUSel = vectorSelect(data.carrerasDeUSel,props.carrerasSelect,'una')
     // data.MateriasRequisitoSelect = vectorSelect(data.MateriasRequisitoSelect,props.MateriasRequisitoSelect,'una')
-    console.log("🧈 debu data.MateriasRequisitoSelect:", data.MateriasRequisitoSelect);
 })
 
 const vistaIA = (elid)=>{
@@ -148,20 +149,21 @@ const vistaIA = (elid)=>{
             </div>
             <div class="relative bg-white dark:bg-gray-800 shadow sm:rounded-lg">
                 <div class="flex justify-between p-2">
-                    <div class="flex space-x-2">
+                    <div v-if="props.numberPermissions > 1" class="flex space-x-2">
                         <SelectInput v-model="data.params.perPage" :dataSet="data.dataSet" />
-                        <div class="bg-gray-100">
-                            <!-- <label for="uni" class="mt-2 pl-8">Universidad: </label> -->
-                            <SelectInput v-model="data.params.selectedUni" id="uni" :dataSet="data.UniversidadSelect" />
-                        </div>
-                        <div v-if="data.params.selectedUni != 0" class="bg-gray-100">
-                            <!-- <label for="carrer" class="mt-2 pl-8">Carrera: </label> -->
-                            <SelectInput v-model="data.params.selectedcarr" id="carrer" :dataSet="data.carrerasDeUSel" />
-                        </div>
-                        <!-- <DangerButton @click="data.deleteBulkOpen = true" v-show="data.selectedId.length != 0"
+                        <DangerButton v-if="can(['delete materia'])" @click="data.deleteBulkOpen = true" v-show="data.selectedId.length != 0"
                             class="px-3 py-1.5" v-tooltip="lang().tooltip.delete_selected">
                             <TrashIcon class="w-5 h-5" />
-                        </DangerButton> -->
+                        </DangerButton>
+
+                        <!-- filters -->
+                        <div class="bg-gray-100">
+                            <SelectInput v-model="data.params.selectedUni" id="uni" :dataSet="data.UniversidadSelect" />
+                        </div>
+                        <div v-if="data.params.selectedUni != 0 && props.numberPermissions > 1" class="bg-gray-100">
+                            <SelectInput v-model="data.params.selectedcarr" id="carrer" :dataSet="data.carrerasDeUSel" />
+                        </div>
+                        
                     </div>
                     <TextInput v-if="can(['create materia'])" v-model="data.params.search" type="text" class="block w-3/6 md:w-2/6 lg:w-1/6 rounded-lg"
                         :placeholder="lang().placeholder.search" />
@@ -226,7 +228,7 @@ const vistaIA = (elid)=>{
                                         </div>
                                     </div>
                                 </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (index + 1) }}</td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (parseInt(index) + 1) }}</td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3 underline text-sky-700">
                                     <Link :href="route('materia.show', clasegenerica.id)">
                                         {{ (clasegenerica.nombre) }}
@@ -234,11 +236,10 @@ const vistaIA = (elid)=>{
                                  </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-sm text-gay-600">{{ (clasegenerica.papa) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-sm text-gay-600">{{ (clasegenerica.cuantoshijos) }} </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.muchos) }} </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.numRequisitos) }} </td>
+                                <td v-if="props.numberPermissions > 1" class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.muchos) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.objetivs) }} </td>
 
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.descripcion) }} </td>
+                                <td class="whitespace-wrap break-words text-sm py-4 px-0">{{ PrimerasPalabras(clasegenerica.descripcion, 11) }} </td>
                             </tr>
                         </tbody>
                     </table>

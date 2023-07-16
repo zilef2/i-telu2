@@ -14,6 +14,11 @@ class Carrera extends Model
     protected $fillable = [
         'nombre',
         'descripcion',
+
+        'codigo',
+        'perfil_profesional',
+        'perfil_ocupacional',
+
         'universidad_id',
     ];
 

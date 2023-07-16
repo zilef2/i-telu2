@@ -30,7 +30,6 @@ class User extends Authenticatable
         'limite_token_general',
         'limite_token_leccion',
         
-        'posicion_id',
         'pgrado', //bachiller, pregrado, postgrado
     ];
     /**
@@ -66,9 +65,16 @@ class User extends Authenticatable
 	}
     
 
-    public function materias(): BelongsToMany { return $this->BelongsToMany(Materia::class); }
-    public function carreras(): BelongsToMany { return $this->BelongsToMany(Carrera::class); }
     public function universidades(): BelongsToMany { return $this->BelongsToMany(Universidad::class); }
+    public function carreras(): BelongsToMany { return $this->BelongsToMany(Carrera::class); }
+    public function materias(): BelongsToMany { return $this->BelongsToMany(Materia::class); }
+    public function unidads() {
+        $result = $this->materias->flatMap(function($materia){
+            return collect($materia->unidads);
+        });
+        // dd($result);
+        return $result;
+    }
 
     public function estudiantesSinUniversidad($elrol) {
         $this->doesntHave('universidad')

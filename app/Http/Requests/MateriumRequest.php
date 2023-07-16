@@ -27,7 +27,7 @@ class MateriumRequest extends FormRequest
         [
 			'nombre' => 'required',
 			'descripcion' => 'nullable',
-			'carrera_id' => 'nullable',
+			'carrera_id' => 'required',
 			'UnObjetivo' => 'nullable',
         ];
     }

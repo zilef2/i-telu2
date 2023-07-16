@@ -8,18 +8,17 @@ import TextInput from '@/Components/TextInput.vue';
 import DatetimeInput from '@/Components/DatetimeInput.vue';
 
 import { useForm } from '@inertiajs/vue3';
-import { watchEffect, reactive, onMounted} from 'vue';
+import { watchEffect, reactive, onMounted } from 'vue';
 import Checkbox from '@/Components/Checkbox.vue';
 import SelectInput from '@/Components/SelectInput.vue';
 
 const props = defineProps({
     show: Boolean,
     title: String,
-    tema: Object,
+    Unidad: Object,
     MateriasSelect: Object,
 
 })
-    console.log("🧈 debu tema:", props.tema);
 
 const data = reactive({
     multipleSelect: false,
@@ -27,24 +26,24 @@ const data = reactive({
 
 const emit = defineEmits(["close"]);
 
-const justNames =[
+const justNames = [
     'nombre',
     'descripcion',
     'materia_id',
 ]
 const form = useForm({ ...Object.fromEntries(justNames.map(field => [field, ''])) });
 const printForm = [
-    {idd: 'nombre',label: 'nombre', type:'text', value:form.nombre},
-    {idd: 'descripcion',label: 'descripcion', type:'text', value:form.descripcion},
+    { idd: 'nombre', label: 'nombre', type: 'text', value: form.nombre },
+    { idd: 'descripcion', label: 'descripcion', type: 'text', value: form.descripcion },
 ];
 
-onMounted(()=>{
- 
+onMounted(() => {
+
 })
 
 
 const update = () => {
-    form.put(route('tema.update', props.tema?.id), {
+    form.put(route('Unidad.update', props.Unidad?.id), {
         preserveScroll: true,
         onSuccess: () => {
             emit("close")
@@ -59,9 +58,9 @@ const update = () => {
 watchEffect(() => {
     if (props.show) {
         form.errors = {}
-        form.nombre = props.tema?.nombre
-        form.descripcion = props.tema?.descripcion
-        form.materia_id = props.tema?.materia_id
+        form.nombre = props.Unidad?.nombre
+        form.descripcion = props.Unidad?.descripcion
+        form.materia_id = props.Unidad?.materia_id
     }
 
 
@@ -79,8 +78,8 @@ watchEffect(() => {
                     <div v-for="(atributosform, indice) in printForm" :key="indice">
                         <InputLabel :for="atributosform.label" :value="atributosform.value" />
                         <TextInput :id="atributosform.idd" :type="atributosform.type" class="mt-1 block w-full"
-                            v-model="form[atributosform.idd]" required
-                            :placeholder="atributosform.label" :error="form.errors[atributosform.idd]" />
+                            v-model="form[atributosform.idd]" required :placeholder="atributosform.label"
+                            :error="form.errors[atributosform.idd]" />
                     </div>
                     <div>
                         <InputLabel for="materia_id" :value="lang().label.materia" />

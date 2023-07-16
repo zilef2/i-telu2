@@ -3,20 +3,22 @@ import DangerButton from '@/Components/DangerButton.vue';
 import Modal from '@/Components/Modal.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import { useForm } from '@inertiajs/vue3';
-
+import { watchEffect } from 'vue';
 
 const props = defineProps({
     show: Boolean,
     title: String,
-    tema: Object,
+    selectedId: Object,
 })
 
 const emit = defineEmits(["close"]);
 
-const form = useForm({});
+const form = useForm({
+    id: []
+})
 
 const destory = () => {
-    form.delete(route('tema.destroy', props.tema?.id), {
+    form.post(route('LosPromp.destroy-bulk'), {
         preserveScroll: true,
         onSuccess: () => {
             emit("close")
@@ -27,6 +29,12 @@ const destory = () => {
     })
 }
 
+watchEffect(() => {
+    if (props.show) {
+        form.id = props.selectedId
+    }
+})
+
 </script>
 
 <template>
@@ -35,10 +43,9 @@ const destory = () => {
             <form class="p-6" @submit.prevent="destory">
                 <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
                     {{ lang().label.delete }} {{ props.title }}
-                    a: {{ props.tema.id }}
                 </h2>
                 <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                    {{ lang().label.delete_confirm }} <b>{{ props.CentroCosto?.nombre }} !?</b>
+                    {{ lang().label.delete_confirm }} {{ props.selectedId?.length }} {{ props.title }}?
                 </p>
                 <div class="mt-6 flex justify-end">
                     <SecondaryButton :disabled="form.processing" @click="emit('close')"> {{ lang().button.close }}

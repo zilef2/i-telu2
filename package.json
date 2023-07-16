@@ -10,10 +10,11 @@
     "@headlessui/vue": "^1.7.9",
     "@heroicons/vue": "^2.0.15",
     "@inertiajs/progress": "^0.2.7",
-    "@vuepic/vue-datepicker": "^5.2.1",
+    "@jridgewell/sourcemap-codec": "^1.4.15",
+    "@vuepic/vue-datepicker": "^5.4.0",
     "@vueuse/core": "^9.12.0",
     "floating-vue": "^2.0.0-beta.20",
-    "openai": "^3.2.1"
+    "openai": "^3.3.0"
   },
   "devDependencies": {
     "@inertiajs/vue3": "^1.0.0",
@@ -26,6 +27,7 @@
     "autoprefixer": "^10.4.12",
     "axios": "^1.1.2",
     "babel-jest": "^27.0.6",
+    "dotenv": "^16.3.1",
     "jest": "^27.0.5",
     "laravel-vite-plugin": "^0.7.2",
     "lodash": "^4.17.19",

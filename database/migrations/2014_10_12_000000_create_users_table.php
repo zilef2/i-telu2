@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('password');
 
-            $table->string ('identificacion')->nullable();
+            $table->string ('identificacion')->unique();
             $table->string ('sexo')->nullable();
            $table->dateTime('fecha_nacimiento')->nullable();
             $table->integer('semestre')->default(1);

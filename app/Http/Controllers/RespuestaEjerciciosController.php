@@ -16,8 +16,8 @@ class RespuestaEjerciciosController extends Controller
      */
     public function index()
     {
-        $respuestaejercicios= RespuestaEjercicio::all();
-        return view('respuestaejercicios.index', ['respuestaejercicios'=>$respuestaejercicios]);
+        $respuestaejercicios = RespuestaEjercicio::all();
+        return view('respuestaejercicios.index', ['respuestaejercicios' => $respuestaejercicios]);
     }
 
     /**
@@ -39,8 +39,8 @@ class RespuestaEjerciciosController extends Controller
     public function store(RespuestaEjercicioRequest $request)
     {
         $respuestaejercicio = new RespuestaEjercicio;
-		$respuestaejercicio->core = $request->input('core');
-		$respuestaejercicio->precisa = $request->input('precisa');
+        $respuestaejercicio->core = $request->input('core');
+        $respuestaejercicio->precisa = $request->input('precisa');
         $respuestaejercicio->save();
 
         return to_route('respuestaejercicios.index');
@@ -55,7 +55,7 @@ class RespuestaEjerciciosController extends Controller
     public function show($id)
     {
         $respuestaejercicio = RespuestaEjercicio::findOrFail($id);
-        return view('respuestaejercicios.show',['respuestaejercicio'=>$respuestaejercicio]);
+        return view('respuestaejercicios.show', ['respuestaejercicio' => $respuestaejercicio]);
     }
 
     /**
@@ -67,7 +67,7 @@ class RespuestaEjerciciosController extends Controller
     public function edit($id)
     {
         $respuestaejercicio = RespuestaEjercicio::findOrFail($id);
-        return view('respuestaejercicios.edit',['respuestaejercicio'=>$respuestaejercicio]);
+        return view('respuestaejercicios.edit', ['respuestaejercicio' => $respuestaejercicio]);
     }
 
     /**
@@ -80,8 +80,8 @@ class RespuestaEjerciciosController extends Controller
     public function update(RespuestaEjercicioRequest $request, $id)
     {
         $respuestaejercicio = RespuestaEjercicio::findOrFail($id);
-		$respuestaejercicio->core = $request->input('core');
-		$respuestaejercicio->precisa = $request->input('precisa');
+        $respuestaejercicio->core = $request->input('core');
+        $respuestaejercicio->precisa = $request->input('precisa');
         $respuestaejercicio->save();
 
         return to_route('respuestaejercicios.index');

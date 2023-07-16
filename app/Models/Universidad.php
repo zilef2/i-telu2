@@ -11,7 +11,8 @@ class Universidad extends Model
     use HasFactory;
 
     protected $fillable = [
-        'nombre'
+        'nombre',
+        'codigo',
     ];
 
     public function carreras(): HasMany {
@@ -31,7 +32,7 @@ class Universidad extends Model
             ->wherePivot('universidad_id',$universidadid)
             ->WhereHas('roles',function ($query) use ($elrol){
                 $query->where('name', $elrol );
-            }) ;
+            });
             
         } else {
             $result = $this->belongsToMany(User::class, 'universidad_user')

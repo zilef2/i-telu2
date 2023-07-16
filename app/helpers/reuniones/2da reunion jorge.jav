@@ -40,7 +40,7 @@ me hace falta un rol: y los permisos de cada rol
 
 // # ARCHIVOS
 {
-    a cada asignatura hay que subir  un microcurriculum o carta descriptiva: temas que tiene la materia
+    a cada asignatura hay que subir  un microcurriculum o carta descriptiva: unidads que tiene la materia
 }
 
 

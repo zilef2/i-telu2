@@ -26,9 +26,10 @@ const props = defineProps({
     breadcrumbs: Object,
     // perPage: Number,
 
-    fromController: Object,
+    fromController: Object, //materia
 
-    temas : Object,
+    unidads: Object,
+    objetivos: Object,
 })
 
 const data = reactive({
@@ -47,7 +48,7 @@ const order = (field) => {
     data.params.order = data.params.order === "asc" ? "desc" : "asc"
 }
 
-const mostrarZona = (subtema) =>{
+const mostrarZona = (subtema) => {
     for (let i = 0; i < 3; i++) {
         data.vectorMostrar[i] = 0; //todo: falta decir el tamaño de la matriz
     }
@@ -74,50 +75,67 @@ onMounted(() => {
         <section class="text-gray-600 body-font overflow-hidden">
             <!-- <h2 class="text-sm title-font text-gray-500 tracking-widest">Materia</h2> -->
             <h1 class="text-gray-900 text-3xl title-font font-medium mb-4">{{ props.fromController.nombre }} </h1>
-            <div v-if="props.temas.length" class="container px-5 py-6 mx-auto">
-                <div class="lg:w-full mx-auto flex flex-wrap">
-                    <div v-for="(tema,temasIndex) in props.temas" class="lg:w-1/2 w-full lg:pr-10 lg:py-6 mb-6 lg:mb-0">
-                        
-                        <h1 class="text-gray-900 text-3xl title-font font-medium mb-4">{{ tema.nombre }} </h1>
-                        <div v-if="(typeof tema.sub !== 'undefined')" v-for="(subtema, subindex) in tema.sub" class="">
-                            <div class="flex mb-4">
-                                <!-- //todo: mandar el subtema -->
-                                <button @click="mostrarZona(subindex)" :class="{ 'text-indigo-500 border-indigo-500' : data.vectorMostrar[0]}" class="flex-grow border-b-2 border-gray-300 py-2 text-lg px-1">
-                                    {{ subtema.nombre }}
-                                </button>
-                            </div>
-                            <p class="leading-relaxed mb-4">Descripcion y objetivos </p>
-                            <!-- //todo: objetivos y noseque -->
-                            <div class="flex border-t border-gray-200 py-2">
-                                <span class="text-gray-800 font-semibold">Ejercicio/Pregunta</span>
-                                <span class="ml-auto text-gray-900 font-semibold"># respuestas almacenadas</span>
-                            </div>
-                            <div v-if="(typeof subtema.ejercicios !== 'undefined')" v-for="ejercicio in subtema.ejercicios" class="flex border-t border-gray-200 py-2">
-                                <span class="text-gray-500">{{ ejercicio.nombre }}</span>
-                                <span class="ml-auto pl-1 text-gray-900 border-l-2 border-indigo-500 ">5</span>
-                            </div>
-                        </div>
-                        <div class="flex mt-6">
-                            <!-- <span class="title-font font-medium text-2xl text-gray-900"># Ejercicios : {{ props.temas.Tsubtema.ejercis.length }}</span> -->
-                            <!-- <button class="flex ml-auto text-white bg-indigo-500 border-0 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded">
-                                Preguntarle a la IA
-                            </button> -->
-                        </div>
-                    </div>
-                </div>
+            <h1 class="text-gray-900 text-xl title-font font-medium my-4">Objetivos </h1>
+
+            <ul class="list-decimal">
+                <li v-for="objetivo in props.objetivos" class="text-gray-900 text-xl title-font font-medium mb-4">{{
+                    objetivo.nombre }} </li>
+            </ul>
+
+            <div v-if="props.unidads.length" class="lg:w-4/5 w-full mx-auto overflow-auto">
+                <table class="table-auto w-full text-left whitespace-no-wrap">
+                    <thead>
+                        <tr>
+                            <th
+                                class="px-4 py-3 title-font tracking-wider font-bold text-gray-900 text-sm bg-gray-200 rounded-tl rounded-bl">
+                                Unidade de aprendizaje
+                            </th>
+                            <th class="px-4 py-3 title-font tracking-wider font-bold text-gray-900 text-sm bg-gray-200">
+                                Contenidos
+                            </th>
+                            <th class="px-4 py-3 title-font tracking-wider font-bold text-gray-900 text-sm bg-gray-200">
+                                Resultado de aprendizaje
+                            </th>
+                            <!-- <th class="w-10 title-font tracking-wider font-bold text-gray-900 text-sm bg-gray-200 rounded-tr rounded-br"> </th> -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(Unidad, temasIndex) in props.unidads"
+                            class="lg:w-1/2 w-full lg:pr-10 lg:py-6 mb-6 lg:mb-0 border-1 border-b border-gray-900">
+                            <td class="px-4 py-3">{{ Unidad.nombre }}</td>
+
+                            <td v-if="(typeof Unidad.sub !== 'undefined')" class="text-justify">
+                                <ul class="list-decimal">
+                                    <li v-for="(subtema, subindex) in Unidad.sub" class="py-3">
+                                        {{ subtema.nombre }}
+                                    </li>
+                                </ul>
+                            </td>
+                            <td v-if="(typeof Unidad.sub !== 'undefined')">
+                                <ul class="list-inside">
+                                    <li v-for="(subtema, subindex) in tema.sub" class="px-4 py-3">{{
+                                        subtema.resultado_aprendizaje }}</li>
+                                </ul>
+                            </td>
+                        </tr>
+                    </tbody>
+
+                </table>
             </div>
-
-
-
-            <div v-else class="container px-5 py-6 mx-auto">
-                <div class="lg:w-full mx-auto flex flex-wrap">
-                    <div  class="lg:w-1/2 w-full lg:pr-10 lg:py-6 mb-6 lg:mb-0">
-                        
-                        <p class="leading-relaxed text-xl mb-4">No hay temas regsitrados para esta materia
-                        </p>
-                    </div>
-                </div>
-            </div>
+            <p v-else class="text-xl text-ellipsis text-orange-800">
+                No hay unidads regsitrados para esta materia
+            </p>
+            <!-- todo: ir a la IA -->
+            <!-- <div class="flex pl-4 mt-4 lg:w-2/3 w-full mx-auto">
+                <a class="text-indigo-500 inline-flex items-center md:mb-2 lg:mb-0">Learn More
+                    <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        class="w-4 h-4 ml-2" viewBox="0 0 24 24">
+                        <path d="M5 12h14M12 5l7 7-7 7"></path>
+                    </svg>
+                </a>
+                <button
+                    class="flex ml-auto text-white bg-indigo-500 border-0 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded">Button</button>
+            </div> -->
         </section>
 
     </AuthenticatedLayout>

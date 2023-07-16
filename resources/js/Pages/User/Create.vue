@@ -95,6 +95,7 @@ const roles = props.roles?.map(role => ({
     value: (role.name)
 }))
 
+//very usefull
 const sexos = [ { label: 'Masculino', value: 0 }, { label: 'Femenino', value: 1 } ];
 const daynames = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'];
 

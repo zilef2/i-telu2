@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Objetivo extends Model
 {
@@ -12,7 +13,10 @@ class Objetivo extends Model
     protected $fillable = [
         'nombre',
         'descripcion',
-        'resultado_aprendizaje',
         'materia_id',
     ];
+
+    public function materia(): BelongsTo {
+        return $this->belongsTo(Materia::class, 'materia_id');
+    }
 }

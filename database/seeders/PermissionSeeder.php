@@ -21,8 +21,8 @@ class PermissionSeeder extends Seeder
         Permission::create(['name' => 'isProfesor']);
         Permission::create(['name' => 'isEstudiante']);
 
-        $crudCompleto = [ 'delete', 'update', 'read', 'create','cambiarNombre' ];
-        $Models =[
+        $crudCompleto = ['delete', 'update', 'read', 'create', 'cambiarNombre'];
+        $Models = [
             'user',
             'role',
             'permission',
@@ -30,30 +30,28 @@ class PermissionSeeder extends Seeder
             'universidad',
             'carrera',
             'materia',
-            'tema',
+            'Unidad',
             'subtopico',
             'ejercicio',
-            
+
             'parametro',
+            'LosPromp',
         ];
         foreach ($Models as $model) {
             foreach ($crudCompleto as $crud) {
-                Permission::create(['name' => $crud.' '. $model]);
+                Permission::create(['name' => $crud . ' ' . $model]);
             }
         }
 
-        $ModelsIns =[
+        //# Inscripciones (muchos a muchos)
+        $ModelsIns = [
             'universidad',
             'carrera',
             'materia',
         ];
         foreach ($ModelsIns as $model) {
-            Permission::create(['name' => 'inscribirUs '. $model]);
+            Permission::create(['name' => 'inscribirUs ' . $model]);
         }
-
-        // foreach ($Models as $model) {
-        //     Permission::create(['name' => ' '. $model]);
-        // }
 
     }
 }

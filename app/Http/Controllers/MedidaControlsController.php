@@ -16,8 +16,8 @@ class MedidaControlsController extends Controller
      */
     public function index()
     {
-        $medidacontrols= MedidaControl::all();
-        return view('medidacontrols.index', ['medidacontrols'=>$medidacontrols]);
+        $medidacontrols = MedidaControl::all();
+        return view('medidacontrols.index', ['medidacontrols' => $medidacontrols]);
     }
 
     /**
@@ -39,8 +39,8 @@ class MedidaControlsController extends Controller
     public function store(MedidaControlRequest $request)
     {
         $medidacontrol = new MedidaControl;
-		$medidacontrol->tokens_usados = $request->input('tokens_usados');
-		$medidacontrol->user_id = $request->input('user_id');
+        $medidacontrol->tokens_usados = $request->input('tokens_usados');
+        $medidacontrol->user_id = $request->input('user_id');
         $medidacontrol->save();
 
         return to_route('medidacontrols.index');
@@ -55,7 +55,7 @@ class MedidaControlsController extends Controller
     public function show($id)
     {
         $medidacontrol = MedidaControl::findOrFail($id);
-        return view('medidacontrols.show',['medidacontrol'=>$medidacontrol]);
+        return view('medidacontrols.show', ['medidacontrol' => $medidacontrol]);
     }
 
     /**
@@ -67,7 +67,7 @@ class MedidaControlsController extends Controller
     public function edit($id)
     {
         $medidacontrol = MedidaControl::findOrFail($id);
-        return view('medidacontrols.edit',['medidacontrol'=>$medidacontrol]);
+        return view('medidacontrols.edit', ['medidacontrol' => $medidacontrol]);
     }
 
     /**
@@ -80,8 +80,8 @@ class MedidaControlsController extends Controller
     public function update(MedidaControlRequest $request, $id)
     {
         $medidacontrol = MedidaControl::findOrFail($id);
-		$medidacontrol->tokens_usados = $request->input('tokens_usados');
-		$medidacontrol->user_id = $request->input('user_id');
+        $medidacontrol->tokens_usados = $request->input('tokens_usados');
+        $medidacontrol->user_id = $request->input('user_id');
         $medidacontrol->save();
 
         return to_route('medidacontrols.index');

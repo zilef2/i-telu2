@@ -1,96 +1,103 @@
 <script setup>
-    import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-    import { Head } from '@inertiajs/vue3';
-    import Breadcrumb from '@/Components/Breadcrumb.vue';
-    import TextInput from '@/Components/TextInput.vue';
-    import PrimaryButton from '@/Components/PrimaryButton.vue';
-    import SelectInput from '@/Components/SelectInput.vue';
-    import { reactive, watch } from 'vue';
-    import DangerButton from '@/Components/DangerButton.vue';
-    import pkg from 'lodash';
-    import { router,usePage } from '@inertiajs/vue3';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import { Head } from '@inertiajs/vue3';
+import Breadcrumb from '@/Components/Breadcrumb.vue';
+import TextInput from '@/Components/TextInput.vue';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
+import SelectInput from '@/Components/SelectInput.vue';
+import { reactive, watch, onMounted } from 'vue';
+import DangerButton from '@/Components/DangerButton.vue';
+import pkg from 'lodash';
+import { router, usePage } from '@inertiajs/vue3';
 
-    import Pagination from '@/Components/Pagination.vue';
-    import { ChevronUpDownIcon, PencilIcon, TrashIcon } from '@heroicons/vue/24/solid';
+import Pagination from '@/Components/Pagination.vue';
+import { ChevronUpDownIcon, PencilIcon, TrashIcon } from '@heroicons/vue/24/solid';
 
-    import Create from '@/Pages/subtopico/Create.vue';
-    import Edit from '@/Pages/subtopico/Edit.vue'; 
-    import Delete from '@/Pages/subtopico/Delete.vue';
+import Create from '@/Pages/subtopico/Create.vue';
+import Edit from '@/Pages/subtopico/Edit.vue';
+import Delete from '@/Pages/subtopico/Delete.vue';
 
-    import Checkbox from '@/Components/Checkbox.vue';
-    import InfoButton from '@/Components/InfoButton.vue';
-    import {vectorSelect, formatDate, CalcularEdad, CalcularSexo} from '@/global.js';
+import Checkbox from '@/Components/Checkbox.vue';
+import InfoButton from '@/Components/InfoButton.vue';
+import { vectorSelect, formatDate, CalcularEdad, CalcularSexo } from '@/global.js';
 
-    const { _, debounce, pickBy } = pkg
-    const props = defineProps({
-        title: String,
-        filters: Object,
-        breadcrumbs: Object,
-        perPage: Number,
+const { _, debounce, pickBy } = pkg
+const props = defineProps({
+    title: String,
+    filters: Object,
+    breadcrumbs: Object,
+    perPage: Number,
 
-        fromController: Object,
+    fromController: Object,
 
-        temasSelect: Object,
+    UnidadsSelect: Object,
+})
+
+const data = reactive({
+    params: {
+        search: props.filters.search,
+        field: props.filters.field,
+        order: props.filters.order,
+        selectedUnidadID: props.filters.selectedUnidadID,
+
+        perPage: props.perPage,
+    },
+    selectedId: [],
+    multipleSelect: false,
+    createOpen: false,
+    editOpen: false,
+    deleteOpen: false,
+    deleteBulkOpen: false,
+    generico: null,
+    dataSet: usePage().props.app.perpage,
+    UnidadsSelect: null
+})
+
+
+const order = (field) => {
+    console.log("🧈 debu field:", field);
+    data.params.field = field.replace(/ /g, "_")
+
+    data.params.order = data.params.order === "asc" ? "desc" : "asc"
+}
+
+watch(() => _.cloneDeep(data.params), debounce(() => {
+    let params = pickBy(data.params)
+    router.get(route("subtopico.index"), params, {
+        replace: true,
+        preserveState: true,
+        preserveScroll: true,
     })
-    
-    const data = reactive({
-        params: {
-            search: props.filters.search,
-            field: props.filters.field,
-            order: props.filters.order,
-            perPage: props.perPage,
-        },
-        selectedId: [],
-        multipleSelect: false,
-        createOpen: false,
-        editOpen: false,
-        deleteOpen: false,
-        deleteBulkOpen: false,
-        generico: null,
-        dataSet: usePage().props.app.perpage,
-        temasSelect:null
-    })
-    data.temasSelect = vectorSelect(data.temasSelect,props.temasSelect,'un tema')
-        
+}, 150))
 
-    const order = (field) => {
-        console.log("🧈 debu field:", field);
-        data.params.field = field.replace(/ /g, "_")
-
-        data.params.order = data.params.order === "asc" ? "desc" : "asc"
-    }
-
-    watch(() => _.cloneDeep(data.params), debounce(() => {
-        let params = pickBy(data.params)
-        router.get(route("subtopico.index"), params, {
-            replace: true,
-            preserveState: true,
-            preserveScroll: true,
+const selectAll = (event) => {
+    if (event.target.checked === false) {
+        data.selectedId = []
+    } else {
+        props.fromController?.data.forEach((generico) => {
+            data.selectedId.push(generico.id)
         })
-    }, 150))
+    }
+}
+const select = () => {
+    if (props.fromController?.data.length == data.selectedId.length) {
+        data.multipleSelect = true
+    } else {
+        data.multipleSelect = false
+    }
+}
 
-    const selectAll = (event) => {
-        if (event.target.checked === false) {
-            data.selectedId = []
-        } else {
-            props.fromController?.data.forEach((generico) => {
-                data.selectedId.push(generico.id)
-            })
-        }
-    }
-    const select = () => {
-        if (props.fromController?.data.length == data.selectedId.length) {
-            data.multipleSelect = true
-        } else {
-            data.multipleSelect = false
-        }
-    }
-    
+onMounted(() =>{
+    if(typeof data.params.selectedUnidadID === 'undefined' || data.params.selectedUnidadID === null) data.params.selectedUnidadID = 0
+
+    data.UnidadsSelect = vectorSelect(data.UnidadsSelect, props.UnidadsSelect, 'una Unidad')
+
+})
+
 </script>
 
 <template>
     <Head :title="props.title"></Head>
-
     <AuthenticatedLayout>
         <Breadcrumb :title="title" :breadcrumbs="breadcrumbs" />
         <div class="space-y-4">
@@ -100,9 +107,9 @@
                         {{ lang().button.add }}
                     </PrimaryButton>
                     <Create :show="data.createOpen" @close="data.createOpen = false" :title="props.title"
-                        v-if="can(['create subtopico'])" :temasSelect="data.temasSelect" />
+                        v-if="can(['create subtopico'])" :UnidadsSelect="data.UnidadsSelect" />
                     <Edit :show="data.editOpen" @close="data.editOpen = false" :subtopico="data.generico"
-                        v-if="can(['update subtopico'])" :title="props.title" :temasSelect="data.temasSelect" />
+                        v-if="can(['update subtopico'])" :title="props.title" :UnidadsSelect="data.UnidadsSelect" />
                     <Delete :show="data.deleteOpen" @close="data.deleteOpen = false" :subtopico="data.generico"
                         v-if="can(['delete subtopico'])" :title="props.title" />
                 </div>
@@ -115,9 +122,13 @@
                             class="px-3 py-1.5" v-tooltip="lang().tooltip.delete_selected">
                             <TrashIcon class="w-5 h-5" />
                         </DangerButton>
+                        <!-- filters -->
+                        <div class="bg-gray-100">
+                            <SelectInput v-model="data.params.selectedUnidadID" id="uni" :dataSet="data.UnidadsSelect" />
+                        </div>
                     </div>
-                    <TextInput v-model="data.params.search" type="text" class="block w-3/6 md:w-2/6 lg:w-1/6 rounded-lg"
-                        :placeholder="lang().placeholder.search" />
+                    <TextInput v-if="props.numberPermissions > 1" v-model="data.params.search" type="text"
+                        class="block w-3/6 md:w-2/6 lg:w-1/6 rounded-lg" :placeholder="lang().placeholder.search" />
                 </div>
                 <div class="overflow-x-auto scrollbar-table">
                     <table class="w-full">
@@ -151,11 +162,21 @@
                                         <ChevronUpDownIcon class="w-4 h-4" />
                                     </div>
                                 </th>
+
                                 <th v-on:click="order('nombre')"
                                     class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
                                     <div class="flex justify-between items-center">
                                         <span>
-                                            Tema
+                                            {{ lang().label.Unidad }}
+                                        </span>
+                                        <ChevronUpDownIcon class="w-4 h-4" />
+                                    </div>
+                                </th>
+                                <th v-on:click="order('resultado_aprendizaje')"
+                                    class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
+                                    <div class="flex justify-between items-center">
+                                        <span>
+                                            Resultado aprendizaje
                                         </span>
                                         <ChevronUpDownIcon class="w-4 h-4" />
                                     </div>
@@ -195,9 +216,11 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (index+1) }}</td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (index + 1) }}</td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.nombre) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.hijo) }} </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.resultado_aprendizaje) }}
+                                </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.descripcion) }} </td>
                             </tr>
                         </tbody>

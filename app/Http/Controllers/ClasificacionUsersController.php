@@ -16,8 +16,8 @@ class ClasificacionUsersController extends Controller
      */
     public function index()
     {
-        $clasificacionusers= ClasificacionUser::all();
-        return view('clasificacionusers.index', ['clasificacionusers'=>$clasificacionusers]);
+        $clasificacionusers = ClasificacionUser::all();
+        return view('clasificacionusers.index', ['clasificacionusers' => $clasificacionusers]);
     }
 
     /**
@@ -39,8 +39,8 @@ class ClasificacionUsersController extends Controller
     public function store(ClasificacionUserRequest $request)
     {
         $clasificacionuser = new ClasificacionUser;
-		$clasificacionuser->nombre = $request->input('nombre');
-		$clasificacionuser->descripcion = $request->input('descripcion');
+        $clasificacionuser->nombre = $request->input('nombre');
+        $clasificacionuser->descripcion = $request->input('descripcion');
         $clasificacionuser->save();
 
         return to_route('clasificacionusers.index');
@@ -55,7 +55,7 @@ class ClasificacionUsersController extends Controller
     public function show($id)
     {
         $clasificacionuser = ClasificacionUser::findOrFail($id);
-        return view('clasificacionusers.show',['clasificacionuser'=>$clasificacionuser]);
+        return view('clasificacionusers.show', ['clasificacionuser' => $clasificacionuser]);
     }
 
     /**
@@ -67,7 +67,7 @@ class ClasificacionUsersController extends Controller
     public function edit($id)
     {
         $clasificacionuser = ClasificacionUser::findOrFail($id);
-        return view('clasificacionusers.edit',['clasificacionuser'=>$clasificacionuser]);
+        return view('clasificacionusers.edit', ['clasificacionuser' => $clasificacionuser]);
     }
 
     /**
@@ -80,8 +80,8 @@ class ClasificacionUsersController extends Controller
     public function update(ClasificacionUserRequest $request, $id)
     {
         $clasificacionuser = ClasificacionUser::findOrFail($id);
-		$clasificacionuser->nombre = $request->input('nombre');
-		$clasificacionuser->descripcion = $request->input('descripcion');
+        $clasificacionuser->nombre = $request->input('nombre');
+        $clasificacionuser->descripcion = $request->input('descripcion');
         $clasificacionuser->save();
 
         return to_route('clasificacionusers.index');

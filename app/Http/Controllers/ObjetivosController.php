@@ -16,8 +16,8 @@ class ObjetivosController extends Controller
      */
     public function index()
     {
-        $objetivos= Objetivo::all();
-        return view('objetivos.index', ['objetivos'=>$objetivos]);
+        $objetivos = Objetivo::all();
+        return view('objetivos.index', ['objetivos' => $objetivos]);
     }
 
     /**
@@ -39,8 +39,8 @@ class ObjetivosController extends Controller
     public function store(ObjetivoRequest $request)
     {
         $objetivo = new Objetivo;
-		$objetivo->nombre = $request->input('nombre');
-		$objetivo->descripcion = $request->input('descripcion');
+        $objetivo->nombre = $request->input('nombre');
+        $objetivo->descripcion = $request->input('descripcion');
         $objetivo->save();
 
         return to_route('objetivos.index');
@@ -55,7 +55,7 @@ class ObjetivosController extends Controller
     public function show($id)
     {
         $objetivo = Objetivo::findOrFail($id);
-        return view('objetivos.show',['objetivo'=>$objetivo]);
+        return view('objetivos.show', ['objetivo' => $objetivo]);
     }
 
     /**
@@ -67,7 +67,7 @@ class ObjetivosController extends Controller
     public function edit($id)
     {
         $objetivo = Objetivo::findOrFail($id);
-        return view('objetivos.edit',['objetivo'=>$objetivo]);
+        return view('objetivos.edit', ['objetivo' => $objetivo]);
     }
 
     /**
@@ -80,8 +80,8 @@ class ObjetivosController extends Controller
     public function update(ObjetivoRequest $request, $id)
     {
         $objetivo = Objetivo::findOrFail($id);
-		$objetivo->nombre = $request->input('nombre');
-		$objetivo->descripcion = $request->input('descripcion');
+        $objetivo->nombre = $request->input('nombre');
+        $objetivo->descripcion = $request->input('descripcion');
         $objetivo->save();
 
         return to_route('objetivos.index');

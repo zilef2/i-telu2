@@ -1,21 +1,21 @@
 <script setup>
 import InputError from '@/Components/InputError.vue';
-    import InputLabel from '@/Components/InputLabel.vue';
-    import Modal from '@/Components/Modal.vue';
-    import PrimaryButton from '@/Components/PrimaryButton.vue';
-    import SecondaryButton from '@/Components/SecondaryButton.vue';
-    import TextInput from '@/Components/TextInput.vue';
-    import DatetimeInput from '@/Components/DatetimeInput.vue';
-    import { useForm } from '@inertiajs/vue3';
-    // import Checkbox from '@/Components/Checkbox.vue';
-    import { reactive, watchEffect } from 'vue';
+import InputLabel from '@/Components/InputLabel.vue';
+import Modal from '@/Components/Modal.vue';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
+import SecondaryButton from '@/Components/SecondaryButton.vue';
+import TextInput from '@/Components/TextInput.vue';
+import DatetimeInput from '@/Components/DatetimeInput.vue';
+import { useForm } from '@inertiajs/vue3';
+// import Checkbox from '@/Components/Checkbox.vue';
+import { reactive, watchEffect } from 'vue';
 
-    import SelectInput from '@/Components/SelectInput.vue';
+import SelectInput from '@/Components/SelectInput.vue';
 
 const props = defineProps({
     show: Boolean,
     title: String,
-    temasSelect: Object,
+    UnidadsSelect: Object,
 })
 
 const emit = defineEmits(["close"]);
@@ -28,7 +28,7 @@ const today = new Date();
 const form = useForm({
     nombre: '',
     descripcion: '',
-    tema_id: 0,
+    unidad_id: 0,
 })
 const create = () => {
     form.post(route('subtopico.store'), {
@@ -70,18 +70,18 @@ watchEffect(() => {
                     </div>
                     <div>
                         <InputLabel for="descripcion" :value="lang().label.descripcion" />
-                        <TextInput id="descripcion" type="text" class="mt-1 block w-full" v-model="form.descripcion" required
-                            :placeholder="lang().placeholder.descripcion" :error="form.errors.descripcion" />
+                        <TextInput id="descripcion" type="text" class="mt-1 block w-full" v-model="form.descripcion"
+                            required :placeholder="lang().placeholder.descripcion" :error="form.errors.descripcion" />
                         <InputError class="mt-2" :message="form.errors.descripcion" />
                     </div>
                     <div>
-                        <InputLabel for="tema_id" :value="lang().label.materia" />
-                        <SelectInput name="tema_id" class="mt-1 block w-full" v-model="form.tema_id" required
-                            :dataSet="temasSelect"> </SelectInput>
-                        <InputError class="mt-2" :message="form.errors.tema_id" />
+                        <InputLabel for="unidad_id" :value="lang().label.materia" />
+                        <SelectInput name="unidad_id" class="mt-1 block w-full" v-model="form.unidad_id" required
+                            :dataSet="UnidadsSelect"> </SelectInput>
+                        <InputError class="mt-2" :message="form.errors.unidad_id" />
                     </div>
                 </div>
-                
+
                 <div class="flex justify-end">
                     <SecondaryButton :disabled="form.processing" @click="emit('close')"> {{ lang().button.close }}
                     </SecondaryButton>
