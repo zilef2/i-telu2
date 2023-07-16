@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\Parametro;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
@@ -23,7 +22,7 @@ class UserSeeder extends Seeder
             'email'             => 'superadmin@superadmin.com',
             'password'          => bcrypt('superadmin0+-*/'),
             'email_verified_at' => date('Y-m-d H:i'),
-            'sexo' => $sexos[rand(0,1)],
+            'sexo' => $sexos[rand(0, 1)],
             'identificacion' => '11232454',
 
         ]);
@@ -32,65 +31,47 @@ class UserSeeder extends Seeder
         $admin = User::create([
             'name'              => 'Admin',
             'email'             => 'admin@admin.com',
-            'password'          => bcrypt('alejoasd00+*??'),
+            'password'          => bcrypt('BASEalejoasd00+*??'),
             'email_verified_at' => date('Y-m-d H:i'),
-            'sexo' => $sexos[rand(0,1)],
+            'sexo' => $sexos[rand(0, 1)],
             'identificacion' => '11232411',
         ]);
         $admin->assignRole('admin');
 
-        $estudiante = User::create([
-            'name'              => 'estudiante',
-            'email'             => 'estudiante@estudiante.com',
-            'password'          => bcrypt('estudiante00+*'),
+        $trabajador = User::create([
+            'name'              => 'trabajador',
+            'email'             => 'trabajador@trabajador.com',
+            'password'          => bcrypt('trabajador00+*'),
             'email_verified_at' => date('Y-m-d H:i'),
-            'sexo' => $sexos[rand(0,1)],
+            'sexo' => $sexos[rand(0, 1)],
             'identificacion' => '11232412',
         ]);
-        $estudiante->assignRole('estudiante');
-        
-        $alejo = User::create([
-            'name'              => 'alejo',
-            'email'             => 'alejo@alejo.com',
-            'password'          => bcrypt('alejo00+*'),
-            'email_verified_at' => date('Y-m-d H:i'),
-            'sexo' => $sexos[rand(0,1)],
-            'identificacion' => '11232413',
-        ]); $alejo->assignRole('estudiante');
-        
+        $trabajador->assignRole('trabajador');
 
-        
-        $nombresGenericos= [ 
-            'jose' => '1152194566',
+        $nombresGenericos = [
+            'jose' => '1152888999',
             'madrid' => '1152194567',
             'felizzola' => '1152194568',
             'marta' => '1152194569',
             'liliana' => '1152194510',
             'mabel' => '1152194511',
-            'miguel' => '1152194512',
-            'jorge' => '1152194513',
-            'emerson' => '1152194514',
+            'jorge' => '222',
+            'emerson' => '333',
         ];
-        
-        $grados = ['bachiller','pregrado','postgrado'];
-        $parametro = Parametro::first();
-        $NumTickesDefecto = $parametro->NumeroTicketDefecto;
+
         foreach ($nombresGenericos as $key => $value) {
-            $yearRandom = (rand(15,39));
+            $yearRandom = (rand(15, 39));
             $anios = Carbon::now()->subYears($yearRandom)->format('Y-m-d H:i');
             $unUsuario = User::create([
                 'name'              => $key,
-                'email'             => $key.'@'.$key.'.com',
+                'email'             => $key . '@' . $key . '.com',
                 'password'          => bcrypt('asd+-*'),
                 'email_verified_at' => date('Y-m-d H:i'),
                 'fecha_nacimiento' => $anios,
-                'sexo' => $sexos[rand(0,1)],
+                'sexo' => $sexos[rand(0, 1)],
                 'identificacion' => $value,
-                'semestre' => rand(1,10),
-                'pgrado' => $grados[rand(0,2)],
-                'limite_token_general' => $NumTickesDefecto,
-                'limite_token_leccion' => $NumTickesDefecto,
-            ]); $unUsuario->assignRole('estudiante');
+            ]);
+            $unUsuario->assignRole('trabajador');
         }
     }
 }

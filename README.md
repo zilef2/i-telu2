@@ -5,7 +5,7 @@
 
 </p>
 
-# IntelU
+# GENERICO_TOMA
 
 uso de gpt para sujerencias de ejercicios en las diferentes materias de una universidad
 
@@ -59,10 +59,10 @@ password : superadmin
 email : admin@admin.com
 password : admin
 ```
-### estudiante
+### trabajador
 ``` bash
-email : estudiante@estudiante.com
-password : estudiante
+email : trabajador@trabajador.com
+password : trabajador
 ```
 # Packages
 - [Vue](https://vuejs.org/)

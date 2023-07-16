@@ -1,18 +1,6 @@
 <?php
 
-use App\Http\Controllers\CarrerasController;
-use App\Http\Controllers\EjerciciosController;
-use App\Http\Controllers\LosPrompsController;
-use App\Http\Controllers\MateriasController;
-use App\Http\Controllers\ParametrosController;
-use App\Http\Controllers\PermissionController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\RoleController;
-use App\Http\Controllers\SubtopicosController;
-use App\Http\Controllers\UnidadsController;
-use App\Http\Controllers\UniversidadsController;
-use App\Http\Controllers\UserController;
-
+use App\Http\Controllers\parametrosController;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
@@ -54,9 +42,7 @@ Route::middleware('auth', 'verified')->group(function () {
     //# user
     Route::resource('/user', UserController::class)->except('create', 'show', 'edit');
     Route::post('/user/destroy-bulk', [UserController::class, 'destroyBulk'])->name('user.destroy-bulk');
-    Route::get('/subirexceles', [UserController::class, 'subirexceles'])->name('subirexceles');
-    Route::post('/uploadEstudiantes', [UserController::class, 'uploadEstudiantes'])->name('user.uploadEstudiantes');
-    Route::post('/uploadUniversidad', [UserController::class, 'uploadUniversidad'])->name('user.uploadUniversidad');
+    // Route::get('/subirexceles', [UserController::class, 'subirexceles'])->name('subirexceles');
 
 
     Route::resource('/role', RoleController::class)->except('create', 'show', 'edit');
@@ -65,37 +51,7 @@ Route::middleware('auth', 'verified')->group(function () {
     Route::resource('/permission', PermissionController::class)->except('create', 'show', 'edit');
     Route::post('/permission/destroy-bulk', [PermissionController::class, 'destroyBulk'])->name('permission.destroy-bulk');
 
-    Route::resource('/universidad', UniversidadsController::class);
-    Route::resource('/carrera', CarrerasController::class);
-
-    // #materia
-    Route::resource('/materia', MateriasController::class);
-    Route::get('/AsignarMateria/{materiaid}', [MateriasController::class, 'AsignarUsers'])->name('materia.AsignarUsers');
-    Route::post('/AsignarMateria', [MateriasController::class, 'SubmitAsignarUsers'])->name('materia.SubmitAsignarUsers');
-    Route::get('/materiaEstudiar/{materiaID}/{ejercicioID?}/{nivel?}/{temaid?}/{selectedprompid?}', [MateriasController::class, 'VistaTema'])->name('materia.VistaTema');
-    // Route::get('/masPreguntas/{id}/{nuevaPregunta}', [MateriasController::class,'masPreguntas'])->name('materia.masPreguntas');
-    Route::get('/masPreguntas', [MateriasController::class, 'masPreguntas'])->name('materia.masPreguntas');
-    // Route::post('/masPreguntasPost', [MateriasController::class,'masPreguntasPost'])->name('materia.masPreguntasPost');
-
-    // #universidad
-    Route::get('/AsignaruserUni/{universidadid}', [UniversidadsController::class, 'AsignarUsers'])->name('universidad.AsignarUsers');
-    Route::post('/AsignaruserUni', [UniversidadsController::class, 'SubmitAsignarUsers'])->name('universidad.SubmitAsignarUsers');
-    Route::post('/AsignaruserUni2', [UniversidadsController::class, 'toEraseId'])->name('universidad.toEraseId');
-
-    // #carrera
-    Route::get('/AsignaruserCarrera/{carreraid}', [CarrerasController::class, 'AsignarUsers'])->name('carrera.AsignarUsers');
-    Route::post('/AsignaruserCar', [CarrerasController::class, 'SubmitAsignarUsers'])->name('carrera.SubmitAsignarUsers');
-
-    // #unidads
-    Route::resource('/Unidad', UnidadsController::class);
-    Route::post('/gpt/temasCreate', [UnidadsController::class, 'temasCreate']); //->name('unidads.temasCreate');
-    //otros
-    Route::resource('/subtopico', SubtopicosController::class);
-    Route::resource('/ejercicio', EjerciciosController::class);
-    Route::resource('/parametro', ParametrosController::class);
-
-    // #promps
-    Route::resource('/LosPromp', LosPrompsController::class)->except('create', 'show', 'edit');
+    Route::resource('/parametro', parametrosController::class);
 
 });
 

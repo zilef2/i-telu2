@@ -38,6 +38,8 @@ class UserController extends Controller
      */
     public function index(UserIndexRequest $request)
     {
+        $permissions = Myhelp::EscribirEnLog($this, ' users');
+        $numberPermissions = Myhelp::getPermissionToNumber($permissions);
 
         $users = User::query();
         if ($request->has('search')) {
@@ -45,20 +47,18 @@ class UserController extends Controller
                 $query->where('name', 'LIKE', "%" . $request->search . "%")
                     ->orWhere('email', 'LIKE', "%" . $request->search . "%")
                     ->orWhere('identificacion', 'LIKE', "%" . $request->search . "%")
-                    ->orWhere('pgrado', 'LIKE', "%" . $request->search . "%")
-                    ->orWhere('semestre', 'LIKE', "%" . $request->search . "%");
+                    ->orWhere('pgrado', 'LIKE', "%" . $request->search . "%");
             })
                 ->where('name', '!=', 'admin')
                 ->where('name', '!=', 'Superadmin');
 
             // $users->where('name', 'LIKE', "%" . $request->search . "%");
-        } else {
-            Myhelp::EscribirEnLog($this, 'INDEX:users', 'index', false);
         }
 
         if ($request->has(['field', 'order'])) {
             $users = $users->orderBy($request->field, $request->order);
         }
+
         $perPage = $request->has('perPage') ? $request->perPage : 10;
         $role = auth()->user()->roles->pluck('name')[0];
         $roles = Role::get();
@@ -70,12 +70,13 @@ class UserController extends Controller
         }
 
         return Inertia::render('User/Index', [
+            'breadcrumbs'   => [['label' => __('app.label.user'), 'href' => route('user.index')]],
             'title'         => __('app.label.user'),
             'filters'       => $request->all(['search', 'field', 'order']),
             'perPage'       => (int) $perPage,
             'users'         => $users->with('roles')->paginate($perPage),
             'roles'         => $roles,
-            'breadcrumbs'   => [['label' => __('app.label.user'), 'href' => route('user.index')]],
+            'numberPermissions'         => $numberPermissions,
         ]);
     }
 
@@ -84,19 +85,23 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create() { }
+    public function create()
+    {
+    }
 
 
     //! STORE - UPDATE - DELETE
     //! STORE functions
-    public function updatingDate($date) {
+    public function updatingDate($date)
+    {
         if ($date === null || $date == '1969-12-31') {
             return null;
         }
         return date("Y-m-d", strtotime($date));
     }
 
-    public function store(UserStoreRequest $request) {
+    public function store(UserStoreRequest $request)
+    {
         $permissions = Myhelp::EscribirEnLog($this, 'STORE:users');
 
         DB::beginTransaction();
@@ -185,7 +190,8 @@ class UserController extends Controller
         }
     }
 
-    public function destroyBulk(Request $request) {
+    public function destroyBulk(Request $request)
+    {
         try {
             $user = User::whereIn('id', $request->id);
             $user->delete();
@@ -196,7 +202,8 @@ class UserController extends Controller
     }
     //FIN : STORE - UPDATE - DELETE
 
-    public function subirexceles() {//just  a view
+    public function subirexceles()
+    { //just  a view
         $permissions = Myhelp::EscribirEnLog($this, ' materia');
         $numberPermissions = Myhelp::getPermissionToNumber($permissions);
 
@@ -207,14 +214,14 @@ class UserController extends Controller
             'UniversidadSelect'   => Universidad::all()
             // 'users'         => $users->with('roles')->paginate($perPage),
         ]);
-
     }
 
 
     // Duplicate entry '1152194566' for key 'users_identificacion_unique'
-    private function MensajeWar(){
+    private function MensajeWar()
+    {
         $bandera = false;
-        $contares =[
+        $contares = [
             'contar1',
             'contar2',
             'contar3',
@@ -222,7 +229,7 @@ class UserController extends Controller
             'contar5',
             'contarVacios',
         ];
-        $mensajesWarnings =[
+        $mensajesWarnings = [
             '#correos Existentes: ',
             'Novedad, error interno: ',
             '#cedulas no numericas: ',
@@ -232,24 +239,26 @@ class UserController extends Controller
         ];
 
         foreach ($contares as $key => $value) {
-            $$value = session($value,0);
-            dd($$value,$value,session('contar1',0));
+            $$value = session($value, 0);
             session([$value => 0]);
-            $bandera = $$value > 0;
+            $bandera = $bandera || $$value > 0;
         }
+        session(['contar2' => -1]);
 
         $mensaje = '';
-        if($bandera){
+        if ($bandera) {
             foreach ($mensajesWarnings as $key => $value) {
-                if($$contares[$key] > 0)
-                    $mensaje .= $value.$contares[$key].'. ';
+                if (${$contares[$key]} > 0) {
+                    $mensaje .= $value . ${$contares[$key]} . '. ';
+                }
             }
         }
 
         return $mensaje;
     }
 
-    public function uploadEstudiantes(Request $request) {
+    public function uploadtrabajadors(Request $request)
+    {
         Myhelp::EscribirEnLog($this, get_called_class(), 'Empezo a importar', false);
         $countfilas = 0;
         try {
@@ -257,21 +266,21 @@ class UserController extends Controller
 
                 $helpExcel = new HelpExcel();
                 $mensageWarning = $helpExcel->validarArchivoExcel($request);
-                if($mensageWarning != '') return back()->with('warning', $mensageWarning);
+                if ($mensageWarning != '') return back()->with('warning', $mensageWarning);
 
                 Excel::import(new PersonalImport(), $request->archivo1);
 
-                $countfilas = session('CountFilas', 0);     session(['CountFilas'=> 0]);
-dd(session('contar1',0));
+                $countfilas = session('CountFilas', 0);
+                session(['CountFilas' => 0]);
 
                 $MensajeWarning = self::MensajeWar();
-                if($MensajeWarning !== ''){
-                    return back()->with('success', 'Usuarios nuevos: '.$countfilas)
+                if ($MensajeWarning !== '') {
+                    return back()->with('success', 'Usuarios nuevos: ' . $countfilas)
                         ->with('warning', $MensajeWarning);
                 }
 
                 Myhelp::EscribirEnLog($this, 'IMPORT:users', ' finalizo con exito', false);
-                if($countfilas == 0)
+                if ($countfilas == 0)
                     return back()->with('success', __('app.label.op_successfully') . ' No hubo cambios');
                 else
                     return back()->with('success', __('app.label.op_successfully') . ' Se leyeron ' . $countfilas . ' filas con exito');
@@ -280,10 +289,11 @@ dd(session('contar1',0));
             }
         } catch (\Throwable $th) {
             Myhelp::EscribirEnLog($this, 'IMPORT:users', ' Fallo importacion: ' . $th->getMessage(), false);
-            return back()->with('error', __('app.label.op_not_successfully') . ' Usuario del error: '.session('larow')[0].' error en la iteracion ' . $countfilas . ' ' . $th->getMessage());
+            return back()->with('error', __('app.label.op_not_successfully') . ' Usuario del error: ' . session('larow')[0] . ' error en la iteracion ' . $countfilas . ' ' . $th->getMessage());
         }
     }
-    public function uploadUniversidad(Request $request) {
+    public function uploadUniversidad(Request $request)
+    {
         Myhelp::EscribirEnLog($this, get_called_class(), 'Empezo a importar alumnos de universidades', false);
         $countfilas = 0;
         try {
@@ -291,38 +301,39 @@ dd(session('contar1',0));
 
                 $helpExcel = new HelpExcel();
                 $mensageWarning = $helpExcel->validarArchivoExcel($request);
-                if($mensageWarning != '') return back()->with('warning', $mensageWarning);
+                if ($mensageWarning != '') return back()->with('warning', $mensageWarning);
 
                 Excel::import(new PersonalUniversidadImport($request->universidadID), $request->archivo1);
                 $countfilas = session('CountFilas', 0);
                 $contarVacios = session('contarVacios', 0);
                 $contarNoNumeros = session('contarNoNumeros', 0);
 
-                session(['CountFilas' => 0]); session(['contarVacios' => 0]); session(['contarNoNumeros' => 0]);
+                session(['CountFilas' => 0]);
+                session(['contarVacios' => 0]);
+                session(['contarNoNumeros' => 0]);
 
                 $HuboWarning = $contarVacios > 0 || $contarNoNumeros > 0;
-                if($HuboWarning){
+                if ($HuboWarning) {
                     $MensajeWarning = '';
-                    $men1 = $contarNoNumeros > 0 ? '#filas con identifiaciones no validas '.$contarNoNumeros : '';
-                    $men5 = $contarVacios > 0 ? '#filas con celdas vacias '.$contarVacios : '';
+                    $men1 = $contarNoNumeros > 0 ? '#filas con identifiaciones no validas ' . $contarNoNumeros : '';
+                    $men5 = $contarVacios > 0 ? '#filas con celdas vacias ' . $contarVacios : '';
                     $MensajeWarning = $men1 . $men5;
                     return back()
-                        ->with('success', 'Usuarios nuevos: '.$countfilas)
+                        ->with('success', 'Usuarios nuevos: ' . $countfilas)
                         ->with('warning', $MensajeWarning);
                 }
 
                 Myhelp::EscribirEnLog($this, 'IMPORT:uploadUniversidad', ' finalizo con exito', false);
-                if($countfilas == 0)
+                if ($countfilas == 0)
                     return back()->with('success', __('app.label.op_successfully') . ' No hubo cambios');
                 else
                     return back()->with('success', __('app.label.op_successfully') . ' Se leyeron ' . $countfilas . ' filas con exito');
-
             } else {
                 return back()->with('error', __('app.label.op_not_successfully') . ' archivo no seleccionado');
             }
         } catch (\Throwable $th) {
             Myhelp::EscribirEnLog($this, 'IMPORT:users', ' Fallo importacion: ' . $th->getMessage(), false);
-            return back()->with('error', __('app.label.op_not_successfully') . 'Nombre del error: '.session('larow')[0].' error en la fila ' . $countfilas . ' ' . $th->getMessage());
+            return back()->with('error', __('app.label.op_not_successfully') . 'Nombre del error: ' . session('larow')[0] . ' error en la fila ' . $countfilas . ' ' . $th->getMessage());
         }
     }
 }
