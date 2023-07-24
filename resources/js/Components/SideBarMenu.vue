@@ -98,7 +98,10 @@ const toggleContent2 = () => {
                 <span class="ml-3">{{ lang().label.parametros }}</span>
                 </Link>
             </li>
+<<<<<<< HEAD
             
+=======
+>>>>>>> a3a47f4b68ef3f01c9a880a3ed85bb7aff8eb3ae
 
 
 
@@ -106,12 +109,13 @@ const toggleContent2 = () => {
 
 
 
-            <!-- zone U y C -->
+            <!-- zone normal -->
         </ul>
-        <button @click="toggleContent2" v-show="can(['read ejercicio'])" class="text-blue-500">{{ data.showContent2 ?
+        <button @click="toggleContent2" v-show="can(['isAdmin'])" class="text-blue-500">{{ data.showContent2 ?
             'Ocultar universidades' : 'Mostrar universidades' }}</button>
         <ul v-if="data.showContent2" class="space-y-2 my-4">
 
+<<<<<<< HEAD
             <!-- <li v-show="can(['read role', 'read permission'])" class="py-2"> <p>{{ lang().label.universidadCarreras }}</p> </li> -->
             <li v-show="can(['read universidad'])"
                 class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
@@ -163,12 +167,15 @@ const toggleContent2 = () => {
                 </Link>
             </li>
             <li v-show="can(['read ejercicio'])"
+=======
+            <!-- <li v-show="can(['read ejercicio'])"
+>>>>>>> a3a47f4b68ef3f01c9a880a3ed85bb7aff8eb3ae
                 class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
                 :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('ejercicio.index') }">
                 <Link :href="route('ejercicio.index')" class="flex items-center py-1 px-4">
                 <PresentationChartLineIcon class="w-6 h-5" />
                 <span class="ml-3">{{ lang().label.ejercicio }}</span>
                 </Link>
-            </li>
+            </li> -->
         </ul>
     </div></template>

@@ -40,7 +40,7 @@ const form = useForm({
     email: 'ajelof22@gmail.com',
     password: '',
     password_confirmation: '',
-    role: 'estudiante',
+    role: 'trabajador',
 
     identificacion: 1152194566,
     sexo: 0,
@@ -55,7 +55,7 @@ const form = useForm({
     // email: '',
     // password: '',
     // password_confirmation: '',
-    // role: 'estudiante',
+    // role: 'trabajador',
 
     // sexo:'',
     // fecha_nacimiento:'',
@@ -138,16 +138,17 @@ const daynames = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'];
                         <!-- otros campos -->
                         <div>
                             <InputLabel for="sexo" :value="lang().label.sexo" />
-                            <SelectInput id="sexo" class="mt-1 block w-full" v-model="form.sexo" required :dataSet="sexos"> </SelectInput>
+                            <SelectInput id="sexo" class="mt-1 block w-full" v-model="form.sexo" required :dataSet="sexos">
+                            </SelectInput>
                             <InputError class="mt-2" :message="form.errors.sexo" />
                         </div>
 
                         <div>
                             <InputLabel for="fecha_nacimiento" :value="lang().label.fecha_nacimiento" />
-                            <VueDatePicker :is-24="false" :day-names="daynames" :format="formatToVue" :flow="flow" auto-apply
-                                :enable-time-picker="false" id="fecha_nacimiento"
-                                class="mt-1 block w-full" v-model="form.fecha_nacimiento" required
-                                :placeholder="lang().placeholder.fecha_nacimiento" :error="form.errors.fecha_nacimiento" />
+                            <VueDatePicker :is-24="false" :day-names="daynames" :format="formatToVue" :flow="flow"
+                                auto-apply :enable-time-picker="false" id="fecha_nacimiento" class="mt-1 block w-full"
+                                v-model="form.fecha_nacimiento" required :placeholder="lang().placeholder.fecha_nacimiento"
+                                :error="form.errors.fecha_nacimiento" />
                             <InputError class="mt-2" :message="form.errors.fecha_nacimiento" />
                         </div>
 
@@ -165,7 +166,8 @@ const daynames = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'];
                         <div class="">
                             <InputLabel for="semestre_mas_bajo" :value="lang().label.semestre_mas_bajo" />
                             <TextInput id="semestre_mas_bajo" type="number" class="bg-gray-300 mt-1 block w-full"
-                                v-model="form.semestre_mas_bajo" disabled :placeholder="lang().placeholder.semestre_mas_bajo"
+                                v-model="form.semestre_mas_bajo" disabled
+                                :placeholder="lang().placeholder.semestre_mas_bajo"
                                 :error="form.errors.semestre_mas_bajo" />
                             <InputError class="mt-2" :message="form.errors.semestre_mas_bajo" />
                         </div>
@@ -178,9 +180,8 @@ const daynames = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'];
                         </div>
                         <div>
                             <InputLabel for="pgrado" :value="lang().label.pgrado" />
-                            <TextInput id="pgrado" type="text" class="mt-1 block w-full"
-                                v-model="form.pgrado" :placeholder="lang().placeholder.pgrado"
-                                :error="form.errors.pgrado" />
+                            <TextInput id="pgrado" type="text" class="mt-1 block w-full" v-model="form.pgrado"
+                                :placeholder="lang().placeholder.pgrado" :error="form.errors.pgrado" />
                             <InputError class="mt-2" :message="form.errors.pgrado" />
                         </div>
                     </div>

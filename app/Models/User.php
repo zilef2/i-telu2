@@ -22,14 +22,11 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        
+
         'identificacion',
         'sexo',
         'fecha_nacimiento',
-        'semestre',
-        'limite_token_general',
-        'limite_token_leccion',
-        
+
         'pgrado', //bachiller, pregrado, postgrado
     ];
     /**
@@ -42,49 +39,68 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    public function getCreatedAtAttribute() {
+    public function getCreatedAtAttribute()
+    {
         return date('d-m-Y H:i', strtotime($this->attributes['created_at']));
     }
 
-    public function getUpdatedAtAttribute() {
+    public function getUpdatedAtAttribute()
+    {
         return date('d-m-Y H:i', strtotime($this->attributes['updated_at']));
     }
 
-    public function getEmailVerifiedAtAttribute() {
-        return $this->attributes['email_verified_at'] == null ? null:date('d-m-Y H:i', strtotime($this->attributes['email_verified_at']));
+    public function getEmailVerifiedAtAttribute()
+    {
+        return $this->attributes['email_verified_at'] == null ? null : date('d-m-Y H:i', strtotime($this->attributes['email_verified_at']));
     }
 
-    public function getPermissionArray() {
+    public function getPermissionArray()
+    {
         return $this->getAllPermissions()->mapWithKeys(function ($pr) {
             return [$pr['name'] => true];
         });
     }
 
-    public function reportes() {
-		return $this->hasMany('App\Models\Reporte');
-	}
-    
+    public function reportes()
+    {
+        return $this->hasMany('App\Models\Reporte');
+    }
 
-    public function universidades(): BelongsToMany { return $this->BelongsToMany(Universidad::class); }
-    public function carreras(): BelongsToMany { return $this->BelongsToMany(Carrera::class); }
-    public function materias(): BelongsToMany { return $this->BelongsToMany(Materia::class); }
-    public function unidads() {
-        $result = $this->materias->flatMap(function($materia){
+
+    public function universidades(): BelongsToMany
+    {
+        return $this->BelongsToMany(Universidad::class);
+    }
+    public function carreras(): BelongsToMany
+    {
+        return $this->BelongsToMany(Carrera::class);
+    }
+    public function materias(): BelongsToMany
+    {
+        return $this->BelongsToMany(Materia::class);
+    }
+    public function unidads()
+    {
+        $result = $this->materias->flatMap(function ($materia) {
             return collect($materia->unidads);
         });
         // dd($result);
         return $result;
     }
 
-    public function estudiantesSinUniversidad($elrol) {
+    public function trabajadorsSinUniversidad($elrol)
+    {
         $this->doesntHave('universidad')
-        ->WhereHas('roles',function ($query) use ($elrol){
-            $query->where('name', $elrol );
-        })
-        ->get();
+            ->WhereHas('roles', function ($query) use ($elrol) {
+                $query->where('name', $elrol);
+            })
+            ->get();
     }
+<<<<<<< HEAD
 
     public function LosPromps() { return $this->belongsToMany(LosPromps::class ); }
 
 
+=======
+>>>>>>> a3a47f4b68ef3f01c9a880a3ed85bb7aff8eb3ae
 }

@@ -8,7 +8,40 @@ use Illuminate\Support\Facades\Log;
 
 // use Hamcrest\Type\IsInteger;
 
+//copis: 
+// operario
+// fecha
+// orden de trabajo
+// Centro de trabajo
+// actividad
+// disponibilidad
+// hora inicial
+// hora final
+// cantidad
+// Tiempo
+
 class Myhelp{
+    public static function CargosYModelos(){
+        //otros cargos NO_ADMIN
+        $nombresDeCargos = [
+            'trabajador',
+        ];
+        $isSome = [];
+        foreach ($nombresDeCargos as $key => $value) {
+            $isSome[] = 'is'.$value;
+        }
+        //arrrays for easyway
+        $Models = [
+            'user',
+            'role',
+            'permission',
+        ];
+        return [
+            'nombresDeCargos' => $nombresDeCargos,
+            'Models' => $Models,
+            'isSome' => $isSome,
+        ];
+    }
 
     //STRING S
     public function EncontrarEnString($frase, $busqueda) : array {
@@ -113,7 +146,7 @@ class Myhelp{
 
     public static function getPermissionToNumber($permissions) {
 
-        if($permissions == 'estudiante') return 1;
+        if($permissions == 'trabajador') return 1;
         if($permissions == 'profesor') return 2;
         if($permissions == 'coordinador_de_programa') return 3;
         if($permissions == 'coordinador_academico') return 4;
@@ -122,4 +155,4 @@ class Myhelp{
         return 0;
     }
 
-} ?>
+}

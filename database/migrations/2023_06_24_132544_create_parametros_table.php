@@ -15,11 +15,8 @@ class CreateParametrosTable extends Migration
     {
         Schema::create('parametros', function (Blueprint $table) {
             $table->id();
-			$table->text('prompEjercicios');
-			$table->text('prompObjetivos');
-			$table->text('pMejoraContinua');
-			$table->text('prompExplicarTema');
-			$table->integer('NumeroTicketDefecto');
+			$table->date('Fecha_creacion_parametro');
+			$table->text('nombre');
             $table->timestamps();
         });
     }
