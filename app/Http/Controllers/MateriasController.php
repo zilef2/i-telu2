@@ -345,8 +345,7 @@ class MateriasController extends Controller
         ]);
     }
 
-    private function UsuariosSinLosInscritos($modelo, $carrera)
-    {
+    private function UsuariosSinLosInscritos($modelo, $carrera) {
         $usuariosU = $carrera->users->pluck('id');
         $usuariosDeLaMateria = $modelo->users->pluck('id');
 

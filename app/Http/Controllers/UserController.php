@@ -34,12 +34,7 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-<<<<<<< HEAD
     public function index(UserIndexRequest $request) {
-=======
-    public function index(UserIndexRequest $request)
-    {
->>>>>>> a3a47f4b68ef3f01c9a880a3ed85bb7aff8eb3ae
         $permissions = Myhelp::EscribirEnLog($this, ' users');
         $numberPermissions = Myhelp::getPermissionToNumber($permissions);
 
@@ -242,11 +237,7 @@ class UserController extends Controller
         ];
 
         foreach ($contares as $key => $value) {
-<<<<<<< HEAD
             $$value = session($value,0);
-=======
-            $$value = session($value, 0);
->>>>>>> a3a47f4b68ef3f01c9a880a3ed85bb7aff8eb3ae
             session([$value => 0]);
             $bandera = $bandera || $$value > 0;
         }
@@ -255,13 +246,8 @@ class UserController extends Controller
         $mensaje = '';
         if ($bandera) {
             foreach ($mensajesWarnings as $key => $value) {
-<<<<<<< HEAD
                 if(${$contares[$key]} > 0){
                     $mensaje .= $value.${$contares[$key]}.'. ';
-=======
-                if (${$contares[$key]} > 0) {
-                    $mensaje .= $value . ${$contares[$key]} . '. ';
->>>>>>> a3a47f4b68ef3f01c9a880a3ed85bb7aff8eb3ae
                 }
             }
         }
@@ -282,14 +268,8 @@ class UserController extends Controller
 
                 Excel::import(new PersonalImport(), $request->archivo1);
 
-<<<<<<< HEAD
                 $countfilas = session('CountFilas', 0);     session(['CountFilas'=> 0]);
                 
-=======
-                $countfilas = session('CountFilas', 0);
-                session(['CountFilas' => 0]);
-
->>>>>>> a3a47f4b68ef3f01c9a880a3ed85bb7aff8eb3ae
                 $MensajeWarning = self::MensajeWar();
                 if ($MensajeWarning !== '') {
                     return back()->with('success', 'Usuarios nuevos: ' . $countfilas)

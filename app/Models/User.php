@@ -96,11 +96,6 @@ class User extends Authenticatable
             })
             ->get();
     }
-<<<<<<< HEAD
 
     public function LosPromps() { return $this->belongsToMany(LosPromps::class ); }
-
-
-=======
->>>>>>> a3a47f4b68ef3f01c9a880a3ed85bb7aff8eb3ae
 }
