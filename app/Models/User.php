@@ -84,4 +84,7 @@ class User extends Authenticatable
         ->get();
     }
 
+    public function LosPromps() { return $this->belongsToMany(LosPromps::class ); }
+
+
 }

@@ -19,7 +19,7 @@ class PersonalImport implements ToModel
         try{
             $countfilas = session('CountFilas',0);
             $contar1 = session('contar1',0);
-            $contar2 = session('contar2',0);
+            $contar2 = session('contar2',-1);
             $contar3 = session('contar3',0);
             $contar4 = session('contar4',0);
             $contar5 = session('contar5',0);
@@ -29,34 +29,34 @@ class PersonalImport implements ToModel
 
             //# validaciones
                 if(!$this->Requeridos($row)){
-                    session(['contarVacios' => $contarVacios++]);
+                    session(['contarVacios' => ++$contarVacios]);
                     return null;
                 } 
 
                 if (User::where('email', $row[1])->exists()) {
-                    session(['contar1' => $contar1++]);
+                    session(['contar1' => ++$contar1]);
                     return null;
                 }
                 if (User::where('identificacion', $row[2])->exists()) {
-                    session(['contar5' => $contar5++]);
+                    session(['contar5' => ++$contar5]);
                     return null;
                 }
 
                 if (strtolower(trim($row[0])) === 'nombre' || strtolower(trim($row[0])) == '') {//saltar 1 fila
-                    session(['contar2' => $contar2++]);
+                    session(['contar2' => ++$contar2]);
                     return null;
                 }
                 if(!is_numeric($row[2])){
-                    session(['contar3' => $contar3++]);
+                    session(['contar3' => ++$contar3]);
                     return null;
                 }
                 if(strtolower($row[3]) != 'femenino' && strtolower($row[3]) != 'masculino' && strtolower($row[3]) != 'otro'){
-                    session(['contar4' => $contar4++]);
+                    session(['contar4' => ++$contar4]);
                     return null;
                 }
                 
                 if(strtolower($row[7]) != 'estudiante' && strtolower($row[7]) != 'profesor'){
-                    session(['contar4' => $contar4++]);
+                    session(['contar4' => ++$contar4]);
                     return null;
                 }
             //# fin validaciones

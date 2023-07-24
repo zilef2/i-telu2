@@ -30,10 +30,14 @@ const form = useForm({
     nombre: '',
     descripcion: '',
     universidad_id: 1,
+    enum: 1,
+    codigo: 1,
 });
 
 const printForm = [
+    {idd: 'enum',label: 'enum', type:'number', value:form.enum},
     {idd: 'nombre',label: 'nombre', type:'text', value:form.nombre},
+    {idd: 'codigo',label: 'codigo', type:'number', value:form.codigo},
     {idd: 'descripcion',label: 'descripcion', type:'text', value:form.descripcion},
 ];
 
@@ -56,6 +60,8 @@ watchEffect(() => {
         form.nombre = props.carrera?.nombre
         form.descripcion = props.carrera?.descripcion
         form.universidad_id = props.carrera?.universidad_id
+        form.enum = props.carrera?.enum
+        form.codigo = props.carrera?.codigo
     }
 })
 </script>

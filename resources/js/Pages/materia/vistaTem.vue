@@ -8,8 +8,10 @@ import { reactive, watch, ref, watchEffect, onMounted } from 'vue';
 import pkg from 'lodash';
 import { router, useForm, Link } from '@inertiajs/vue3';
 
-import { sinTildes, ReemplazarTildes, textoSinEspaciosLargos } from '@/global.js';
 import zonalecciones from '@/Pages/materia/zonalecciones.vue';
+import vSelect from "vue-select"; import "vue-select/dist/vue-select.css";
+
+import { sinTildes, ReemplazarTildes, textoSinEspaciosLargos } from '@/global.js';
 
 // import { Configuration, OpenAIApi } from "openai";
 // const apiKeyZilef = import.meta.env.VITE_GTP_SELECT;
@@ -54,35 +56,50 @@ const props = defineProps({
     selectedPrompID: Number, // is in data.params
     ListaPromp: Object,
     selectedReasonString: String,
+
 })
 
 const data = reactive({
     params: {
         materiaid: props.materia.id,
-        
         pregunta: ''
     },
+    tipoResSelect:'',
     selectedPrompID: props.selectedPrompID,
     temaIDSelected: null,
     temaSelectedName: '',
     subtopSelected: '',
     temaReal: null,
     SubTopicoIDSelected: null,
+    ListaPromp: []
 })
 onMounted(() => {
     data.nivel = 3
+    data.tipoResSelect = [ { label: 'Practica', value: 'practica' }, { label: 'Teorica', value: 'teorica' } ]
+    data.ListaPromp = props.ListaPromp
 })
 
 // chatgpt form
 const form = useForm({
     nivel: 1,
     pregunta: '',
-    respuestagpt: props.respuesta
+    respuestagpt: props.respuesta,
+    tipoRes:'teorica',
 });
 
 watchEffect(() => {
-
+    if(data.selectedPrompID == null) data.selectedPrompID = 'Selecciona un promp'
+        data.ListaPromp = props.ListaPromp.filter(item => {
+            return item.tipo == form.tipoRes || item.tipo == 'General'
+        });
+});
+    
+watch(() => form.tipoRes, (newX) => {
+    //   console.log(`x is ${newX}`)
+    data.selectedPrompID = 'Selecciona un promp'
 })
+
+
 
 const paAbajo = () => {
     window.scrollTo(0, document.body.scrollHeight);
@@ -94,18 +111,29 @@ const submitToGPT = (ejercicioID) => {
         preserveScroll: true,
         onSuccess: () => { },
         onError: () => alert(JSON.stringify(form.errors, null, 4)),
-        onFinish: () => null,
+        onFinish: () => null
     })
 }
 
-// const Paso2PreguntarTema = (ejercicioID) => {
 const Paso1PreguntarTema = (subtemaid) => { //y traer su introduccion
-    if(data.selectedPrompID && form.nivel && subtemaid){
+    if(data.selectedPrompID && form.nivel && form.tipoRes && subtemaid){
         form.get(route('materia.VistaTema', [props.elid, 'explicar', form.nivel, subtemaid,data.selectedPrompID]), {
             preserveScroll: true,
             onSuccess: () => { },
             onError: () => null,
-            onFinish: () => null,
+            onFinish: () => null
+        })
+    }else{
+        alert('Falta informacion')
+    }
+}
+const Paso2Ejercicio = (subtemaid) => { 
+    if(data.selectedPrompID && form.nivel && form.tipoRes && subtemaid){
+        form.get(route('materia.VistaTema', [props.elid, 'practicar', form.nivel, subtemaid,data.selectedPrompID]), {
+            preserveScroll: true,
+            onSuccess: () => { },
+            onError: () => null,
+            onFinish: () => null
         })
     }else{
         alert('Falta informacion')
@@ -123,7 +151,6 @@ const IrPreguntas = (pregunta) => {
         onError: () => alert(JSON.stringify(form.errors, null, 4)),
         onFinish: () => null,
     }))
-
 }
 
 // fin chatgpt form
@@ -143,6 +170,7 @@ const IrPreguntas = (pregunta) => {
                             <h2
                                 class="block mx-auto text-lg text-gray-900 dark:text-white tracking-widest font-medium title-font mb-1">
                                 Recuerde utilizar los tokens restantes con precaución
+                                <!-- {{ data.selectedPrompID }}  - a -->
                             </h2>
                             <!-- <h3 class="block mx-auto text-md text-gray-700">Nivel: <b>{{ props.usuario.pgrado }}</b></h3> -->
                             <h3 class="block mx-auto text-lg text-gray-900 dark:text-white">Materia: <b>{{ props.materia.nombre }}</b></h3>
@@ -151,16 +179,24 @@ const IrPreguntas = (pregunta) => {
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 gap-6 mx-16 py-1">
-                        <div class="">
-                            <p class="mt-8">Seleccione la instruccion para la respuesta</p>
-                            <SelectInput v-model="data.selectedPrompID" :dataSet="props.ListaPromp" class="mt-1 mb-4 block w-full" />
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-3 gap-6 mx-16 py-1">
+                    
+                    <div class="grid grid-cols-2 gap-6 mx-16 py-1">
                         <div class="">
                             <p class="mt-8">Seleccione el nivel de la respuesta</p>
                             <SelectInput v-model="data.nivel" :dataSet="props.nivelSelect" class="mt-1 mb-4 block w-full" />
+                        </div>
+                        <div class="">
+                            <p class="mt-8">Seleccione el tipo de respuesta</p>
+                            <SelectInput v-model="form.tipoRes" :dataSet="data.tipoResSelect" class="mt-1 mb-4 block w-full" />
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 gap-6 mx-16 py-1">
+                        <div class="">
+                            <div id="SelectVue">
+                                <label name="labelSelectVue">Seleccione la instruccion para la respuesta</label>
+                                <v-select :options="data.ListaPromp" label="title" v-model="data.selectedPrompID"></v-select>
+                            </div>
+                            <!-- <SelectInput v-model="data.selectedPrompID" :dataSet="data.ListaPromp" class="mt-1 mb-4 block w-full" /> -->
                         </div>
                     </div>
 
@@ -202,17 +238,20 @@ const IrPreguntas = (pregunta) => {
                                                             ¡Quiz!
                                                         </template>
                                                     </VTooltip>
-                                                    <button @click="Paso1PreguntarTema(subtopicos.id)"
+                                                    <button v-if="form.tipoRes == 'teorica'" @click="Paso1PreguntarTema(subtopicos.id)"
                                                         class="mx-auto text-white bg-indigo-500 border-0 px-0.5 my-3 focus:outline-none hover:bg-indigo-900 rounded text-lg">
-                                                        {{ form.processing ? 'Por favor, espere...' : 'Comenzar leccion' }}
+                                                        {{ form.processing ? '...' : 'Leccion' }}
                                                     </button>
-
+                                                    <button v-else @click="Paso2Ejercicio(subtopicos.id)"
+                                                        class="mx-auto text-white bg-indigo-500 border-0 px-0.5 my-3 focus:outline-none hover:bg-indigo-900 rounded text-lg">
+                                                        {{ form.processing ? '...' : 'Practicar' }}
+                                                    </button>
                                                 </div>
 
                                             </div>
                                             <div v-else class="flex flex-col">
                                                 <div class="flex items-center">
-                                                    <p class="text-red-500">Sin subtopicos!</p>
+                                                    <p class="text-gray-300 text-sm">¡Sin subtopicos!</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -232,7 +271,7 @@ const IrPreguntas = (pregunta) => {
             </div>
             <div class="p-2 w-full">
                 <button
-                    class="flex mx-auto text-white bg-indigo-500 border-0 py-2 px-8 focus:outline-none hover:bg-indigo-600 rounded text-lg">
+                    class="flex mx-auto text-white bg-indigo-500 border-0 py-1 px-8 focus:outline-none hover:bg-indigo-600 rounded text-lg">
                     {{ form.processing ? 'Por favor, espere...' : '' }}
                 </button>
             </div>
@@ -370,4 +409,16 @@ const IrPreguntas = (pregunta) => {
 <style>
 textarea {
     @apply px-3 py-2 border border-gray-300 rounded-md;
-}</style>
+}
+
+[name = "labelSelectVue"],
+.muted {
+  color: #1b416699;
+}
+
+[name = "labelSelectVue"] {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+</style>

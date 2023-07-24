@@ -11,6 +11,7 @@ class Universidad extends Model
     use HasFactory;
 
     protected $fillable = [
+        'enum',
         'nombre',
         'codigo',
     ];

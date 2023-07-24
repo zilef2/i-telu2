@@ -163,8 +163,8 @@ data.UniversidadSelect = vectorSelect(data.UniversidadSelect,props.UniversidadSe
                                     <ArrowUpCircleIcon class=" h-24 lg:h-48 md:h-36 w-full object-cover object-center" />
 
                                     <div class="p-6">
-                                        <h3 class="title-font text-lg font-medium text-gray-900 mb-3">Subir estudiantes</h3>
-                                        <p class="leading-relaxed mb-3"> Este formulario solo permite cargar estudiantes</p>
+                                        <h3 class="title-font text-lg font-medium text-gray-900 mb-3">Matricular estudiantes</h3>
+                                        <p class="leading-relaxed mb-3"> Seleccione la universidad donde va a matricular los estudiantes</p>
 
                                         <form @submit.prevent="uploadEstudiantesUniversidad" id="upload">
                                             <div>

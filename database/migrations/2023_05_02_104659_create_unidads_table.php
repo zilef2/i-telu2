@@ -15,7 +15,9 @@ class CreateUnidadsTable extends Migration
     {
         Schema::create('unidads', function (Blueprint $table) {
             $table->id();
+			$table->string('codigo')->nullable();
             $table->string('nombre');
+			$table->string('enum')->default(1);
 			$table->string('descripcion')->nullable();
             $table->unsignedBigInteger('materia_id');
              

@@ -7,7 +7,8 @@
         const month = monthName((validDate.getMonth() + 1).toString().padStart(2, "0"));
         let year = validDate.getFullYear();
         let anioActual = new Date().getFullYear();
-        if(isDateTime ='conLaHora'){
+        if(isDateTime == 'conLaHora'){
+
             let hora = validDate.getHours();
             const AMPM = hora >= 12 ? ' PM' : ' AM';
             hora = hora % 12 || 12;
@@ -96,6 +97,9 @@
         let replacement = '';
         let result = value.replace(pattern, replacement);
         return result
+    }
+    export function NoUnderLines(value){
+        return value.replace(/[^a-zA-Z0-9]/g, ' ');
     }
 
 

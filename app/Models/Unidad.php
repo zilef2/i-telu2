@@ -15,6 +15,8 @@ class Unidad extends Model
         'nombre',
         'descripcion',
         'materia_id',
+        'codigo',
+        'enum',
     ];
 
     public function subtopicos(): HasMany

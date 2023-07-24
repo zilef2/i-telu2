@@ -17,12 +17,13 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class EjerciciosController extends Controller
 {
+    private $modelName = 'Ejercicio';
 
     // - MapearClasePP, Filtros
 
     public function MapearClasePP(&$ejercicios, $numberPermissions)
     {
-        if ($numberPermissions < 2) {
+        if ($numberPermissions < 4) {
             $subtemas = Auth::user()->materias->flatMap(function ($materia) {
                 return collect($materia->Tsubtemas);
             });
@@ -107,12 +108,14 @@ class EjerciciosController extends Controller
         $ListaControladoresYnombreClase = (explode('\\', get_class($this)));
         $nombreC = end($ListaControladoresYnombreClase);
         log::info('Vista: ' . $nombreC . 'U:' . Auth::user()->name . ' ||ejercicio|| ');
-
+        $modelInstance = resolve('App\\Models\\' . $this->modelName);
+        $ultima = $modelInstance::latest('enum')->first();
         try {
             $ejercicio = Ejercicio::create([
                 'nombre' => $request->nombre,
                 'descripcion' => $request->descripcion,
                 'subtopico_id' => $request->subtopico_id,
+                'enum' => $ultima->enum + 1
             ]);
             DB::commit();
             Log::info("U -> " . Auth::user()->name . " Guardo ejercicio " . $request->nombre . " correctamente");
@@ -146,6 +149,7 @@ class EjerciciosController extends Controller
                 'nombre' => $request->nombre,
                 'descripcion' => $request->descripcion,
                 'subtopico_id' => $request->subtopico_id,
+                'enum' => $request->enum,
             ]);
             DB::commit();
             Log::info("U -> " . Auth::user()->name . " actualizo ejercicio " . $request->nombre . " correctamente");

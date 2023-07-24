@@ -145,7 +145,16 @@ onMounted(() =>{
                                         <ChevronUpDownIcon class="w-4 h-4" />
                                     </div>
                                 </th>
-                                <th class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
+                                <!-- <th class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
+                                    <div class="flex justify-between items-center">
+                                        <span>
+                                            #
+                                        </span>
+                                        <ChevronUpDownIcon class="w-4 h-4" />
+                                    </div>
+                                </th> -->
+                                <th v-on:click="order('enum')"
+                                    class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
                                     <div class="flex justify-between items-center">
                                         <span>
                                             #
@@ -158,6 +167,15 @@ onMounted(() =>{
                                     <div class="flex justify-between items-center">
                                         <span>
                                             Nombre
+                                        </span>
+                                        <ChevronUpDownIcon class="w-4 h-4" />
+                                    </div>
+                                </th>
+                                <th v-on:click="order('codigo')"
+                                    class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
+                                    <div class="flex justify-between items-center">
+                                        <span>
+                                            Código
                                         </span>
                                         <ChevronUpDownIcon class="w-4 h-4" />
                                     </div>
@@ -216,8 +234,9 @@ onMounted(() =>{
                                         </div>
                                     </div>
                                 </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (index + 1) }}</td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.enum) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.nombre) }} </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.codigo) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.hijo) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.resultado_aprendizaje) }}
                                 </td>

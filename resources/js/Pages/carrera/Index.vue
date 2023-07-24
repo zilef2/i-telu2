@@ -56,7 +56,8 @@
     })
         
     const order = (field) => {
-        console.log("🧈 debu field:", field);
+    console.log("🧈 debu field:", field);
+
         data.params.field = field.replace(/ /g, "_")
 
         data.params.order = data.params.order === "asc" ? "desc" : "asc"
@@ -140,7 +141,7 @@ const PapaSelect = props.PapaSelect?.map(universidad => ({
                     <table class="w-full">
                         <thead class="uppercase text-sm border-t border-gray-200 dark:border-gray-700">
                             <tr class="dark:bg-gray-900 text-left">
-                                <th class="px-2 py-4 text-center">
+                                <th v-if="can(['isCoorPrograma']) && numberPermissions > 2" class="px-2 py-4 text-center">
                                     <Checkbox v-model:checked="data.multipleSelect" @change="selectAll" />
                                 </th>
                                 <th v-for="(titulos, indiceN) in nombresTabla[0]" :key="indiceN"
@@ -159,12 +160,12 @@ const PapaSelect = props.PapaSelect?.map(universidad => ({
                         <tbody>
                             <tr v-for="(clasegenerica, index) in fromController.data" :key="index"
                                 class="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-200/30 hover:dark:bg-gray-900/20">
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-center">
+                                <td v-if="can(['isCoorPrograma']) && numberPermissions > 2" class="whitespace-nowrap py-4 px-2 sm:py-3 text-center">
                                     <input type="checkbox" @change="select" :value="clasegenerica.id"
                                         v-model="data.selectedId"
                                         class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-primary dark:text-primary shadow-sm focus:ring-primary/80 dark:focus:ring-primary dark:focus:ring-offset-gray-800 dark:checked:bg-primary dark:checked:border-primary" />
                                 </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">
+                                <td v-if="numberPermissions > 3" class="whitespace-nowrap py-4 px-2 sm:py-3">
                                     <div class="flex justify-start items-center">
                                         <div class="rounded-md overflow-hidden">
                                             <InfoButton type="button"
@@ -185,12 +186,13 @@ const PapaSelect = props.PapaSelect?.map(universidad => ({
                                         </div>
                                     </div>
                                 </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (index+1) }}</td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica?.enum) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica?.nombre) }} </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica?.codigo) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica?.hijo) }} </td>
-                                <td v-if="props.numberPermissions > 1" class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica?.cuantosUs) }} </td>
+                                <td v-if="props.numberPermissions > 3" class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica?.cuantosUs) }} </td>
                                 <!-- <td v-if="props.numberPermissions > 1" class="whitespace-wrap break-words text-sm py-4 px-2 sm:py-3">{{ (clasegenerica?.tresPrimeros) }} </td> -->
-                                <td v-if="props.numberPermissions > 1" class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica?.descripcion) }} </td>
+                                <td v-if="props.numberPermissions > 3" class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica?.descripcion) }} </td>
                             </tr>
                         </tbody>
                     </table>

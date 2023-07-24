@@ -54,7 +54,10 @@ watchEffect(() => {
 })
 
 const teoricaOpracticaForSelec = [ { label: 'teorica', value: 'teorica' }, { label: 'practica', value: 'practica' } ];
-const clasificacionForSelec = [ { label: 'Expectativas Altas', value: 'Expectativas Altas' }, { label: 'Enseñanza Explicita', value: 'Enseñanza Explicita' } ];
+const clasificacionForSelec = [ 
+    { label: 'General', value: 'General' }, //Expectativas Altas
+    { label: 'Enseñanza Explicita', value: 'Enseñanza Explicita' }
+];
 
 </script>
 

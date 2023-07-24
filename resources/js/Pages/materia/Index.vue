@@ -173,9 +173,9 @@ const vistaIA = (elid)=>{
                     <table class="w-full">
                         <thead class="uppercase text-sm border-t border-gray-200 dark:border-gray-700">
                             <tr class="dark:bg-gray-900 text-left">
-                                <th class="px-2 py-4 text-center">
+                                <!-- <th class="px-2 py-4 text-center">
                                     <Checkbox v-model:checked="data.multipleSelect" @change="selectAll" />
-                                </th>
+                                </th> -->
                                 <th v-for="(titulos, indiceN) in nombresTabla[0]" :key="indiceN"
                                     v-on:click="order(nombresTabla[2][indiceN])"
                                     class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
@@ -189,38 +189,20 @@ const vistaIA = (elid)=>{
                         <tbody>
                             <tr v-for="(clasegenerica, index) in fromController.data" :key="index"
                                 class="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-200/30 hover:dark:bg-gray-900/20">
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-center">
+                                <!-- <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-center">
                                     <input type="checkbox" @change="select" :value="clasegenerica.id"
                                         v-model="data.selectedId"
                                         class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-primary dark:text-primary shadow-sm focus:ring-primary/80 dark:focus:ring-primary dark:focus:ring-offset-gray-800 dark:checked:bg-primary dark:checked:border-primary" />
-                                </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">
+                                </td> -->
+                                <td v-if="numberPermissions > 2" class="whitespace-nowrap py-4 px-2 sm:py-3">
                                     <div class="flex justify-start items-center">
                                         <div class="rounded-md overflow-hidden">
-                                            <!-- <InfoButton type="button" class="py-1.5 rounded-none"
-                                                v-tooltip="lang().tooltip.ver">
-                                                <Link :href="route('materia.show', clasegenerica.id)">
-                                                <EyeIcon class="w-6 h-4 px-0.5" />
-                                                </Link>
-                                            </InfoButton> -->
                                             <InfoButton type="button"
                                                 @click="(data.editOpen = true), (data.generico = clasegenerica)"
                                                 class="px-2 py-1.5 rounded-none" v-tooltip="lang().tooltip.edit">
                                                 <PencilIcon class="w-4 h-4" />
                                             </InfoButton>
-                                            <InfoButton type="button" class="py-1.5 rounded-none"
-                                                v-tooltip="lang().tooltip.preguntaria">
-                                                <Link :href="route('materia.VistaTema', clasegenerica.id)">
-                                                <QuestionMarkCircleIcon class="w-6 h-4 px-0.5" />
-                                                </Link>
-                                            </InfoButton>
-                                            <InfoButton type="button" class="py-1.5 rounded-none"
-                                                v-tooltip="lang().tooltip.inscribir">
-                                                <Link :href="route('materia.AsignarUsers', clasegenerica.id)">
-                                                <UserGroupIcon class="w-6 h-4 px-0.5" />
-                                                </Link>
-                                            </InfoButton>
-                                            <DangerButton type="button"
+                                            <DangerButton v-if="props.numberPermissions > 3" type="button"
                                                 @click="(data.deleteOpen = true), (data.generico = clasegenerica)"
                                                 class="px-2 py-1.5 rounded-none" v-tooltip="lang().tooltip.delete">
                                                 <TrashIcon class="w-4 h-4" />
@@ -228,15 +210,45 @@ const vistaIA = (elid)=>{
                                         </div>
                                     </div>
                                 </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (parseInt(index) + 1) }}</td>
+                                <td v-if="numberPermissions > 2" class="whitespace-nowrap py-4 px-2 sm:py-3">
+                                    <div class="flex justify-start items-center ml-6">
+                                        <div class="rounded-md overflow-hidden">
+                                            <InfoButton type="button" class="py-1.5 rounded-none"
+                                                v-tooltip="lang().tooltip.inscribir">
+                                                <Link :href="route('materia.AsignarUsers', clasegenerica.id)">
+                                                <UserGroupIcon class="w-7 h-7 px-0.5" />
+                                                </Link>
+                                            </InfoButton>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">
+                                    <div v-if="clasegenerica.cuantoshijos != 0" class="flex justify-start items-center">
+                                        <div class="rounded-md overflow-hidden">
+                                            <InfoButton type="button" class="rounded-lg"
+                                                v-tooltip="lang().tooltip.preguntaria">
+                                                <Link :href="route('materia.VistaTema', clasegenerica.id)">
+                                                <QuestionMarkCircleIcon class="w-8 h-8 p-1" />
+                                                </Link>
+                                            </InfoButton>
+                                        </div>
+                                    </div>
+                                    <div v-else class="flex justify-start items-center">
+                                        <div class="rounded-md overflow-hidden ml-6">
+                                            x
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-sm text-gay-600">{{ (clasegenerica.enum) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3 underline text-sky-700">
                                     <Link :href="route('materia.show', clasegenerica.id)">
                                         {{ (clasegenerica.nombre) }}
                                     </Link>
-                                 </td>
+                                </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-sm text-gay-600">{{ (clasegenerica.codigo) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-sm text-gay-600">{{ (clasegenerica.papa) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-sm text-gay-600">{{ (clasegenerica.cuantoshijos) }} </td>
-                                <td v-if="props.numberPermissions > 1" class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.muchos) }} </td>
+                                <td v-if="props.numberPermissions > 2" class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.muchos) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.objetivs) }} </td>
 
                                 <td class="whitespace-wrap break-words text-sm py-4 px-0">{{ PrimerasPalabras(clasegenerica.descripcion, 11) }} </td>

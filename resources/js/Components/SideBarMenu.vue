@@ -11,6 +11,8 @@ import {
 } from "@heroicons/vue/24/solid";
 import { Link } from '@inertiajs/vue3';
 import { reactive, watch } from 'vue';
+import { NoUnderLines} from '@/global.js';
+
 
 const data = reactive({
     showContent: false,
@@ -41,7 +43,7 @@ const toggleContent2 = () => {
                 </div>
             </span>
             <span class="block text-xs font-medium truncate">{{ $page.props.auth.user.email }}</span>
-            <span class="block text-sm font-medium truncate">{{ $page.props.auth.user.roles[0].name }}</span>
+            <span class="block text-sm font-medium truncate">{{ NoUnderLines($page.props.auth.user.roles[0].name) }}</span>
         </div>
 
 
@@ -96,14 +98,7 @@ const toggleContent2 = () => {
                 <span class="ml-3">{{ lang().label.parametros }}</span>
                 </Link>
             </li>
-            <li v-if="data.showContent" v-show="can(['isAdmin'])"
-                class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
-                :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('LosPromp.index') }">
-                <Link :href="route('LosPromp.index')" class="flex items-center py-2 px-4">
-                <PresentationChartLineIcon class="w-6 h-5" />
-                <span class="ml-3">{{ lang().label.losPromps }}</span>
-                </Link>
-            </li>
+            
 
 
 
@@ -157,6 +152,14 @@ const toggleContent2 = () => {
                 <Link :href="route('subtopico.index')" class="flex items-center py-1 px-4">
                 <PresentationChartLineIcon class="w-6 h-5" />
                 <span class="ml-3">{{ lang().label.subtopico }}</span>
+                </Link>
+            </li>
+            <li v-show="can(['isAdmin']) || can(['profesor']) || can(['coordinador_de_programa']) || can(['coordinador_academico'])"
+                class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
+                :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('LosPromp.index') }">
+                <Link :href="route('LosPromp.index')" class="flex items-center py-2 px-4">
+                <PresentationChartLineIcon class="w-6 h-5" />
+                <span class="ml-3">{{ lang().label.losPromps }}</span>
                 </Link>
             </li>
             <li v-show="can(['read ejercicio'])"

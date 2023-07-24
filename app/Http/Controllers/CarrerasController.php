@@ -18,8 +18,11 @@ use Inertia\Inertia;
 
 class CarrerasController extends Controller
 {
+
+    private $modelName = 'Carrera';
     //! funciones del index
-    public function MapearClasePP(&$Carreras, $numberPermissions) {
+    public function MapearClasePP(&$Carreras, $numberPermissions)
+    {
         $Carreras = $Carreras->get()->map(function ($carrera) use ($numberPermissions) {
 
             if ($numberPermissions < 4) {
@@ -41,33 +44,29 @@ class CarrerasController extends Controller
         })->filter();
     }
 
-    public function fNombresTabla($numberPermissions) {
-        $nombresTabla = [ //0: como se ven //1 como es la BD //2??
-            ["Acciones", "#"],
-            [],
-            [null, null, null]
-        ];
-        if ($numberPermissions < 2) { //estudiante
+    public function fNombresTabla($numberPermissions)
+    {
+        //0: como se ven //1 como es la BD //2orden
+        $nombresTabla = [[], [], []];
+        if ($numberPermissions <= 3) { //estudiante
 
-            array_push($nombresTabla[0], "nombre", "Universidad", "descripcion");
+            array_push($nombresTabla[0], "#", "nombre","codigo", "Universidad", "descripcion");
             //se puede ordenar?
-            $nombresTabla[2][] = ["s_nombre", "i_universidad_id", "s_descripcion"];
+            $nombresTabla[2][] = ["enum", "nombre","codigo", "universidad_id", "descripcion"];
         } else {
             // if($numberPermissions < 3){ //profesor
-            //0: como se ven //1 como es la BD //2 orden
-            $nombresTabla[0] = array_merge($nombresTabla[0], ["nombre", "Universidad", "Inscritos", "descripcion"]);
+            $nombresTabla[0] = array_merge($nombresTabla[0], ["Acciones", "#", "nombre","codigo", "Universidad", "Inscritos", "descripcion"]);
             //campos ordenables
-            $nombresTabla[2] = array_merge($nombresTabla[2], ["s_nombre", "i_universidad_id", "", "s_descripcion"]);
+            $nombresTabla[2] = array_merge($nombresTabla[2], [null, "enum", "nombre","codigo", "universidad_id", null, "descripcion"]);
         }
-        // dd($nombresTabla);
         //coordinador_academico
         // coordinador_de_programa
-
         return $nombresTabla;
     }
 
 
-    public function Filtros($request, &$Carreras) {
+    public function Filtros($request, &$Carreras)
+    {
         if ($request->has('selectedUniID') && $request->selectedUniID != 0) {
             $universidadid = Universidad::has('carreras')->where('id', $request->selectedUniID)->pluck('id')->toArray();
             $Carreras->whereIn('universidad_id', $universidadid);
@@ -81,16 +80,17 @@ class CarrerasController extends Controller
         }
 
         if ($request->has(['field', 'order'])) {
-            $Carreras->orderBy(substr($request->field, 2), $request->order);
+            // dd($request->field);
+            $Carreras->orderBy(($request->field), $request->order);
         } else {
             $Carreras->orderBy('nombre');
         }
     }
-    public function losSelect($numberPermissions) {
-        
-        if($numberPermissions < intval(env('PERMISS_VER_FILTROS_SELEC'))){ //coorPrograma,profe,estudiante
+    public function losSelect($numberPermissions)
+    {
+        if ($numberPermissions < intval(env('PERMISS_VER_FILTROS_SELEC'))) { //coordinador academico, coorPrograma,profe,estudiante
             $UniversidadSelect = Auth::user()->universidades;
-        }else{
+        } else {
             $UniversidadSelect = Universidad::has('carreras')->get();
         }
 
@@ -114,12 +114,11 @@ class CarrerasController extends Controller
 
 
         if ($permissions === "estudiante") {
-            $nombresTabla = $this->fNombresTabla($numberPermissions);
         } else { // not estudiante
             $this->Filtros($request, $Carreras);
             //0: como se ven //1 como es la BD //2 orden
-            $nombresTabla = $this->fNombresTabla($numberPermissions);
         }
+        $nombresTabla = $this->fNombresTabla($numberPermissions);
         $this->MapearClasePP($Carreras, $numberPermissions);
         $Select = $this->losSelect($numberPermissions);
 
@@ -192,8 +191,7 @@ class CarrerasController extends Controller
         ]);
     }
 
-    public function UsuariosSinLosInscritos($modelo, $universidad)
-    {
+    public function UsuariosSinLosInscritos($modelo, $universidad) {
         $usuariosU = $universidad->users->pluck('id');
         $usuariosDeLaCarrera = $modelo->users->pluck('id');
 
@@ -205,21 +203,22 @@ class CarrerasController extends Controller
 
     //fin index y sus funciones
 
-    public function create()
-    {
-    }
+    public function create() { }
 
-    public function store(CarreraRequest $request)
-    {
+    public function store(CarreraRequest $request) {
         DB::beginTransaction();
         Myhelp::EscribirEnLog($this, 'carrera');
 
         try {
+            $modelInstance = resolve('App\\Models\\' . $this->modelName);
+            $ultima = $modelInstance::Where('universidad_id', $request->universidad_id)->latest('enum')->first() ?? 1;
             $Carrera = Carrera::create([
                 'nombre' => $request->nombre,
                 //otrosCampos
                 'descripcion' => $request->descripcion,
                 'universidad_id' => $request->universidad_id,
+                'enum' => $request->enum,
+                'codigo' => $request->codigo
             ]);
             DB::commit();
             Log::info("U -> " . Auth::user()->name . " Guardo Carrera " . $request->nombre . " correctamente");
@@ -266,12 +265,13 @@ class CarrerasController extends Controller
     {
         DB::beginTransaction();
         Myhelp::EscribirEnLog($this, 'carrera');
-
         try {
             $Carrera->update([
                 'nombre' => $request->nombre,
                 'descripcion' => $request->descripcion,
                 'universidad_id' => $request->universidad_id,
+                'codigo' => $request->codigo,
+                'enum' => $request->enum,
             ]);
             DB::commit();
             Log::info("U -> " . Auth::user()->name . " actualizo Carrera " . $request->nombre . " correctamente");

@@ -3,7 +3,6 @@
 namespace App\helpers;
 
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
@@ -11,8 +10,29 @@ use Illuminate\Support\Facades\Log;
 
 class Myhelp{
 
-    public function redirect($ruta,$seconds =14)
-    {
+    //STRING S
+    public function EncontrarEnString($frase, $busqueda) : array {
+        $Resultado = [];
+        $NuevaPos = strlen($frase);
+        $ResultOnce = strpos($frase, $busqueda);
+
+        // if($busqueda == '[tema]')
+        // dd($ResultOnce);
+        //ResultOnce,  = 2
+        //frase,  = a [tema]
+        //busqueda,  = [tema]
+        //strlen($frase)  =  8
+
+        while($ResultOnce !== false && $ResultOnce < $NuevaPos) {
+            $Resultado[] = $ResultOnce;
+            $NuevaPos = $ResultOnce + strlen($busqueda);
+            $ResultOnce = strpos($frase, $busqueda, $NuevaPos);
+        }
+        return $Resultado;
+    }
+
+    //LARAVEL
+    public function redirect($ruta,$seconds =14) {
         sleep($seconds);
         return redirect()->to($ruta);
     }
@@ -95,8 +115,8 @@ class Myhelp{
 
         if($permissions == 'estudiante') return 1;
         if($permissions == 'profesor') return 2;
-        if($permissions == 'coordinador_academico') return 3;
-        if($permissions == 'coordinador_de_programa') return 4;
+        if($permissions == 'coordinador_de_programa') return 3;
+        if($permissions == 'coordinador_academico') return 4;
         if($permissions == 'admin') return 5;
         if($permissions == 'superadmin') return 6;
         return 0;

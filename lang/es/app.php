@@ -2,9 +2,13 @@
 
 return [
     'label' => [
+        'enum' => 'Numeración',
         //losPromps
         'losPromps' => 'Instrucciones',
         'LosPromps' => 'Instrucciones',
+        'teoricaOpractica' => 'Teorica o Practica',
+        'clasificacion' => 'Clasificación',
+        'tokens' => 'Cuantos tokens gastará?',
 
 
         //asignar - materia
@@ -54,6 +58,9 @@ return [
         'UnObjetivo' => 'Describa el objetivo de la materia',
         'otroObjetivo' => 'Puede agregar un objetivo extras a la materia (opcional)',
 
+        //each rol
+        'codigo' => 'Código',
+        'coordinador_academico' => 'Coordinador Academico',
         //each model
         'universidadCarreras' => 'Universidad y Carreras',
         'carrera' => 'carrera',

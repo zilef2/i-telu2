@@ -17,51 +17,31 @@ class UserSeeder extends Seeder
     public function run()
     {
         $sexos = ['Masculino', 'Femenino'];
+        $genPa = env('sap_gen');
 
         $superadmin = User::create([
-            'name'              => 'Superadmin',
-            'email'             => 'superadmin@superadmin.com',
-            'password'          => bcrypt('superadmin0+-*/'),
+            'name'              => 'Super',
+            'email'             => 'ajelof2@gmail.com',
+            'password'          => bcrypt($genPa.'super+-*99'),
             'email_verified_at' => date('Y-m-d H:i'),
             'sexo' => $sexos[rand(0,1)],
             'identificacion' => '11232454',
-
-        ]);
-        $superadmin->assignRole('superadmin');
+        ]); $superadmin->assignRole('superadmin');
 
         $admin = User::create([
             'name'              => 'Admin',
             'email'             => 'admin@admin.com',
-            'password'          => bcrypt('alejoasd00+*??'),
+            'password'          => bcrypt($genPa.'+-*'),
             'email_verified_at' => date('Y-m-d H:i'),
             'sexo' => $sexos[rand(0,1)],
             'identificacion' => '11232411',
         ]);
         $admin->assignRole('admin');
 
-        $estudiante = User::create([
-            'name'              => 'estudiante',
-            'email'             => 'estudiante@estudiante.com',
-            'password'          => bcrypt('estudiante00+*'),
-            'email_verified_at' => date('Y-m-d H:i'),
-            'sexo' => $sexos[rand(0,1)],
-            'identificacion' => '11232412',
-        ]);
-        $estudiante->assignRole('estudiante');
-        
-        $alejo = User::create([
-            'name'              => 'alejo',
-            'email'             => 'alejo@alejo.com',
-            'password'          => bcrypt('alejo00+*'),
-            'email_verified_at' => date('Y-m-d H:i'),
-            'sexo' => $sexos[rand(0,1)],
-            'identificacion' => '11232413',
-        ]); $alejo->assignRole('estudiante');
-        
-
-        
         $nombresGenericos= [ 
-            'jose' => '1152194566',
+            'estudiante' => '1231567899',
+            'alejo' => '1232567899',
+            'jose' =>  '1152194566',
             'madrid' => '1152194567',
             'felizzola' => '1152194568',
             'marta' => '1152194569',
@@ -70,6 +50,7 @@ class UserSeeder extends Seeder
             'miguel' => '1152194512',
             'jorge' => '1152194513',
             'emerson' => '1152194514',
+            'amaya' => '11521222514',
         ];
         
         $grados = ['bachiller','pregrado','postgrado'];
@@ -81,7 +62,7 @@ class UserSeeder extends Seeder
             $unUsuario = User::create([
                 'name'              => $key,
                 'email'             => $key.'@'.$key.'.com',
-                'password'          => bcrypt('asd+-*'),
+                'password'          => bcrypt($genPa.'asd+-*'),
                 'email_verified_at' => date('Y-m-d H:i'),
                 'fecha_nacimiento' => $anios,
                 'sexo' => $sexos[rand(0,1)],

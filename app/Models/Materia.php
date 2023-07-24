@@ -19,6 +19,7 @@ class Materia extends Model {
 
         'justificacion',
         'codigo',
+        'enum',
     ];
 
     public function unidads(): HasMany {

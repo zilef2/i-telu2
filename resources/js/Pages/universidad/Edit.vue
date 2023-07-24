@@ -25,10 +25,14 @@ const emit = defineEmits(["close"]);
 
 const form = useForm({
     nombre: '',
+    enum: '',
+    codigo: '',
 });
 
 const printForm = [
     {idd: 'nombre',label: 'nombre', type:'text', value:form.nombre},
+    {idd: 'enum',label: 'enum', type:'number', value:form.enum},
+    {idd: 'codigo',label: 'codigo', type:'number', value:form.codigo},
 ];
 
 const update = () => {
@@ -48,6 +52,8 @@ watchEffect(() => {
     if (props.show) {
         form.errors = {}
         form.nombre = props.universidad?.nombre
+        form.enum = props.universidad?.enum
+        form.codigo = props.universidad?.codigo
     }
 })
 </script>
@@ -59,12 +65,13 @@ watchEffect(() => {
                 <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
                     {{ lang().label.edit }} {{ props.title }}
                 </h2>
-                <div class="my-6 grid grid-cols-1 gap-6">
+                <div class="my-6 grid grid-cols-2 gap-6">
                     <div v-for="(atributosform, indice) in printForm" :key="indice">
-                        <InputLabel :for="atributosform.label" :value="atributosform.value" />
+                        <InputLabel :for="atributosform.label" :value="lang().label[atributosform.label]" />
+
                         <TextInput :id="atributosform.idd" :type="atributosform.type" class="mt-1 block w-full"
-                            v-model="form[atributosform.idd]" required
-                            :placeholder="atributosform.label" :error="form.errors[atributosform.idd]" />
+                            v-model="form[atributosform.idd]" required :placeholder="atributosform.label"
+                            :error="form.errors[atributosform.idd]" />
                     </div>
                 </div>
                 <div class="flex justify-end">

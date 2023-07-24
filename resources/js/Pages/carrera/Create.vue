@@ -28,6 +28,8 @@ const form = useForm({
     nombre: '',
     descripcion: '',
     universidad_id: 1,
+    codigo: '',
+    enum: '',
 })
 
 const create = () => {

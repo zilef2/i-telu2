@@ -26,6 +26,7 @@ class SubtopicoRequest extends FormRequest
         return
         [
 			'nombre' => 'required',
+			'unidad_id' => 'required|integer|min:1',
 			// 'descripcion' => 'required',
         ];
     }

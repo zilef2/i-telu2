@@ -13,11 +13,9 @@ use App\Models\Role;
 use App\Models\Universidad;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Session;
 use Maatwebsite\Excel\Facades\Excel;
 
 class UserController extends Controller
@@ -36,8 +34,9 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(UserIndexRequest $request)
-    {
+    public function index(UserIndexRequest $request) {
+        $permissions = Myhelp::EscribirEnLog($this, ' users');
+        $numberPermissions = Myhelp::getPermissionToNumber($permissions);
 
         $users = User::query();
         if ($request->has('search')) {
@@ -45,20 +44,18 @@ class UserController extends Controller
                 $query->where('name', 'LIKE', "%" . $request->search . "%")
                     ->orWhere('email', 'LIKE', "%" . $request->search . "%")
                     ->orWhere('identificacion', 'LIKE', "%" . $request->search . "%")
-                    ->orWhere('pgrado', 'LIKE', "%" . $request->search . "%")
-                    ->orWhere('semestre', 'LIKE', "%" . $request->search . "%");
+                    ->orWhere('pgrado', 'LIKE', "%" . $request->search . "%");
             })
                 ->where('name', '!=', 'admin')
                 ->where('name', '!=', 'Superadmin');
 
             // $users->where('name', 'LIKE', "%" . $request->search . "%");
-        } else {
-            Myhelp::EscribirEnLog($this, 'INDEX:users', 'index', false);
         }
 
         if ($request->has(['field', 'order'])) {
             $users = $users->orderBy($request->field, $request->order);
         }
+
         $perPage = $request->has('perPage') ? $request->perPage : 10;
         $role = auth()->user()->roles->pluck('name')[0];
         $roles = Role::get();
@@ -70,12 +67,13 @@ class UserController extends Controller
         }
 
         return Inertia::render('User/Index', [
+            'breadcrumbs'   => [['label' => __('app.label.user'), 'href' => route('user.index')]],
             'title'         => __('app.label.user'),
             'filters'       => $request->all(['search', 'field', 'order']),
             'perPage'       => (int) $perPage,
             'users'         => $users->with('roles')->paginate($perPage),
             'roles'         => $roles,
-            'breadcrumbs'   => [['label' => __('app.label.user'), 'href' => route('user.index')]],
+            'numberPermissions'         => $numberPermissions,
         ]);
     }
 
@@ -121,7 +119,8 @@ class UserController extends Controller
             return back()->with('success', __('app.label.created_successfully', ['name' => $user->name]));
         } catch (\Throwable $th) {
             DB::rollback();
-            Myhelp::EscribirEnLog($this, 'STORE:users', 'usuario id:' . $user->id . ' | ' . $user->name . ' fallo en el guardado', false);
+            if(isset($user)) Myhelp::EscribirEnLog($this, 'STORE:users', 'usuario id:' . $user->id ?? 'x' . ' | ' . $user->name ?? 'x' . ' fallo en el guardado', false);
+            else Myhelp::EscribirEnLog($this, 'STORE:users', 'usuario desconocido, fallo en el guardado', false);
             return back()->with('error', __('app.label.created_error', ['name' => __('app.label.user')]) . $th->getMessage());
         }
     }
@@ -233,16 +232,17 @@ class UserController extends Controller
 
         foreach ($contares as $key => $value) {
             $$value = session($value,0);
-            dd($$value,$value,session('contar1',0));
             session([$value => 0]);
-            $bandera = $$value > 0;
+            $bandera = $bandera || $$value > 0;
         }
+        session(['contar2' => -1]);
 
         $mensaje = '';
         if($bandera){
             foreach ($mensajesWarnings as $key => $value) {
-                if($$contares[$key] > 0)
-                    $mensaje .= $value.$contares[$key].'. ';
+                if(${$contares[$key]} > 0){
+                    $mensaje .= $value.${$contares[$key]}.'. ';
+                }
             }
         }
 
@@ -262,8 +262,7 @@ class UserController extends Controller
                 Excel::import(new PersonalImport(), $request->archivo1);
 
                 $countfilas = session('CountFilas', 0);     session(['CountFilas'=> 0]);
-dd(session('contar1',0));
-
+                
                 $MensajeWarning = self::MensajeWar();
                 if($MensajeWarning !== ''){
                     return back()->with('success', 'Usuarios nuevos: '.$countfilas)

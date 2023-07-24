@@ -25,6 +25,8 @@ class UnidadsController extends Controller
     public $respuestaLarga = 'La respuesta es demasiado extensa';
     public $MAX_USAGE_RESPUESTA = 550;
     public $MAX_USAGE_TOTAL = 600;
+    private $modelName = 'Unidad';
+
 
     public function MapearClasePP(&$unidads, $numberPermissions) {
         $unidads = $unidads->get()->map(function ($Unidad) use ($numberPermissions) {
@@ -38,27 +40,23 @@ class UnidadsController extends Controller
     }
 
     public function fNombresTabla($numberPermissions) {
-        $nombresTabla = [ //0: como se ven //1 como es la BD //2??
-            ["Acciones", "#"],
+        $nombresTabla = [ //0: como se ven //1 como es la BD //2orden
+            ["Acciones"],
             [],
-            [null, null, null]
+            [null]
         ];
-        // if($numberPermissions < 2) { //estudiante
-        //     array_push($nombresTabla[0], "nombre","materia", "descripcion");
-        //     $nombresTabla[2][] = ["s_nombre","s_materia", "s_descripcion"];
-        // }
-
-        array_push($nombresTabla[0], "nombre", "materia", "descripcion");
-        $nombresTabla[2][] = ["s_nombre", "s_materia", "s_descripcion"];
-
-        // if($numberPermissions < 3){ //profesor
-        // }
-        //coordinador_academico
-        // coordinador_de_programa
-
+        $nombresTabla[2] = array_merge($nombresTabla[2], ["enum", "nombre","codigo", "materia_id", "descripcion"]);
+        $nombresTabla[0] = array_merge($nombresTabla[0], ["#", "nombre","codigo", "materia", "descripcion"]);
         return $nombresTabla;
     }
     public function Filtros($request, &$unidads, $numberPermissions) {
+        if ($numberPermissions < intval(env('PERMISS_VER_FILTROS_SELEC'))) { //coorPrograma,profe,estudiante
+            $MateriasSelect = Auth::user()->materias->pluck('id');
+
+            $unidads->WhereIn('materia_id',$MateriasSelect);
+        }
+
+
         $showCarrera = null;
         if ($request->has('selectedMatID') && $request->selectedMatID != 0) {
             $showCarrera = Carrera::find(Materia::find($request->selectedMatID)->carrera_id);
@@ -66,7 +64,6 @@ class UnidadsController extends Controller
             $materiasid = Materia::has('unidads')->where('id', $request->selectedMatID)->pluck('id')->toArray();
             $unidads->whereIn('materia_id', $materiasid);
         }
-        //todo: validar que un estudiante no vea todos las unidades de otras universidades
         if ($request->has('search')) {
             $unidads->where('descripcion', 'LIKE', "%" . $request->search . "%");
             // $unidads->whereMonth('descripcion', $request->search);
@@ -75,6 +72,7 @@ class UnidadsController extends Controller
         }
 
         if ($request->has(['field', 'order'])) {
+            // dd($request->field);
             $unidads->orderBy($request->field, $request->order);
         } else {
             $unidads->orderBy('nombre');
@@ -83,9 +81,9 @@ class UnidadsController extends Controller
         return $showCarrera;
     }
     public function losSelect($numberPermissions) {
-        if($numberPermissions < intval(env('PERMISS_VER_FILTROS_SELEC'))){ //coorPrograma,profe,estudiante
+        if ($numberPermissions < intval(env('PERMISS_VER_FILTROS_SELEC'))) { //coorPrograma,profe,estudiante
             $MateriasSelect = Auth::user()->materias;
-        }else{
+        } else {
             $MateriasSelect = Materia::all();
         }
         return [
@@ -105,14 +103,10 @@ class UnidadsController extends Controller
         $perPage = $request->has('perPage') ? $request->perPage : 10;
         $numberPermissions = Myhelp::getPermissionToNumber($permissions);
         $showCarrera = null;
-        if ($permissions === "estudiante") {
-
-            $nombresTabla = $this->fNombresTabla($numberPermissions);
-        } else { // not estudiante
-            //todo: si es profe, solo muestre los unidads de sus materias
+        if ($permissions !== "estudiante") {
             $showCarrera = $this->Filtros($request, $unidads, $numberPermissions);
-            $nombresTabla = $this->fNombresTabla($numberPermissions);
         }
+        $nombresTabla = $this->fNombresTabla($numberPermissions);
         $this->MapearClasePP($unidads, $numberPermissions);
 
         $Select = $this->losSelect($numberPermissions);
@@ -140,20 +134,20 @@ class UnidadsController extends Controller
         ]);
     } //fin index
 
-    public function create()
-    {
-    }
-    public function store(UnidadRequest $request)
-    {
+    public function create() { }
+    public function store(UnidadRequest $request) {
         DB::beginTransaction();
         Myhelp::EscribirEnLog($this, get_called_class(), '', false);
-
+        $modelInstance = resolve('App\\Models\\' . $this->modelName);
+        $ultima = $modelInstance::latest('enum')->first();
         try {
             $Unidad = Unidad::create([
                 'nombre' => $request->nombre,
                 //otrosCampos
                 'descripcion' => $request->descripcion,
                 'materia_id' => $request->materia_id,
+                'enum' => $request->enum,
+                'codigo' => $request->codigo
             ]);
 
             if ($request->nsubtemas) {
@@ -178,12 +172,8 @@ class UnidadsController extends Controller
         }
     }
 
-    public function show(Unidad $Unidad)
-    {
-    }
-    public function edit(Unidad $Unidad)
-    {
-    }
+    public function show(Unidad $Unidad) { }
+    public function edit(Unidad $Unidad) { }
 
     public function update(Request $request, $id)
     {
@@ -198,6 +188,8 @@ class UnidadsController extends Controller
                 'nombre' => $request->nombre,
                 'descripcion' => $request->descripcion,
                 'materia_id' => $request->materia_id,
+                'enum' => $request->enum,
+                'codigo' => $request->codigo
             ]);
             DB::commit();
             Log::info("U -> " . Auth::user()->name . " actualizo Unidad " . $request->nombre . " correctamente");

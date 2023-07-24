@@ -67,7 +67,7 @@ const emit = defineEmits(["open"])
                                                 v-show="$page.props.auth.user.email_verified_at" />
                                         </span>
                                         <span class="block text-sm font-medium text-gray-500 truncate dark:text-gray-400">
-                                            {{ $page.props.auth.user.email }}
+                                            {{ $page.props.auth.user.email }} 
                                         </span>
                                         <!-- <span class="block text-sm font-medium text-gray-500 truncate dark:text-gray-400">
                                             {{ $page.props.auth.user.id }}

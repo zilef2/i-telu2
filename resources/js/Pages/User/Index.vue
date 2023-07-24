@@ -28,6 +28,7 @@ const props = defineProps({
     roles: Object,
     breadcrumbs: Object,
     perPage: Number,
+    numberPermissions: Number,
 })
 const data = reactive({
     params: {
@@ -86,7 +87,6 @@ const form = useForm({
 })
 
 watchEffect(() => {
-    console.log(form.archivo1.name)
     data.ArchivoNombre = form.archivo1?.name
 })
 
@@ -131,7 +131,7 @@ watchEffect(() => {
                     </div>
                     <TextInput v-if="props.numberPermissions > 1" v-model="data.params.search" type="text"
                         class="block w-4/6 md:w-3/6 lg:w-2/6 rounded-lg"
-                        placeholder="Nombre, correo, nivel, ID o semestre " />
+                        placeholder="Nombre, correo, nivel o ID " />
                 </div>
                 <div class="overflow-x-auto scrollbar-table">
                     <table class="w-full">
@@ -202,7 +202,9 @@ watchEffect(() => {
                         </thead>
                         <tbody>
                             <tr v-for="(user, index) in users.data" :key="index"
-                                class="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-200/30 hover:dark:bg-gray-900/20">
+                                class="border-t border-gray-200 dark:border-gray-700 hover:bg-sky-100 hover:dark:bg-gray-900/20"
+                                :class="index % 2 == 0 ? 'bg-gray-200' : ''">
+
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-center">
                                     <input
                                         class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-primary dark:text-primary shadow-sm focus:ring-primary/80 dark:focus:ring-primary dark:focus:ring-offset-gray-800 dark:checked:bg-primary dark:checked:border-primary"

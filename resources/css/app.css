@@ -7,6 +7,12 @@
 
 
 /* zilef */
+body {
+    font-family: "Source Sans Pro", "Helvetica Neue", Arial, sans-serif;
+    text-rendering: optimizelegibility;
+    -moz-osx-font-smoothing: grayscale;
+    -moz-text-size-adjust: none;
+  }
 /* fin zilef */
 
 

@@ -35,11 +35,9 @@ const props = defineProps({
 const data = reactive({
     params: {
         // perPage: props.perPage,
-
     },
     vectorMostrar: []
     // selectedId: [],  
-    // multipleSelect: false,
 })
 
 const order = (field) => {
@@ -75,11 +73,12 @@ onMounted(() => {
         <section class="text-gray-600 body-font overflow-hidden">
             <!-- <h2 class="text-sm title-font text-gray-500 tracking-widest">Materia</h2> -->
             <h1 class="text-gray-900 text-3xl title-font font-medium mb-4">{{ props.fromController.nombre }} </h1>
-            <h1 class="text-gray-900 text-xl title-font font-medium my-4">Objetivos </h1>
-
+            <h1 class="text-gray-900 text-lg title-font font-medium mb-4">{{ props.fromController.descripcion }} </h1>
+            <h1 class="text-gray-900 text-xl title-font font-medium my-6">Objetivos </h1>
             <ul class="list-decimal">
                 <li v-for="objetivo in props.objetivos" class="text-gray-900 text-xl title-font font-medium mb-4">{{
-                    objetivo.nombre }} </li>
+                    objetivo.nombre
+                }} </li>
             </ul>
 
             <div v-if="props.unidads.length" class="lg:w-4/5 w-full mx-auto overflow-auto">
@@ -113,7 +112,7 @@ onMounted(() => {
                             </td>
                             <td v-if="(typeof Unidad.sub !== 'undefined')">
                                 <ul class="list-inside">
-                                    <li v-for="(subtema, subindex) in tema.sub" class="px-4 py-3">{{
+                                    <li v-for="(subtema, subindex) in Unidad.sub" class="px-4 py-3">{{
                                         subtema.resultado_aprendizaje }}</li>
                                 </ul>
                             </td>
@@ -123,7 +122,7 @@ onMounted(() => {
                 </table>
             </div>
             <p v-else class="text-xl text-ellipsis text-orange-800">
-                No hay unidads regsitrados para esta materia
+                No hay unidades registrados para esta materia
             </p>
             <!-- todo: ir a la IA -->
             <!-- <div class="flex pl-4 mt-4 lg:w-2/3 w-full mx-auto">

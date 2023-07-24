@@ -32,36 +32,20 @@ class UniversidadsController extends Controller
         }
 
         public function fNombresTabla($numberPermissions) {
-            if($numberPermissions < 2) { //estudiante
-                //todo: esto ni se muestra a los estudiantes
-
-                $nombresTabla =[//0: como se ven //1 como es la BD //2??
-                    ["Acciones","#"],
-                    [],
-                    [null,null,null]
-                ];
-                $nombresTabla[0][] = ["nombre", "observaciones"];
-                
-                //m for money || t for datetime || d date || i for integer || s string || b boolean 
-                $nombresTabla[1][] = ["s_nombre", "s_descripcion"]; 
-                
-                //campos ordenables
-                $nombresTabla[2][] = ["s_nombre", "s_descripcion"]; 
+            if($numberPermissions < 5) { //coor_academico TO estudiante
+                $nombresTabla[0] = ["#","nombre", "codigo","# Inscritos"];
+                $nombresTabla[2] = ["enum","nombre", "codigo",null];
                 return $nombresTabla;
             }
 
-            // if($numberPermissions < 3){ //profesor
-
-                $nombresTabla =[//0: como se ven //1 como es la BD //2 orden
-                    ["Acciones","#"],
-                    [],
-                    [null,null]
-                ];
-                $nombresTabla[0] = array_merge($nombresTabla[0] , ["nombre","# Inscritos","Inscritos"]);
-                //campos ordenables
-                $nombresTabla[2] = array_merge($nombresTabla[2] , ["s_nombre","",""]);
-                return $nombresTabla;
-            // }
+            $nombresTabla =[//0: como se ven //1 como es la BD //2 orden
+                ["Acciones"],
+                [],
+                [null]
+            ];
+            $nombresTabla[0] = array_merge($nombresTabla[0] , ["Num","nombre","codigo","# Inscritos","Inscritos"]);
+            $nombresTabla[2] = array_merge($nombresTabla[2] , ["enum","nombre","codigo",null,null]);
+            return $nombresTabla;
         }
         public function Filtros($request, &$Universidads) {
             if ($request->has('search')) {
@@ -71,7 +55,7 @@ class UniversidadsController extends Controller
             }
             
             if ($request->has(['field', 'order'])) {
-                $Universidads->orderBy(substr($request->field,2), $request->order);
+                $Universidads->orderBy($request->field, $request->order);
             }else{
                 $Universidads->orderBy('nombre');
             }
@@ -87,11 +71,9 @@ class UniversidadsController extends Controller
         $Universidads = Universidad::query();
         
         $numberPermissions = Myhelp::getPermissionToNumber($permissions);
+        $nombresTabla = $this->fNombresTabla($numberPermissions);
         if($permissions === "estudiante") {
-            $nombresTabla = $this->fNombresTabla($numberPermissions);
-
         }else{ // not estudiante
-            $nombresTabla = $this->fNombresTabla($numberPermissions);
             $this->Filtros($request, $Universidads);
         }
 
@@ -131,19 +113,7 @@ class UniversidadsController extends Controller
         }
 
         $universidad = universidad::find($universidadid);
-        // $users = User::query();
         $filtroUser = $this->UsuariosSinLosInscritos($universidad,$request);
-        // if(count($filtroUser->si) > 0){
-        //     $users->whereNotIn('users.id',$filtroUser->no)
-        //         ->whereIn('users.id',$filtroUser->si);
-
-        // if ($request->has('search')) {
-        //     $users->Where(function($query) use ($request){
-        //         $query->where('name', 'LIKE', "%" . $request->search . "%");
-        //         $query->orWhere('email', 'LIKE', "%" . $request->search . "%");
-        //         $query->orWhere('identificacion', 'LIKE', "%" . $request->search . "%");
-        //     });
-        // }
 
         return Inertia::render('universidad/AsignarUsers', [ //carpeta
             'title'          =>  $titulo,
@@ -170,8 +140,12 @@ class UniversidadsController extends Controller
         $profDeLaU = $modelo->estudiantes($modelo->id,true,'profesor');
         $profDeOtraU = User::whereNotIn('id',$profDeLaU->pluck('users.id'))
             ->WhereHas('roles',function ($query){
-                $query->where('name', 'profesor');
+                $query->whereNot('name', 'estudiante')
+                ->WhereNotIn('name',['superadmin','admin'])
+                ;
         });
+
+
         if ($request->has('search')) {
             $estudiantesDeLaU->Where(function($query) use ($request){
                 $query->where('name', 'LIKE', "%" . $request->search . "%");
@@ -216,7 +190,8 @@ class UniversidadsController extends Controller
         try {
             $Universidad = Universidad::create([
                 'nombre' => $request->nombre,
-                //otrosCampos
+                'enum' => $request->enum,
+                'codigo' => $request->codigo,
             ]);
             DB::commit();
             Log::info("U -> ".Auth::user()->name." Guardo Universidad ".$request->nombre." correctamente");
@@ -291,8 +266,8 @@ class UniversidadsController extends Controller
         try {
             $Universidad->update([
                 'nombre' => $request->nombre,
-
-                //otrosCampos
+                'enum' => $request->enum,
+                'codigo' => $request->codigo,
             ]);
             DB::commit();
             Log::info("U -> ".Auth::user()->name." actualizo Universidad ".$request->nombre." correctamente");

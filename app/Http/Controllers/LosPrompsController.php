@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\helpers\HelpGPT;
 use App\helpers\Myhelp;
 use App\Models\LosPromps;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
-use App\Models\Subtopico;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -82,18 +82,34 @@ class LosPrompsController extends Controller
 
     public function store(Request $request) {
         DB::beginTransaction();
-        $ListaControladoresYnombreClase = (explode('\\', get_class($this)));
-        $nombreC = end($ListaControladoresYnombreClase);
-        log::info('Vista: ' . $nombreC . 'U:' . Auth::user()->name . ' ||LosPromp|| ');
-
+        $permissions = Myhelp::EscribirEnLog($this, 'LosPromp');
+        $numberPermissions = Myhelp::getPermissionToNumber($permissions);
         try {
-            $LosPromp = LosPromps::create([
-                'principal' => $request->principal,
-                'teoricaOpractica' => $request->teoricaOpractica,
-                'clasificacion' => $request->clasificacion,
-            ]);
-            DB::commit();
-            Log::info("U -> " . Auth::user()->name . " Guardo LosPromp " . $request->nombre . " correctamente");
+            $IntegerMispromps = 0;
+            if($numberPermissions < 4){ 
+                $IntegerMispromps = Auth::user()->LosPromps()->count();
+            }
+            $limitePromps = intval(env('LIMITEPROMPSPERSONA'));
+            if($IntegerMispromps >= $limitePromps){
+                return back()->with('warning', __('app.label.created_error', ['nombre' => 'Numero maximo de registros']));
+            }
+            $promptTemporal = $request->principal;
+            $contador = HelpGPT::contarModificarP($promptTemporal);
+
+            if( $contador['corchetes'] != 0 || $contador['parentesis'] != 0 ){
+
+                $LosPromp = LosPromps::create([
+                    'principal' => $request->principal,
+                    'teoricaOpractica' => $request->teoricaOpractica,
+                    'clasificacion' => $request->clasificacion,
+                    'tokensAproximados' => $request->tokensAproximados,
+                ]);
+                DB::commit();
+                Log::info("U -> " . Auth::user()->name . " Guardo LosPromp " . $request->nombre . " correctamente");
+            }else{
+                return back()->with('warning', 'Advertencia: La instruccion no tiene variables');
+
+            }
 
             return back()->with('success', __('app.label.created_successfully2', ['nombre' => $LosPromp->nombre]));
         } catch (\Throwable $th) {
@@ -110,9 +126,8 @@ class LosPrompsController extends Controller
     public function update(Request $request, $id) {
         $LosPromp = LosPromps::find($id);
         DB::beginTransaction();
-        $ListaControladoresYnombreClase = (explode('\\', get_class($this)));
-        $nombreC = end($ListaControladoresYnombreClase);
-        log::info('Vista: ' . $nombreC . 'U:' . Auth::user()->name . ' ||LosPromp|| ');
+        Myhelp::EscribirEnLog($this, get_called_class(), '', false);
+
         try {
             // dd($LosPromp,$request->nombre);
             $LosPromp->update([

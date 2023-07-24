@@ -13,5 +13,11 @@ class LosPromps extends Model
         'principal',
         'teoricaOpractica',
         'clasificacion',
+        'tokensAproximados',
     ];
+
+
+    public function subtopicos() { return $this->belongsToMany(Subtopico::class ); }
+    public function users() { return $this->belongsToMany(User::class ); }
 }
+

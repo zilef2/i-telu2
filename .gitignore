@@ -21,4 +21,6 @@ yarn-error.log
 .jav
 .DS_Store
 .zip
+.bat
 *.zip
+*.bat

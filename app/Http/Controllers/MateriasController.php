@@ -27,98 +27,96 @@ use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
 // use OpenAI\Exceptions\ErrorException;
 
-class MateriasController extends Controller {
+class MateriasController extends Controller
+{
     public $muyFrecuente = 'Espere un poco para usar GPT de nuevo';
     public $respuestaLimite = 'Limite de tokens';
     public $respuestaLarga = 'La respuesta es demasiado extensa';
     public $MAX_USAGE_RESPUESTA = 550;
     public $MAX_USAGE_TOTAL = 600;
 
+    private $modelName = 'Materia';
+
+
     //! index functions ()
-        public function MapearClasePP(&$materias, $numberPermissions) {
-            $materias = $materias->get()->map(function ($materia) use ($numberPermissions) {
-
-                if ($numberPermissions < 2) {
-                    $carreraUser = Auth::user()->carreras()->pluck('carreras.id')->toArray();
-                    if (!in_array($materia->carrera_id, $carreraUser)) return null;
-                }
-
-                $materia->papa = $materia->carrera_nombre();
-                $materia->cuantoshijos = count($materia->unidads);
-
-                $materia->muchos = $materia->users_nombres();
-
-                $materia->objetivs = ($materia->objetivos()->count());
-                $materia->objetivos = ($materia->objetivos);
-                return $materia;
-            })->filter();
-            // dd($materias);
-        }
-        public function fNombresTabla($numberPermissions) {
-            $nombresTabla = [ //0: como se ven //1 como es la BD //2orden
-                ["Acciones", "#"],
-                [],
-                [null, null, null]
-            ];
-            $nombresTabla[2] = array_merge($nombresTabla[2], ["nombre", "carrera_id", "", "", "", "descripcion"]);
+    public function MapearClasePP(&$materias, $numberPermissions) {
+        $materias = $materias->get()->map(function ($materia) use ($numberPermissions) {
 
             if ($numberPermissions < 2) {
-                //todo: $nombresTabla[0][] = ["nombre", "observaciones"];
-                $nombresTabla[0] = array_merge($nombresTabla[0], ["nombre", "carrera", "unidads", "Objetivos", "descripcion"]);
-            } else { //not estudiante
-                //todo: funcion order not working
-                $nombresTabla[0] = array_merge($nombresTabla[0], ["nombre", "carrera", "unidads", "usuarios", "Objetivos", "descripcion"]);
+                $carreraUser = Auth::user()->carreras()->pluck('carreras.id')->toArray();
+                if (!in_array($materia->carrera_id, $carreraUser)) return null;
             }
 
-            return $nombresTabla;
+            $materia->papa = $materia->carrera_nombre();
+            $materia->cuantoshijos = count($materia->unidads);
+
+            $materia->muchos = $materia->users_nombres();
+
+            $materia->objetivs = ($materia->objetivos()->count());
+            $materia->objetivos = ($materia->objetivos);
+            return $materia;
+        })->filter();
+        // dd($materias);
+    }
+    public function fNombresTabla($numberPermissions) {
+        $nombresTabla[2] = [null,null,null,"enum","nombre","codigo", "carrera_id", null, null, null, "descripcion"];
+
+        if ($numberPermissions <= 2) {
+            $nombresTabla[0] = ["Edicion","Matricular","IA","#","Nombre","Codigo", "Carrera", "Unidades", "Objetivos", "descripcion"];
+        } else { //not estudiante
+            $nombresTabla[0] = ["Edicion","Matricular","IA","#","Nombre","Codigo", "Carrera", "Unidades", "usuarios", "Objetivos", "descripcion"];
         }
 
-        public function Filtros($request, &$materias) {
-            if ($request->has('selectedUni') && $request->selectedUni != 0) {
-                // dd($request->selectedUni);
-                $carrerasid = Carrera::has('materias')->where('universidad_id', $request->selectedUni)->pluck('id')->toArray();
-                $materias->whereIn('carrera_id', $carrerasid);
-            }
-            if ($request->selectedUni == 0) $request->selectedcarr = 0;
+        return $nombresTabla;
+    }
 
-            if ($request->has('search')) {
-                $materias->where('descripcion', 'LIKE', "%" . $request->search . "%");
-                // $materias->whereMonth('descripcion', $request->search);
-                // $materias->OrwhereMonth('fecha_fin', $request->search);
-                $materias->orWhere('nombre', 'LIKE', "%" . $request->search . "%");
-            }
-
-            if ($request->has(['field', 'order'])) {
-                $materias->orderBy($request->field, $request->order);
-            } else {
-                $materias->orderBy('nombre');
-            }
+    public function Filtros($request, &$materias) {
+        if ($request->has('selectedUni') && $request->selectedUni != 0) {
+            // dd($request->selectedUni);
+            $carrerasid = Carrera::has('materias')->where('universidad_id', $request->selectedUni)->pluck('id')->toArray();
+            $materias->whereIn('carrera_id', $carrerasid);
         }
-        public function losSelect($numberPermissions, &$carrerasSelect, &$MateriasRequisitoSelect, &$UniversidadSelect, $request, &$materias) {
-            if ($request->has('selectedUni')) {
-                $carrerasSelect = Carrera::where('universidad_id', $request->selectedUni)->get();
-            } else {
-                $carrerasSelect = Carrera::all();
-            }
+        if ($request->selectedUni == 0) $request->selectedcarr = 0;
 
-
-            if ($request->has('selectedcarr') && $request->selectedcarr != 0) {
-                $materias = $materias->whereIn('carrera_id', $request->selectedcarr);
-                // dd(
-                //     $request->selectedcarr,
-                //     $materias
-                // );
-            }
-
-            // $carrerasSelect = Carrera::has('materias')->get();
-            if($numberPermissions < intval(env('PERMISS_VER_FILTROS_SELEC'))){ //coorPrograma,profe,estudiante
-                $UniversidadSelect = Auth::user()->universidades;
-                $MateriasRequisitoSelect = Auth::user()->materias;
-            }else{
-                $UniversidadSelect = Universidad::has('carreras')->get();
-                $MateriasRequisitoSelect = Universidad::has('carreras')->get();
-            }
+        if ($request->has('search')) {
+            $materias->where('descripcion', 'LIKE', "%" . $request->search . "%");
+            // $materias->whereMonth('descripcion', $request->search);
+            // $materias->OrwhereMonth('fecha_fin', $request->search);
+            $materias->orWhere('nombre', 'LIKE', "%" . $request->search . "%");
         }
+
+        if ($request->has(['field', 'order'])) {
+            // $materias->orderBy($request->field, $request->order);
+            $materias->orderBy($request->field, $request->order);
+
+        } else {
+            $materias->orderBy('nombre');
+        }
+    }
+    public function losSelect($numberPermissions, &$carrerasSelect, &$MateriasRequisitoSelect, &$UniversidadSelect, $request, &$materias) {
+        if ($request->has('selectedUni')) {
+            $carrerasSelect = Carrera::where('universidad_id', $request->selectedUni)->get();
+        } else {
+            $carrerasSelect = Carrera::all();
+        }
+
+        if ($request->has('selectedcarr') && $request->selectedcarr != 0) {
+            $materias = $materias->whereIn('carrera_id', $request->selectedcarr);
+            // dd(
+            //     $request->selectedcarr,
+            //     $materias
+            // );
+        }
+
+        // $carrerasSelect = Carrera::has('materias')->get();
+        if ($numberPermissions < intval(env('PERMISS_VER_FILTROS_SELEC'))) { //coorPrograma,profe,estudiante
+            $UniversidadSelect = Auth::user()->universidades;
+            $MateriasRequisitoSelect = Auth::user()->materias;
+        } else {
+            $UniversidadSelect = Universidad::has('carreras')->get();
+            $MateriasRequisitoSelect = Universidad::has('carreras')->get();
+        }
+    }
 
 
     public function index(Request $request) {
@@ -134,7 +132,6 @@ class MateriasController extends Controller {
         if ($permissions === "estudiante") {
             $nombresTabla = $this->fNombresTabla($numberPermissions);
         } else { // not estudiante
-
             $this->Filtros($request, $materias);
             $perPage = $request->has('perPage') ? $request->perPage : 10;
             $nombresTabla = $this->fNombresTabla($numberPermissions);
@@ -144,7 +141,7 @@ class MateriasController extends Controller {
         $this->MapearClasePP($materias, $numberPermissions);
 
         $carrerasSelect = $MateriasRequisitoSelect = $UniversidadSelect = null;
-        $this->losSelect($numberPermissions,$carrerasSelect, $MateriasRequisitoSelect, $UniversidadSelect, $request, $materias);
+        $this->losSelect($numberPermissions, $carrerasSelect, $MateriasRequisitoSelect, $UniversidadSelect, $request, $materias);
 
         $page = request('page', 1); // Current page number
         $total = $materias->count();
@@ -158,11 +155,11 @@ class MateriasController extends Controller {
 
         $errorMessage = '';
         return Inertia::render('materia/Index', [ //carpeta
+            'breadcrumbs'    =>  [['label' => __('app.label.materias'), 'href' => route('materia.index')]],
             'title'          =>  $titulo,
             'filters'        =>  $request->all(['search', 'field', 'order', 'selectedUni', 'selectedcarr']),
             'perPage'        =>  (int) $perPage,
             'fromController' =>  $paginated,
-            'breadcrumbs'    =>  [['label' => __('app.label.materias'), 'href' => route('materia.index')]],
             'nombresTabla'   =>  $nombresTabla,
             'errorMessage' => $errorMessage,
             'carrerasSelect' => $carrerasSelect,
@@ -174,131 +171,136 @@ class MateriasController extends Controller {
 
 
     //! STORE & SHOW & UPDATE & DESTTROY
-        public function store(MateriumRequest $request) {
-            DB::beginTransaction();
-            Myhelp::EscribirEnLog($this, get_called_class(), '', false);
+    public function store(MateriumRequest $request) {
+        DB::beginTransaction();
+        Myhelp::EscribirEnLog($this, get_called_class(), '', false);
 
-            try {
-                $materia = Materia::create([
-                    'nombre' => $request->nombre,
-                    //otrosCampos
-                    'descripcion' => $request->descripcion,
-                    'carrera_id' =>  $request->carrera_id
-                ]);
-
-                for ($i = 0; $i < intval($request->cuantosObj); $i++) {
-                    Objetivo::create(['nombre' => $request->objetivo[$i], 'materia_id' => $materia->id]);
-                }
-                DB::commit();
-                Log::info("U -> " . Auth::user()->name . " Guardo materia " . $request->nombre . " correctamente");
-                return back()->with('success', __('app.label.created_successfully2', ['nombre' => $materia->nombre]));
-            } catch (\Throwable $th) {
-                DB::rollback();
-                Log::alert("U -> " . Auth::user()->name . " fallo en Guardar materia " . $request->nombre . " - " . $th->getMessage());
-
-                return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.materia')]) . $th->getMessage());
-            }
-        }
-
-        public function show($id) {
-            $materia = Materia::find($id);
-            $unidads = $materia->unidads;
-            $objetivos = $materia->objetivos;
-
-            foreach ($unidads as $temaKey => $Unidad) {
-                $Unidad->sub = $Unidad->subtopicos;
-                $ArrayEjercicios = [];
-                foreach ($Unidad->sub as $key => $subtopico) {
-                    $ArrayEjercicios[$key] = $subtopico->ejercicios->pluck('id', 'nombre')->toArray();
-                }
-                $Unidad->sub->ejercis = $ArrayEjercicios;
-            }
-
-            return Inertia::render('materia/show', [ //carpeta
-                'title'          =>  'Ver materia',
-                // 'filters'        =>  $request->all(['search', 'field', 'order','selectedUni','selectedcarr']),
-                'fromController' =>  $materia,
-                'unidads' =>  $unidads,
-                'objetivos' =>  $objetivos,
-                'breadcrumbs'    =>  [['label' => __('app.label.materias'), 'href' => route('materia.index')]],
+        try {
+            $modelInstance = resolve('App\\Models\\' . $this->modelName);
+            $ultima = $modelInstance::latest('enum')->first();
+            $materia = Materia::create([
+                'nombre' => $request->nombre,
+                //otrosCampos
+                'descripcion' => $request->descripcion,
+                'carrera_id' =>  $request->carrera_id,
+                'enum' => $request->enum,
+                'codigo' => $request->codigo
             ]);
+
+            for ($i = 0; $i < intval($request->cuantosObj); $i++) {
+                Objetivo::create(['nombre' => $request->objetivo[$i], 'materia_id' => $materia->id]);
+            }
+            DB::commit();
+            Log::info("U -> " . Auth::user()->name . " Guardo materia " . $request->nombre . " correctamente");
+            return back()->with('success', __('app.label.created_successfully2', ['nombre' => $materia->nombre]));
+        } catch (\Throwable $th) {
+            DB::rollback();
+            Log::alert("U -> " . Auth::user()->name . " fallo en Guardar materia " . $request->nombre . " - " . $th->getMessage());
+
+            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.materia')]) . $th->getMessage());
         }
-        public function edit(materia $materia) { }
+    }
 
-        public function update(Request $request, $id) {
-            // dd($request);
-            $materia = Materia::find($id);
-            $objetivos = $materia->objetivos;
-            DB::beginTransaction();
-            Myhelp::EscribirEnLog($this, get_called_class(), '', false);
-            try {
-                $materia->update([
-                    'nombre' => $request->nombre,
-                    //otrosCampos
-                    'descripcion' => $request->descripcion,
-                    'carrera_id' =>  $request->carrera_id,
-                ]);
+    public function show($id) {
+        $materia = Materia::find($id);
+        $unidads = $materia->unidads;
+        $objetivos = $materia->objetivos;
 
-                $cuantosObj = intval($request->cuantosObj);
-                $OriginalObj = intval($request->OriginalObj);
-                $diferenciaObjetivos =  $cuantosObj - $OriginalObj;
+        foreach ($unidads as $temaKey => $Unidad) {
+            $Unidad->sub = $Unidad->subtopicos;
+            $ArrayEjercicios = [];
+            foreach ($Unidad->sub as $key => $subtopico) {
+                $ArrayEjercicios[$key] = $subtopico->ejercicios->pluck('id', 'nombre')->toArray();
+            }
+            $Unidad->sub->ejercis = $ArrayEjercicios;
+        }
 
-                if($diferenciaObjetivos >= 0){
-                    for ($i = 0; $i < $OriginalObj; $i++) {
-                        $objetivos[$i]->update(['nombre' => $request->objetivo[$i]]);
-                    }
-                    for ($i = $OriginalObj; $i <= $cuantosObj-1; $i++) {
-                        Objetivo::create(['nombre' => $request->objetivo[$i], 'materia_id' => $materia->id]);
-                        // $objetivos[$i]->update(['nombre' => $request->objetivo[$i]]);
-                    }
-                }else{
-                    for ($i = $OriginalObj-1; $i >= $cuantosObj; $i--) {
-                        $objetivos[$i]->delete();
-                    }
+        return Inertia::render('materia/show', [ //carpeta
+            'title'          =>  'Ver materia',
+            // 'filters'        =>  $request->all(['search', 'field', 'order','selectedUni','selectedcarr']),
+            'fromController' =>  $materia,
+            'unidads' =>  $unidads,
+            'objetivos' =>  $objetivos,
+            'breadcrumbs'    =>  [['label' => __('app.label.materias'), 'href' => route('materia.index')]],
+        ]);
+    }
+    public function edit(materia $materia) { }
+
+    public function update(Request $request, $id) {
+        // dd($request);
+        $materia = Materia::find($id);
+        $objetivos = $materia->objetivos;
+        DB::beginTransaction();
+        Myhelp::EscribirEnLog($this, get_called_class(), '', false);
+        try {
+            $materia->update([
+                'nombre' => $request->nombre,
+                //otrosCampos
+                'descripcion' => $request->descripcion,
+                'carrera_id' =>  $request->carrera_id,
+                'enum' => $request->enum,
+                'codigo' => $request->codigo
+            ]);
+
+            $cuantosObj = intval($request->cuantosObj);
+            $OriginalObj = intval($request->OriginalObj);
+            $diferenciaObjetivos =  $cuantosObj - $OriginalObj;
+
+            if ($diferenciaObjetivos >= 0) {
+                for ($i = 0; $i < $OriginalObj; $i++) {
+                    $objetivos[$i]->update(['nombre' => $request->objetivo[$i]]);
                 }
-
-                DB::commit();
-                Log::info("U -> " . Auth::user()->name . " actualizo materia " . $request->nombre . " correctamente");
-                return back()->with('success', __('app.label.updated_successfully2', ['nombre' => $materia->nombre]));
-            } catch (\Throwable $th) {
-
-                DB::rollback();
-                Log::alert("U -> " . Auth::user()->name . " fallo en actualizar materia " . $request->nombre . " - " . $th->getMessage());
-                return back()->with('error', __('app.label.updated_error', ['nombre' => $materia->nombre]) . $th->getMessage());
+                for ($i = $OriginalObj; $i <= $cuantosObj - 1; $i++) {
+                    Objetivo::create(['nombre' => $request->objetivo[$i], 'materia_id' => $materia->id]);
+                    // $objetivos[$i]->update(['nombre' => $request->objetivo[$i]]);
+                }
+            } else {
+                for ($i = $OriginalObj - 1; $i >= $cuantosObj; $i--) {
+                    $objetivos[$i]->delete();
+                }
             }
+
+            DB::commit();
+            Log::info("U -> " . Auth::user()->name . " actualizo materia " . $request->nombre . " correctamente");
+            return back()->with('success', __('app.label.updated_successfully2', ['nombre' => $materia->nombre]));
+        } catch (\Throwable $th) {
+
+            DB::rollback();
+            Log::alert("U -> " . Auth::user()->name . " fallo en actualizar materia " . $request->nombre . " - " . $th->getMessage());
+            return back()->with('error', __('app.label.updated_error', ['nombre' => $materia->nombre]) . $th->getMessage());
         }
+    }
 
 
-        public function destroy($id) {
-            Myhelp::EscribirEnLog($this, get_called_class(), '', false);
+    public function destroy($id) {
+        Myhelp::EscribirEnLog($this, get_called_class(), '', false);
 
-            DB::beginTransaction();
+        DB::beginTransaction();
 
-            try {
-                $materias = Materia::findOrFail($id);
-                Myhelp::EscribirEnLog(
-                    $this,
-                    get_called_class(),
-                    "La materia id:" . $id . " y nombre:" . $materias->nombre . " ha sido borrada correctamente",
-                    false
-                );
+        try {
+            $materias = Materia::findOrFail($id);
+            Myhelp::EscribirEnLog(
+                $this,
+                get_called_class(),
+                "La materia id:" . $id . " y nombre:" . $materias->nombre . " ha sido borrada correctamente",
+                false
+            );
 
 
-                $materias->delete();
-                DB::commit();
-                return back()->with('success', __('app.label.deleted_successfully2', ['nombre' => $materias->nombre]));
-            } catch (\Throwable $th) {
-                DB::rollback();
-                Log::alert("U -> " . Auth::user()->name . " fallo en borrar materia " . $id . " - " . $th->getMessage());
-                return back()->with('error', __('app.label.deleted_error', ['name' => __('app.label.materias')]) . $th->getMessage());
-            }
+            $materias->delete();
+            DB::commit();
+            return back()->with('success', __('app.label.deleted_successfully2', ['nombre' => $materias->nombre]));
+        } catch (\Throwable $th) {
+            DB::rollback();
+            Log::alert("U -> " . Auth::user()->name . " fallo en borrar materia " . $id . " - " . $th->getMessage());
+            return back()->with('error', __('app.label.deleted_error', ['name' => __('app.label.materias')]) . $th->getMessage());
         }
+    }
     //STORE & UPDATE & DESTROY
 
 
 
-    public function AsignarUsers(Request $request, $materiaid)
-    {
+    public function AsignarUsers(Request $request, $materiaid) {
         $titulo = 'Seleccione los estudiantes a matricular';
         $permissions = Myhelp::EscribirEnLog($this, 'carrera');
         if ($permissions === "estudiante") {
@@ -343,7 +345,7 @@ class MateriasController extends Controller {
         ]);
     }
 
-    public function UsuariosSinLosInscritos($modelo, $carrera)
+    private function UsuariosSinLosInscritos($modelo, $carrera)
     {
         $usuariosU = $carrera->users->pluck('id');
         $usuariosDeLaMateria = $modelo->users->pluck('id');
@@ -355,8 +357,7 @@ class MateriasController extends Controller {
     }
 
 
-    public function SubmitAsignarUsers(Request $request)
-    {
+    public function SubmitAsignarUsers(Request $request) {
         DB::beginTransaction();
         Myhelp::EscribirEnLog($this, ' materia');
 
@@ -378,8 +379,7 @@ class MateriasController extends Controller {
         }
     }
 
-    public function lookForTemas($materiaid)
-    {
+    public function lookForTemas($materiaid) {
         $materia = Materia::find($materiaid);
         $unidads = $materia->unidads;
         foreach ($unidads as $key => $value) {
@@ -403,8 +403,12 @@ class MateriasController extends Controller {
 
 
 
-    public function VistaTema($materiaid, $ejercicioid = null, $idnivel = null, $subtemaid = null, $selectedPrompID = null) { //$ejercicioid
-        // $wolf = WolframAlphaService::query('integral of x^2');
+    // $wolf = WolframAlphaService::query('integral of x^2');
+    public function VistaTema(Request $request, $materiaid, $ejercicioid = null, $idnivel = null, $subtemaid = null, $selectedPrompID = null) { 
+
+        $permissions = Myhelp::EscribirEnLog($this, ' materia');
+        $numberPermissions = Myhelp::getPermissionToNumber($permissions);
+
         $vectorYSelecNiveles = HelpGPT::nivelesAplicativo();
         if ($idnivel) {
             $ChosenNivel = $vectorYSelecNiveles[0][$idnivel];
@@ -424,18 +428,33 @@ class MateriasController extends Controller {
         $opcion = 1; //primer pantallazo
         $respuesta = '';
 
-        $ListaPromp = LosPromps::Where('clasificacion','Expectativas Altas')->Where('teoricaOpractica','teorica')->get();
-        $ListaPromp = HelpGPT::turnInSelectID($ListaPromp);
+
+        if($numberPermissions > 4){
+            $ListaPromp = LosPromps::All();
+        }else{
+
+            $ListaPromp = $usuario->LosPromps()->Where('user_id',$usuario->id);
+            // $ListaPromp = LosPromps::Where('clasificacion', 'Expectativas Altas')->get();
+
+        }
+        $ListaPromp = HelpGPT::NEW_turnInSelectID($ListaPromp);
 
         // dd($subtemaid !== null , $ejercicioid !== null);
         if ($subtemaid !== null || $ejercicioid !== null) {
             if ($subtemaid !== null) {
-                $subtopicoSelec = Subtopico::find($subtemaid);
-                $temaSelec = Unidad::find($subtopicoSelec->unidad_id)->nombre;
-                $opcion = 2; //se va aresolver un unidad        } else {
-               
-            }else{
-            // if ($ejercicioid !== 'explicar') {
+                if ($ejercicioid === 'explicar') {
+                    $subtopicoSelec = Subtopico::find($subtemaid);
+                    $temaSelec = Unidad::find($subtopicoSelec->unidad_id)->nombre;
+                    $opcion = 2; //se va aresolver un unidad        } else {
+                }
+                if ($ejercicioid === 'practicar') {
+                    $subtopicoSelec = Subtopico::find($subtemaid);
+                    $temaSelec = Unidad::find($subtopicoSelec->unidad_id)->nombre;
+                    $opcion = 4; //Quiz
+                }
+                
+
+            } else {
                 $ejercicio = Ejercicio::find($ejercicioid);
                 $ejercicioSelec = $ejercicio->nombre;
 
@@ -450,10 +469,16 @@ class MateriasController extends Controller {
             if ($limite > 0) {
                 $tiempo = session('tiempo', Carbon::now());
                 $diffTiempos = Carbon::now()->diffInSeconds($tiempo);
+                session(['tiempo' => Carbon::now()]);
+
                 if ($diffTiempos == 0 || $diffTiempos > 1) { //debe esperar 1 segundo almenos
-                    if ($opcion === 2){ //resolver unidad  
+                    if ($opcion === 2) { //resolver unidad  
                         $selectedReasonString = LosPromps::Find($selectedPrompID)->principal;
                         $gpt = HelpGPT::gptResolverTema($selectedReasonString, $subtopicoSelec->nombre, $ChosenNivel, $materia->nombre, $usuario, env('DEBUGGINGGPT'));
+                    }
+                    if ($opcion === 4) { //resolver quiz
+                        $selectedReasonString = LosPromps::Find($selectedPrompID)->principal;
+                        $gpt = HelpGPT::gptResolverQuiz($selectedReasonString, $subtopicoSelec->nombre, $ChosenNivel, $materia->nombre, $usuario, env('DEBUGGINGGPT'));
                     }
                     if ($opcion === 3) //ejercicio
                         $gpt = HelpGPT::gptPart1($ejercicioSelec, $ChosenNivel, $materia->nombre, $usuario, $soloEjercicios, env('DEBUGGINGGPT'));
@@ -464,6 +489,7 @@ class MateriasController extends Controller {
                     $limite = $usuario->limite_token_leccion;
                 } else { //no le quedan mas tokens
                     $respuesta = $this->muyFrecuente; //hizo una peticion en menos de un segundo a la anterior
+                    //todo: grabar en el log, que este usuario es desesperado o hacker jaja
                 }
             } else { //no le quedan mas tokens
                 $respuesta = $this->respuestaLimite;
@@ -477,7 +503,7 @@ class MateriasController extends Controller {
         set_time_limit(70);
         session(['tiempo' => Carbon::now()]);
         return Inertia::render('materia/vistaTem', [ //carpeta
-            'breadcrumbs'       =>  [[ 'label' => __('app.label.materias'), 'href' => route('materia.index') ]],
+            'breadcrumbs'       =>  [['label' => __('app.label.materias'), 'href' => route('materia.index')]],
             'elid'              =>  intval($materiaid),
             'title'             =>  'Seleccione una leccion',
             'perPage'           =>  10,
@@ -569,6 +595,8 @@ class MateriasController extends Controller {
         }
     }
 
+
+    //todo: maybe this is not using
     public function gptPart($request, $materia, $usuario, $productio = true)
     { //productio is for debugging
         if ($productio) {

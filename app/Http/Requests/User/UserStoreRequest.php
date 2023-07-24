@@ -31,7 +31,7 @@ class UserStoreRequest extends FormRequest
             'password' => ['required', 'confirmed', Password::defaults()],
             // 'role' => ['required'],
 
-            'identificacion' => 'nullable|Integer',
+            'identificacion' => 'required|unique:' . User::class,
             'sexo' => 'nullable',
             'fecha_nacimiento' => 'nullable',
             'semestre' => 'nullable',

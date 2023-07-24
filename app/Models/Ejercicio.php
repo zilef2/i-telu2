@@ -15,6 +15,7 @@ class Ejercicio extends Model
         'descripcion',
         'seHaPreguntado', //1jul2023
         'subtopico_id',
+        'enum',
     ];
 
     public function subtopico(): BelongsTo {

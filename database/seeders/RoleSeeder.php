@@ -12,9 +12,7 @@ class RoleSeeder extends Seeder
      *
      * @return void
      */
-    public function run()
-    {
-
+    public function run() {
         $superadmin = Role::create(['name' => 'superadmin']);
         $admin = Role::create(['name' => 'admin']);
 
@@ -23,7 +21,6 @@ class RoleSeeder extends Seeder
         $profesor = Role::create(['name' => 'profesor']);
         $coordinador_de_programa = Role::create(['name' => 'coordinador_de_programa']);
         $coordinador_academico = Role::create(['name' => 'coordinador_academico']);
-
 
         $Models = [
             'user',
@@ -38,7 +35,6 @@ class RoleSeeder extends Seeder
             'LosPromp',
         ];
         $crudCompleto = ['delete', 'update', 'read', 'create'];
-
 
         foreach ($Models as $model) {
             foreach ($crudCompleto as $crud) {

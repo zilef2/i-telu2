@@ -30,17 +30,19 @@ const justNames = [
     'nombre',
     'descripcion',
     'materia_id',
+    'enum',
+    'codigo',
 ]
 const form = useForm({ ...Object.fromEntries(justNames.map(field => [field, ''])) });
 const printForm = [
+    { idd: 'enum', label: 'enum', type: 'number', value: form.enum },
     { idd: 'nombre', label: 'nombre', type: 'text', value: form.nombre },
+    { idd: 'codigo', label: 'codigo', type: 'text', value: form.codigo },
     { idd: 'descripcion', label: 'descripcion', type: 'text', value: form.descripcion },
 ];
 
 onMounted(() => {
-
 })
-
 
 const update = () => {
     form.put(route('Unidad.update', props.Unidad?.id), {
@@ -61,9 +63,9 @@ watchEffect(() => {
         form.nombre = props.Unidad?.nombre
         form.descripcion = props.Unidad?.descripcion
         form.materia_id = props.Unidad?.materia_id
+        form.enum = props.Unidad?.enum
+        form.codigo = props.Unidad?.codigo
     }
-
-
 })
 </script>
 
@@ -76,7 +78,7 @@ watchEffect(() => {
                 </h2>
                 <div class="my-6 grid grid-cols-2 gap-6">
                     <div v-for="(atributosform, indice) in printForm" :key="indice">
-                        <InputLabel :for="atributosform.label" :value="atributosform.value" />
+                        <InputLabel :for="atributosform.label" :value="lang().label[atributosform.label]" />
                         <TextInput :id="atributosform.idd" :type="atributosform.type" class="mt-1 block w-full"
                             v-model="form[atributosform.idd]" required :placeholder="atributosform.label"
                             :error="form.errors[atributosform.idd]" />

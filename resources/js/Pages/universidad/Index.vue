@@ -129,7 +129,7 @@ const select = () => {
                                     v-on:click="order(nombresTabla[2][indiceN])"
                                     class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
                                     <div v-if="nombresTabla[2][indiceN] !== null" class="flex justify-between items-center">
-                                        <span>{{ titulos }}</span>
+                                        <span>{{ titulos }}</span> 
                                         <ChevronUpDownIcon class="w-4 h-4" />
                                     </div>
                                     <div v-else class="flex justify-between items-center">
@@ -146,7 +146,7 @@ const select = () => {
                                         v-model="data.selectedId"
                                         class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-primary dark:text-primary shadow-sm focus:ring-primary/80 dark:focus:ring-primary dark:focus:ring-offset-gray-800 dark:checked:bg-primary dark:checked:border-primary" />
                                 </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">
+                                <td v-if="props.numberPermissions >= 5" class="whitespace-nowrap py-4 px-2 sm:py-3">
                                     <div class="flex justify-start items-center">
                                         <div class="rounded-md overflow-hidden">
                                             <InfoButton type="button"
@@ -167,10 +167,12 @@ const select = () => {
                                         </div>
                                     </div>
                                 </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (index + 1) }}</td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.enum) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.nombre) }} </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.codigo) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.cuantosUs) }} </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.tresPrimeros) }} </td>
+                                <td v-if="props.numberPermissions >= 5" class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.tresPrimeros) }} </td>
+                                <td v-if="props.numberPermissions >= 5" class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.tresPrimeros) }} </td>
                             </tr>
                         </tbody>
                     </table>

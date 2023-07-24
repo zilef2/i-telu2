@@ -18,8 +18,39 @@ return new class extends Migration
             $table->string('principal');
             $table->string('clasificacion');
             $table->string('teoricaOpractica');
+            $table->integer('tokensAproximados');
 
             $table->timestamps();
+        });
+
+        Schema::create('los_promps_subtopico', function (Blueprint $table) {
+            $table->id();
+            $table->timestamps();
+            $table->unsignedBigInteger('subtopico_id');
+            $table->unsignedBigInteger('los_promps_id');
+            $table->foreign('subtopico_id')
+                    ->references('id')
+                    ->on('subtopicos')
+                    ->onDelete('restrict');//cascade
+            $table->foreign('los_promps_id')
+                    ->references('id')
+                    ->on('los_promps')
+                    ->onDelete('restrict');
+        });
+        Schema::create('los_promps_user', function (Blueprint $table) {
+            $table->id();
+            $table->timestamps();
+            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('los_promps_id');
+            $table->foreign('user_id')
+                    ->references('id')
+                    ->on('users')
+                    ->onDelete('restrict');
+
+            $table->foreign('los_promps_id')
+                    ->references('id')
+                    ->on('los_promps')
+                    ->onDelete('restrict');
         });
     }
 
@@ -31,5 +62,7 @@ return new class extends Migration
     public function down()
     {
         Schema::dropIfExists('los_promps');
+        Schema::dropIfExists('los_promps_subtopico');
+        Schema::dropIfExists('subtopico_user');
     }
 };

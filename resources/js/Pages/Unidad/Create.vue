@@ -37,6 +37,9 @@ const form = useForm({
     nsubtemas: 0,
     subtema: ['', '', '', '', ''],
     resultAprendizaje: ['', '', '', '', ''],
+
+    enum: '',
+    codigo: '',
 })
 
 // form.subtema = computed(() => {
@@ -109,10 +112,22 @@ watchEffect(() => {
                 </p>
                 <div class="my-6 grid sm:grid-cols-2 xs:grid-cols-1 gap-6">
                     <div>
+                        <InputLabel for="enum" :value="lang().label.enum" />
+                        <TextInput id="enum" type="text" class="mt-1 block w-full" v-model="form.enum" required
+                            :placeholder="lang().placeholder.enum" :error="form.errors.enum" />
+                        <InputError class="mt-2" :message="form.errors.enum" />
+                    </div>
+                    <div>
                         <InputLabel for="nombre" :value="lang().label.name" />
                         <TextInput id="nombre" type="text" class="mt-1 block w-full" v-model="form.nombre" required
                             :placeholder="lang().placeholder.nombre" :error="form.errors.nombre" />
                         <InputError class="mt-2" :message="form.errors.nombre" />
+                    </div>
+                    <div>
+                        <InputLabel for="codigo" :value="lang().label.codigo" />
+                        <TextInput id="codigo" type="text" class="mt-1 block w-full" v-model="form.codigo" required
+                            :placeholder="lang().placeholder.codigo" :error="form.errors.codigo" />
+                        <InputError class="mt-2" :message="form.errors.codigo" />
                     </div>
                     <div>
                         <InputLabel for="descripcion" :value="lang().label.descripcion" />
