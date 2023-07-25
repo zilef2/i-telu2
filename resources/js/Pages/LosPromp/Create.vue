@@ -49,9 +49,9 @@ const create = () => {
 }
 
 onMounted(() => {
-    form.teoricaOpractica = 'teorica';
-    form.clasificacion = 'General';
-    form.tokensAproximados = 1;
+    form.teoricaOpractica = {'title':'Teorica' , 'value':'teorica'};
+    form.clasificacion = {'title':'General' , 'value':'General'};
+    form.tokensAproximados = '1';
 });
 
 const AdvertenciaPrompLargo = 200;

@@ -89,7 +89,7 @@ Route::middleware('auth', 'verified')->group(function () {
     Route::resource('/materia', MateriasController::class);
     Route::get('/AsignarMateria/{materiaid}', [MateriasController::class, 'AsignarUsers'])->name('materia.AsignarUsers');
     Route::post('/AsignarMateria', [MateriasController::class, 'SubmitAsignarUsers'])->name('materia.SubmitAsignarUsers');
-    Route::get('/materiaEstudiar/{materiaID}/{ejercicioID?}/{nivel?}/{temaid?}/{selectedprompid?}', [MateriasController::class, 'VistaTema'])->name('materia.VistaTema');
+    Route::get('/VistaTema/{materiaID}/{ejercicioID?}/{nivel?}/{temaid?}/{selectedprompid?}', [MateriasController::class, 'VistaTema'])->name('materia.VistaTema');
     // Route::get('/masPreguntas/{id}/{nuevaPregunta}', [MateriasController::class,'masPreguntas'])->name('materia.masPreguntas');
     Route::get('/masPreguntas', [MateriasController::class, 'masPreguntas'])->name('materia.masPreguntas');
     // Route::post('/masPreguntasPost', [MateriasController::class,'masPreguntasPost'])->name('materia.masPreguntasPost');

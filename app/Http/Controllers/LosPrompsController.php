@@ -88,35 +88,37 @@ class LosPrompsController extends Controller
             $IntegerMispromps = 0;
             if($numberPermissions < 4){ 
                 $IntegerMispromps = Auth::user()->LosPromps()->count();
+                $limitePromps = intval(env('LIMITEPROMPSPERSONA'));
+                if($IntegerMispromps >= $limitePromps){
+                    return back()->with('warning', __('app.label.created_error', ['nombre' => 'Numero maximo de registros']));
+                }
             }
-            $limitePromps = intval(env('LIMITEPROMPSPERSONA'));
-            if($IntegerMispromps >= $limitePromps){
-                return back()->with('warning', __('app.label.created_error', ['nombre' => 'Numero maximo de registros']));
-            }
+
             $promptTemporal = $request->principal;
             $contador = HelpGPT::contarModificarP($promptTemporal);
-
             if( $contador['corchetes'] != 0 || $contador['parentesis'] != 0 ){
-
                 $LosPromp = LosPromps::create([
                     'principal' => $request->principal,
-                    'teoricaOpractica' => $request->teoricaOpractica,
-                    'clasificacion' => $request->clasificacion,
+                    'teoricaOpractica' => $request->teoricaOpractica['value'],
+                    'clasificacion' => $request->clasificacion['value'],
                     'tokensAproximados' => $request->tokensAproximados,
                 ]);
                 DB::commit();
                 Log::info("U -> " . Auth::user()->name . " Guardo LosPromp " . $request->nombre . " correctamente");
+                return back()->with('success', __('app.label.created_successfully2', ['nombre' => $LosPromp->nombre]));
             }else{
                 return back()->with('warning', 'Advertencia: La instruccion no tiene variables');
-
             }
 
-            return back()->with('success', __('app.label.created_successfully2', ['nombre' => $LosPromp->nombre]));
         } catch (\Throwable $th) {
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en Guardar LosPromp " . $request->nombre . " - " . $th->getMessage());
+            Log::alert("U -> " . Auth::user()->name . " fallo en Guardar LosPromp  - " . $th->getMessage());
 
-            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.LosPromp')]) . $th->getMessage());
+            if (config('app.env') === 'production') {
+                return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.LosPromp')]) . $th->getMessage());
+            }else{
+                return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.LosPromp')]) . $th);
+            }
         }
     }
 

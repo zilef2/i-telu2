@@ -4,6 +4,7 @@ return [
     'label' => [
         'enum' => 'Numeración',
         //losPromps
+        'LosPromp' => 'Instrucción',
         'losPromps' => 'Instrucciones',
         'LosPromps' => 'Instrucciones',
         'teoricaOpractica' => 'Teorica o Practica',

@@ -88,7 +88,7 @@ const form = useForm({
 });
 
 watchEffect(() => {
-    if(data.selectedPrompID == null) data.selectedPrompID = 'Selecciona un promp'
+    if(data.selectedPrompID == null) data.selectedPrompID = data.ListaPromp[0]
         data.ListaPromp = props.ListaPromp.filter(item => {
             return item.tipo == form.tipoRes || item.tipo == 'General'
         });
@@ -98,7 +98,6 @@ watch(() => form.tipoRes, (newX) => {
     //   console.log(`x is ${newX}`)
     data.selectedPrompID = 'Selecciona un promp'
 })
-
 
 
 const paAbajo = () => {
@@ -115,14 +114,21 @@ const submitToGPT = (ejercicioID) => {
     })
 }
 
+
+//aquiiiiiiiiiiiiiiii : data.selectedPrompID['value']
 const Paso1PreguntarTema = (subtemaid) => { //y traer su introduccion
-    if(data.selectedPrompID && form.nivel && form.tipoRes && subtemaid){
+    // console.log("🧈 debu data.selectedPrompID:", data.selectedPrompID);
+    let TempselectedPrompID = data.selectedPrompID['value']
+    if(TempselectedPrompID != 0 && form.nivel && form.tipoRes && subtemaid){
+        data.selectedPrompID = data.selectedPrompID['value']
+
         form.get(route('materia.VistaTema', [props.elid, 'explicar', form.nivel, subtemaid,data.selectedPrompID]), {
             preserveScroll: true,
             onSuccess: () => { },
             onError: () => null,
             onFinish: () => null
         })
+
     }else{
         alert('Falta informacion')
     }
@@ -170,7 +176,6 @@ const IrPreguntas = (pregunta) => {
                             <h2
                                 class="block mx-auto text-lg text-gray-900 dark:text-white tracking-widest font-medium title-font mb-1">
                                 Recuerde utilizar los tokens restantes con precaución
-                                <!-- {{ data.selectedPrompID }}  - a -->
                             </h2>
                             <!-- <h3 class="block mx-auto text-md text-gray-700">Nivel: <b>{{ props.usuario.pgrado }}</b></h3> -->
                             <h3 class="block mx-auto text-lg text-gray-900 dark:text-white">Materia: <b>{{ props.materia.nombre }}</b></h3>
@@ -271,7 +276,7 @@ const IrPreguntas = (pregunta) => {
             </div>
             <div class="p-2 w-full">
                 <button
-                    class="flex mx-auto text-white bg-indigo-500 border-0 py-1 px-8 focus:outline-none hover:bg-indigo-600 rounded text-lg">
+                    class="flex mx-auto text-sky-800 bg-indigo-200 border-0 py-1 px-8 focus:outline-none rounded text-lg">
                     {{ form.processing ? 'Por favor, espere...' : '' }}
                 </button>
             </div>
@@ -360,7 +365,8 @@ const IrPreguntas = (pregunta) => {
                                                     text-base outline-none text-gray-700 py-1 px-3 leading-6 transition-colors duration-200 ease-in-out"></textarea>
                                             </div>
                                         </div>
-                                        <div v-if="props.soloEjercicios != 'Sin sugerencias' && props.soloEjercicios != ''"
+                                        <!-- v-if="props.soloEjercicios != 'Sin sugerencias' && -->
+                                        <div v-if="props.soloEjercicios != []"
                                             class="p-2 w-full h-full">
                                             <label for="message" class="leading-7 text-sm text-gray-600">Sugerencias:
                                             </label>

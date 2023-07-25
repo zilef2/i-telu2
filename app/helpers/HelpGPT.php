@@ -170,11 +170,11 @@ class HelpGPT
         return [self::PreguntaCorta, 0];
     }
     
-    private static function gptResolverQuiz(&$elpromp, $subtopico, $nivel, $materia_nombre, $usuario, $debug = false) {
+    public static function gptResolverQuiz(&$elpromp, $subtopico, $nivel, $materia_nombre, $usuario, $debug = false) {
         $longuitudPregunta = strlen($subtopico) > 3;
 
         $elpromp = self::modificarPSubTema($elpromp,$materia_nombre, $subtopico, $nivel);
-        $elpromp.= ". Al final, imprime la respuesta de la siguiente manera. RESPUESTA=A";
+        $elpromp.= ". Al final, imprime la respuesta asi: RESPUESTA=A";
         if ($longuitudPregunta) {
             if (!$debug) {
                 $client = OpenAI::client(env('GTP_SELECT'));
@@ -192,6 +192,9 @@ class HelpGPT
                     $usageRespuesta = intval($result['usage']["completion_tokens"]); //~ 260
                     $usageRespuestaTotal = intval($result['usage']["total_tokens"]); //~ 500
 
+                    $chuleta = HelpGPT::ApartarSujerencias($respuesta, 'RESPUESTA=');
+dd($chuleta);
+
                     $restarAlToken = HelpGPT::CalcularTokenConsumidos($usageRespuesta, $usageRespuestaTotal);
                     $usuario->update(['limite_token_leccion' => (intval($usuario->limite_token_leccion)) - $restarAlToken]);
                     MedidaControl::create([
@@ -199,7 +202,12 @@ class HelpGPT
                         'user_id' => $usuario->id
                     ]);
 
-                    return [$respuesta, $restarAlToken];
+                    return [
+                        'respuesta' => $respuesta,
+                        'restarAlToken' => $restarAlToken,
+                        'chuleta' => $chuleta
+                    ];
+                    
                 } else {
                     if ($finishingReason == 'length') {
                         return [self::respuestaLarga, 0];
