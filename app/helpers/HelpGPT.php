@@ -11,10 +11,7 @@ use OpenAI;
 
 // use Hamcrest\Type\IsInteger;
 
-class HelpGPT
-{
-
-
+class HelpGPT {
     const respuestaLimite = 'Limite de tokens';
     const respuestaLarga = 'La respuesta es demasiado extensa';
     const servicioNOdisponible = 'servicioNOdisponible';
@@ -24,10 +21,8 @@ class HelpGPT
     const MAX_USAGE_TOTAL = 600;
 
 
-
     //usado para sacar los ejercicios que traer GPT y ponerlos en un vector
-    public static function ApartarSujerencias($respuestaGPT, $plantillaPracticar)
-    {
+    private static function ApartarSujerencias($respuestaGPT, $plantillaPracticar) {
         $vectorEjercicios = explode("\n", $respuestaGPT);
         $vectorEjercicios = array_filter($vectorEjercicios, 'trim');
 
@@ -35,7 +30,7 @@ class HelpGPT
         // $posicionEjercicios = array_search($plantillaPracticar,$vectorEjercicios,false);
 
         foreach ($vectorEjercicios as $key => $value) {
-            $buscando = strpos($plantillaPracticar . ':', trim($value), false);
+            $buscando = strpos($plantillaPracticar, trim($value), false);
             if ($buscando !== false || $buscando === 0) {
                 $posicionEjercicios = $key;
                 break;
@@ -57,7 +52,61 @@ class HelpGPT
         session(['tresEjercicios' => $soloEjercicios]);
 
         return $soloEjercicios;
-    } //fin: ApartarSujerencia
+    } //fin: Apartarujerencia
+
+    //todo: strpos(stringGrande, buscado) -> $buscando = strpos
+
+    private static function ApartarChuleta($respuestaGPT, $plantillaPracticar) {
+        $vectorChuleta = explode("\n", $respuestaGPT);
+
+        //asegurar que el primer renglon, sea el titulo
+        if( $vectorChuleta[1] == "" || strpos(trim($vectorChuleta[0]),'¿') )
+            array_unshift($vectorChuleta,"Quiz");
+
+        $ArrayRespuestasCorrectas = [];
+        $posicionInicial = 0;
+
+        $contador = 0;
+        //todo: usar array_filter
+        foreach ($vectorChuleta as $key => $value) {
+            if(strlen(trim($value)) > 1){
+                $NuevoVectorChuleta[$contador] = $value;
+                $contador++;
+            }
+        }
+        //buscar donde hay preguntas
+        foreach ($NuevoVectorChuleta as $key => $value) {
+            $buscando = strpos(trim($value),$plantillaPracticar);
+            if ($buscando !== false ) {
+                $posicionPreguntas[] = $posicionInicial;
+                $ArrayRespuestasCorrectas[] = $key;
+                $posicionInicial += $key;
+            }
+        }
+
+        //si no devuelve un vector, la IA no respondio bien
+        if(count($ArrayRespuestasCorrectas) < 1) return [
+            'vectorChuleta' => [],
+            'ArrayRespuestasCorrectas' => 'Formato de respuesta invalido',
+            'ArrayPreguntas' => ''
+        ];
+
+        //guardar las posiciones de dichas preguntas
+        $posicionInicial = 0;
+        foreach ($ArrayRespuestasCorrectas as $key => $correcta) {
+            for ($i=$posicionInicial; $i < $correcta; $i++) { 
+                $ArrayPreguntas[$key][] = $i;
+            }
+            $posicionInicial = $correcta + 1;
+        }
+
+        // dd( $ArrayRespuestasCorrectas, $ArrayPreguntas );
+        return [
+            'vectorChuleta' => $NuevoVectorChuleta,
+            'ArrayRespuestasCorrectas' => $ArrayRespuestasCorrectas,
+            'ArrayPreguntas' => $ArrayPreguntas
+        ];
+    } //fin: Apartarujerencia
 
 
 
@@ -70,7 +119,6 @@ class HelpGPT
         $Lapromt = str_replace("(plantillaPracticar)", $plantillaPracticar, $Lapromt);
         return ($Lapromt);
     }
-
 
     public static function contarModificarP(&$Lapromt, $materia_nombre = '', $Unidad = '', $nivel = '') {
         $Lapromt = strtolower($Lapromt);
@@ -171,14 +219,22 @@ class HelpGPT
     }
     
     public static function gptResolverQuiz(&$elpromp, $subtopico, $nivel, $materia_nombre, $usuario, $debug = false) {
-        $longuitudPregunta = strlen($subtopico) > 3;
+        
+        $corchetesYparentesis = self::contarModificarP($elpromp,$materia_nombre, $subtopico, $nivel);
+        //todo: si corchetesYparentesis estan en cero, no debe continuar
 
-        $elpromp = self::modificarPSubTema($elpromp,$materia_nombre, $subtopico, $nivel);
-        $elpromp.= ". Al final, imprime la respuesta asi: RESPUESTA=A";
+        $elpromp.= ". Al final de las opciones, imprime la respuesta correcta con este formato: RESPUESTA=A";
+        $elpromp.= ". Cada opcion, debe ocupar una fila y deben ser 4 opciones de la A a la D.";
+        $elpromp.= ". La primera fila debe tener un titulo relacionado a lo que se evalua y ña segunda fila debe ser la primera pregunta.";
+        $elpromp = str_replace("..",".",$elpromp);
+
+
+        $longuitudPregunta = strlen($subtopico) > 3;
         if ($longuitudPregunta) {
-            if (!$debug) {
+            // if ($debug) {
+            if (!$debug) { //this one is ok
+
                 $client = OpenAI::client(env('GTP_SELECT'));
-                dd($elpromp);
                 $result = $client->completions()->create([
                     'model' => 'text-davinci-003',
                     'prompt' => $elpromp,
@@ -192,44 +248,106 @@ class HelpGPT
                     $usageRespuesta = intval($result['usage']["completion_tokens"]); //~ 260
                     $usageRespuestaTotal = intval($result['usage']["total_tokens"]); //~ 500
 
-                    $chuleta = HelpGPT::ApartarSujerencias($respuesta, 'RESPUESTA=');
-dd($chuleta);
+                    $chuleta = self::ApartarChuleta($respuesta, 'RESPUESTA=');
 
                     $restarAlToken = HelpGPT::CalcularTokenConsumidos($usageRespuesta, $usageRespuestaTotal);
-                    $usuario->update(['limite_token_leccion' => (intval($usuario->limite_token_leccion)) - $restarAlToken]);
+
+                    $tokensAntes = intval($usuario->limite_token_leccion);
+                    $usuario->update(['limite_token_leccion' => ($tokensAntes) - $restarAlToken]);
                     MedidaControl::create([
                         'tokens_usados' => $restarAlToken,
                         'user_id' => $usuario->id
                     ]);
 
-                    return [
-                        'respuesta' => $respuesta,
+                     return [
+                        'vectorChuleta' => $chuleta['vectorChuleta'],
+                        'ArrayPreguntas' => $chuleta['ArrayPreguntas'],
+                        'ArrayRespuestasCorrectas' => $chuleta['ArrayRespuestasCorrectas'],
                         'restarAlToken' => $restarAlToken,
-                        'chuleta' => $chuleta
                     ];
                     
                 } else {
                     if ($finishingReason == 'length') {
-                        return [self::respuestaLarga, 0];
+                        return [
+                            'vectorChuleta' => [self::respuestaLarga],
+                            'ArrayPreguntas' => [],
+                            'ArrayRespuestasCorrectas' => [],
+                            'restarAlToken' => 0,
+                        ];
                     } else {
-                        return ['El servicio no esta disponible', 0];
+                        return [
+                            'vectorChuleta' => ['El servicio no esta disponible'],
+                            'ArrayPreguntas' => [],
+                            'ArrayRespuestasCorrectas' => [],
+                            'restarAlToken' => 0,
+                        ];
                     }
                 }
             } 
             
-            
             //debug
-            $respuesta = "La energía cinética es un tipo de energía mecánica que se genera cuando un cuerpo se encuentra en movimiento. Esta energía se manifiesta en forma de calor, luz, sonido y movimiento. La energía cinética también se conoce como energía del movimiento, ya que el movimiento mismo es energía que se genera cuando un cuerpo se desplaza.
-                En un nivel universitario, la energía cinética se explica a través de la ley de conservación de la energía mecánica. Esta ley establece que la energía mecánica es la misma antes y después del movimiento, a menos que se transfiera a otra forma, como el calor. La energía cinética se calcula mediante la fórmula de energía cinética, que establece que la energía cinética (K) es igual a la mitad del producto de la masa del objeto multiplicado por el cuadrado de su velocidad. En conclusión, la energía cinética es un tipo de energía mecánica generada por el movimiento de los cuerpos. Esta energía se puede calcular usando la ley de conservación de la energía mecánica y se puede manifestar como calor, luz, sonido y movimiento.
+            $respuesta = "
+                \n
+                1. ¿Cual es la Definicion de un limite?
+                A. Un limite se refiere a la frontera o extremo máximo de algo 
+                B. El limite es una palabra usada para agregar numero a otro 
+                C. El limite es un medio de transporte 
+                D. El limite es un signo de aritmética 
+                
+                RESPUESTA=A
+                
+                2. ¿Cuál de las siguientes es un ejemplo de un límite?
+                A. 35 + 129 
+                B. 34 grados 
+                C. El límite de velocidad es 55 mph
+                D. Toma dos horas terminar
+                
+                RESPUESTA=C
+                
+                3. ¿En qué contexto puede haber un límite?
+                A. Descubriendo una constelación
+                B. Cocinando un plato 
+                C. Entramando una historia
+                D. Vendiendo un coche
+                
+                RESPUESTA=D
+                
+                4. ¿Por qué los límites son importantes?
+                A. Porque dan seguridad
+                B. Porque conducen a la creatividad 
+                C. Porque te ayudan a planificar mejor tu tiempo 
+                D. Porque los límites ayudan a definir relaciones
+                
+                RESPUESTA=C
+                
+                5. ¿Por qué los límites cambian?
+                A. Porque son dinámicos
+                B. Porque se vuelven más estrictos 
+                C. Porque hay cambios en la tecnología
+                D. Porque hay una nueva ley
+                
+                RESPUESTA=A
             ";
+            $chuleta = self::ApartarChuleta($respuesta, 'RESPUESTA');
+
             $finishingReason = 'stop';
             $usageRespuesta = 260;
             $usageRespuestaTotal = 500;
-            return [$respuesta, 0];
+            return [
+                'vectorChuleta' => $chuleta['vectorChuleta'],
+                'ArrayPreguntas' => $chuleta['ArrayPreguntas'],
+                'ArrayRespuestasCorrectas' => $chuleta['ArrayRespuestasCorrectas'],
+                'restarAlToken' => 0,
+            ];
         }
-        return ['El Subtema es demasiado corto', 0];
+        return [
+            'vectorChuleta' => ['El Subtema es demasiado corto'],
+            'ArrayPreguntas' => [],
+            'ArrayRespuestasCorrectas' => [],
+            'restarAlToken' => 0,
+        ];
     }
-    private static function gptResolverTema(&$elpromp, $subtopico, $nivel, $materia_nombre, $usuario, $debug = false) {
+    public static function gptResolverTema(&$elpromp, $subtopico, $nivel, $materia_nombre, $usuario, $debug = false) {
         $longuitudPregunta = strlen($subtopico) > 3;
 
         $elpromp = self::modificarPSubTema($elpromp,$materia_nombre, $subtopico, $nivel);
@@ -257,12 +375,20 @@ dd($chuleta);
                         'user_id' => $usuario->id
                     ]);
 
-                    return [$respuesta, $restarAlToken];
+                    return [
+                        'respuesta' => $respuesta,
+                        'restarAlToken' => $restarAlToken];
                 } else {
                     if ($finishingReason == 'length') {
-                        return [self::respuestaLarga, 0];
+                        return [
+                            'respuesta' => self::respuestaLarga, 
+                            'restarAlToken' => 0
+                        ];
                     } else {
-                        return ['El servicio no esta disponible', 0];
+                        return [
+                            'respuesta' => 'El servicio no esta disponible', 
+                            'restarAlToken' => 0
+                        ];
                     }
                 }
             } //debug
@@ -272,9 +398,15 @@ dd($chuleta);
             $finishingReason = 'stop';
             $usageRespuesta = 260;
             $usageRespuestaTotal = 500;
-            return [$respuesta, 0];
+            return [
+                'respuesta' => $respuesta, 
+                'restarAlToken' => 0
+            ];
         }
-        return ['El Subtema es demasiado corto', 0];
+        return [
+            'respuesta' => 'El Subtema es demasiado corto', 
+            'restarAlToken' => 0
+        ];
     }
     private static function CalcularTokenConsumidos($usageRespuesta, $usageRespuestaTotal)
     {
@@ -293,9 +425,9 @@ dd($chuleta);
     public static function maxToken()
     {
         if (config('app.env') === 'production') {
-            return 1300; // Adjust the response length as needed
+            return 1400; // Adjust the response length as needed
         }
-        return 800; // Adjust the response length as needed
+        return 1400;
     }
 
     public static function nivelesAplicativo() {

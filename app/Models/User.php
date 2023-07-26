@@ -26,6 +26,10 @@ class User extends Authenticatable
         'identificacion',
         'sexo',
         'fecha_nacimiento',
+        'semestre',
+        'semestre_mas_bajo',
+        'limite_token_general',
+        'limite_token_leccion',
 
         'pgrado', //bachiller, pregrado, postgrado
     ];
@@ -39,20 +43,11 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    public function getCreatedAtAttribute()
-    {
-        return date('d-m-Y H:i', strtotime($this->attributes['created_at']));
-    }
+    public function getCreatedAtAttribute() { return date('d-m-Y H:i', strtotime($this->attributes['created_at'])); }
 
-    public function getUpdatedAtAttribute()
-    {
-        return date('d-m-Y H:i', strtotime($this->attributes['updated_at']));
-    }
+    public function getUpdatedAtAttribute() { return date('d-m-Y H:i', strtotime($this->attributes['updated_at'])); }
 
-    public function getEmailVerifiedAtAttribute()
-    {
-        return $this->attributes['email_verified_at'] == null ? null : date('d-m-Y H:i', strtotime($this->attributes['email_verified_at']));
-    }
+    public function getEmailVerifiedAtAttribute() { return $this->attributes['email_verified_at'] == null ? null : date('d-m-Y H:i', strtotime($this->attributes['email_verified_at'])); }
 
     public function getPermissionArray()
     {

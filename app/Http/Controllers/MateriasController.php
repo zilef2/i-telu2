@@ -404,8 +404,6 @@ class MateriasController extends Controller
 
     // $wolf = WolframAlphaService::query('integral of x^2');
     public function VistaTema(Request $request, $materiaid, $ejercicioid = null, $idnivel = null, $subtemaid = null, $selectedPrompID = null) { 
-// dd($request->pregunta);
-
 
         $permissions = Myhelp::EscribirEnLog($this, ' materia');
         $numberPermissions = Myhelp::getPermissionToNumber($permissions);
@@ -467,7 +465,6 @@ class MateriasController extends Controller
                 }
             }
             $selectedReasonString = '';
-
             if ($opcion !== 1) {
                 if ($limite > 0) {
                     $tiempo = session('tiempo', Carbon::now());
@@ -475,23 +472,24 @@ class MateriasController extends Controller
                     session(['tiempo' => Carbon::now()]);
 
                     if ($diffTiempos == 0 || $diffTiempos > 1) { //debe esperar 1 segundo almenos
-                        if ($opcion === 2) { //resolver unidad  
-                            $selectedReasonString = LosPromps::Find($selectedPrompID)->principal;
-                            $gpt = HelpGPT::gptResolverTema($selectedReasonString, $subtopicoSelec->nombre, $ChosenNivel, $materia->nombre, $usuario, env('DEBUGGINGGPT'));
-                        }
-                        if ($opcion === 4) { //resolver quiz
+                        if($opcion != 4) {
+                            if ($opcion === 2) { //resolver unidad
+                                $selectedReasonString = LosPromps::Find($selectedPrompID)->principal;
+                                $gpt = HelpGPT::gptResolverTema($selectedReasonString, $subtopicoSelec->nombre, $ChosenNivel, $materia->nombre, $usuario, env('DEBUGGINGGPT'));
+                            }
+                            //ejercicio
+                            if ($opcion === 3) {
+                                $gpt = HelpGPT::gptPart1($ejercicioSelec, $ChosenNivel, $materia->nombre, $usuario, $soloEjercicios, env('DEBUGGINGGPT'));
+                            }
+                            $respuesta = preg_replace("/^\n\n/", "", $gpt['respuesta']);
+
+                        }else{ //resolver quiz opcion = 4
                             $selectedReasonString = LosPromps::Find($selectedPrompID)->principal;
                             $gpt = HelpGPT::gptResolverQuiz($selectedReasonString, $subtopicoSelec->nombre, $ChosenNivel, $materia->nombre, $usuario, env('DEBUGGINGGPT'));
-                            $chuleta = $gpt[2];
                         }
-                        if ($opcion === 3) //ejercicio
-                            $gpt = HelpGPT::gptPart1($ejercicioSelec, $ChosenNivel, $materia->nombre, $usuario, $soloEjercicios, env('DEBUGGINGGPT'));
-
-                        $respuesta = preg_replace("/^\n\n/", "", $gpt[0]);
-
-                        $restarAlToken = $gpt[1];
+                        $restarAlToken = $gpt['restarAlToken'];
                         $limite = intval($usuario->limite_token_leccion);
-                    } else { //no le quedan mas tokens
+                    } else {
                         $respuesta = $this->muyFrecuente; //hizo una peticion en menos de un segundo a la anterior
                         //todo: grabar en el log, que este usuario es desesperado o hacker jaja
                     }
@@ -500,34 +498,37 @@ class MateriasController extends Controller
                 }
             }
 
-
             $temasYValores = $this->lookForTemas(intval($materiaid));
             $nivelSelect = $vectorYSelecNiveles[1];
 
             set_time_limit(70);
             session(['tiempo' => Carbon::now()]);
             return Inertia::render('materia/vistaTem', [ //carpeta
-                'breadcrumbs'       =>  [['label' => __('app.label.materias'), 'href' => route('materia.index')]],
-                'elid'              =>  intval($materiaid),
-                'title'             =>  'Seleccione una leccion',
-                'perPage'           =>  10,
-                'fromController'    =>  $temasYValores[0],
-                'respuesta'         =>  $respuesta,
-                'objetivosCarrera'  =>  $materia->objetivosString(),
-                'temaSelec'         => $temaSelec ?? 'Esperando Unidad...',
-                'subtopicoSelec'    => $subtopicoSelec ?? null,
-                'ejercicioSelec'    => $ejercicioSelec ?? 'Aqui vera la pregunta',
-                'limite'            => $limite,
-                'usuario'           => $usuario,
-                'materia'           => $materia,
-                'restarAlToken'     => $restarAlToken,
-                'nivelSelect'       => $nivelSelect,
-                'ChosenNivel'       => $ChosenNivel,
-                'soloEjercicios'    => $soloEjercicios,
-                'opcion'            => $opcion,
-                'ListaPromp'        => $ListaPromp,
-                'selectedPrompID'   => $selectedPrompID,
-                'selectedReasonString'   => $selectedReasonString,
+                'breadcrumbs'           =>  [['label' => __('app.label.materias'), 'href' => route('materia.index')]],
+                'elid'                  =>  intval($materiaid),
+                'title'                 =>  'Seleccione una leccion',
+                'perPage'               =>  10,
+                'fromController'        =>  $temasYValores[0],
+                'respuesta'             =>  $respuesta,
+                'objetivosCarrera'      =>  $materia->objetivosString(),
+                'temaSelec'             => $temaSelec ?? 'Esperando Unidad...',
+                'subtopicoSelec'        => $subtopicoSelec ?? null,
+                'ejercicioSelec'        => $ejercicioSelec ?? 'Aqui vera la pregunta',
+                'limite'                => $limite,
+                'usuario'               => $usuario,
+                'materia'               => $materia,
+                'restarAlToken'         => $restarAlToken,
+                'nivelSelect'           => $nivelSelect,
+                'ChosenNivel'           => $ChosenNivel,
+                'soloEjercicios'        => $soloEjercicios,
+                'opcion'                => $opcion,
+                'ListaPromp'            => $ListaPromp,
+                'selectedPrompID'       => intval($selectedPrompID),
+                'selectedReasonString'  => $selectedReasonString,
+                //solo practica
+                'vectorChuleta'            => $gpt['vectorChuleta'] ?? [],
+                'ArrayPreguntas'            => $gpt['ArrayPreguntas'] ?? [],
+                'ArrayRespuestasCorrectas'   => $gpt['ArrayRespuestasCorrectas'] ?? [],
             ]);
         } catch (\Throwable $th) {
             Log::alert("U -> " . Auth::user()->name . " fallo en preguntar la IA:  " . $th->getMessage());

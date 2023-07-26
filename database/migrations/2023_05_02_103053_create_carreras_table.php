@@ -19,6 +19,9 @@ class CreateCarrerasTable extends Migration
 			$table->string('nombre');
 			$table->integer('enum')->default(1);
             
+			$table->string('perfil_profesional');
+			$table->string('perfil_ocupacional');
+            
 			$table->string('descripcion')->nullable();
             $table->unsignedBigInteger('universidad_id');
              

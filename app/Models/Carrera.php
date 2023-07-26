@@ -15,7 +15,6 @@ class Carrera extends Model
         'nombre',
         'descripcion',
 
-        'codigo',
         'perfil_profesional',
         'perfil_ocupacional',
 

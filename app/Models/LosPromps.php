@@ -13,7 +13,7 @@ class LosPromps extends Model
         'principal',
         'teoricaOpractica',
         'clasificacion',
-        'tokensAproximados',
+        'tokensAproximados', //todo: hay que usarlos. pero donde
     ];
 
 

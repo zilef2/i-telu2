@@ -21,7 +21,11 @@ return new class extends Migration
 
             $table->string ('identificacion')->unique();
             $table->string ('sexo')->nullable();
-           $table->dateTime('fecha_nacimiento')->nullable();
+            $table->dateTime('fecha_nacimiento')->nullable();
+            $table->string ('semestre')->nullable();
+            $table->string ('semestre_mas_bajo')->nullable();
+            $table->string ('limite_token_general')->nullable();
+            $table->string ('limite_token_leccion')->nullable();
             
             $table->timestamp('email_verified_at')->nullable();
             $table->timestamps();
