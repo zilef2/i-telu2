@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Parametro;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
@@ -42,15 +43,16 @@ class UserSeeder extends Seeder
             'alejo' => '1232567899',
             'jose' =>  '1152194566',
             'madrid' => '1152194567',
-            'felizzola' => '1152194568',
-            'marta' => '1152194569',
             'liliana' => '1152194510',
-            'mabel' => '1152194511',
             'miguel' => '1152194512',
             'jorge' => '1152194513',
             'emerson' => '1152194514',
             'amaya' => '11521222514',
         ];
+
+        $grados = ['bachiller','pregrado','postgrado'];
+        $parametro = Parametro::first();
+        $NumTickesDefecto = $parametro->NumeroTicketDefecto;
 
         foreach ($nombresGenericos as $key => $value) {
             $yearRandom = (rand(15, 39));
@@ -63,6 +65,10 @@ class UserSeeder extends Seeder
                 'fecha_nacimiento' => $anios,
                 'sexo' => $sexos[rand(0, 1)],
                 'identificacion' => $value,
+                'semestre' => rand(1,10),
+                'pgrado' => $grados[rand(0,2)],
+                'limite_token_general' => $NumTickesDefecto,
+                'limite_token_leccion' => $NumTickesDefecto,
             ]);
             $unUsuario->assignRole('trabajador');
         }

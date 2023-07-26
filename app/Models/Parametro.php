@@ -10,7 +10,9 @@ class Parametro extends Model
     use HasFactory;
 
     protected $fillable = [
-        'Fecha_creacion_parametro',
-        'nombre',
+        'prompEjercicios',
+        'prompObjetivos',
+        'NumeroTicketDefecto',
+        'prompExplicarTema',
     ];
 }
