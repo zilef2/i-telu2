@@ -113,7 +113,7 @@ watchEffect(() => {
                 <div class="my-6 grid sm:grid-cols-2 xs:grid-cols-1 gap-6">
                     <div>
                         <InputLabel for="enum" :value="lang().label.enum" />
-                        <TextInput id="enum" type="text" class="mt-1 block w-full" v-model="form.enum" required
+                        <TextInput id="enum" type="number" class="mt-1 block w-full" v-model="form.enum" required
                             :placeholder="lang().placeholder.enum" :error="form.errors.enum" />
                         <InputError class="mt-2" :message="form.errors.enum" />
                     </div>

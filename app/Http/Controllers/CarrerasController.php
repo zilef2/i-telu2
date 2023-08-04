@@ -21,8 +21,7 @@ class CarrerasController extends Controller
 
     private $modelName = 'Carrera';
     //! funciones del index
-    public function MapearClasePP(&$Carreras, $numberPermissions)
-    {
+    public function MapearClasePP(&$Carreras, $numberPermissions) {
         $Carreras = $Carreras->get()->map(function ($carrera) use ($numberPermissions) {
 
             if ($numberPermissions < 4) {
@@ -44,20 +43,19 @@ class CarrerasController extends Controller
         })->filter();
     }
 
-    public function fNombresTabla($numberPermissions)
-    {
+    public function fNombresTabla($numberPermissions) {
         //0: como se ven //1 como es la BD //2orden
         $nombresTabla = [[], [], []];
         if ($numberPermissions <= 3) { //estudiante
 
-            array_push($nombresTabla[0], "#", "nombre","codigo", "Universidad", "descripcion");
+            array_push($nombresTabla[0], "#", "nombre", "codigo", "Universidad", "descripcion");
             //se puede ordenar?
-            $nombresTabla[2][] = ["enum", "nombre","codigo", "universidad_id", "descripcion"];
+            $nombresTabla[2][] = ["enum", "nombre", "codigo", "universidad_id", "descripcion"];
         } else {
             // if($numberPermissions < 3){ //profesor
-            $nombresTabla[0] = array_merge($nombresTabla[0], ["Acciones", "#", "nombre","codigo", "Universidad", "Inscritos", "descripcion"]);
+            $nombresTabla[0] = array_merge($nombresTabla[0], ["Acciones", "#", "nombre", "codigo", "Universidad", "Inscritos", "descripcion"]);
             //campos ordenables
-            $nombresTabla[2] = array_merge($nombresTabla[2], [null, "enum", "nombre","codigo", "universidad_id", null, "descripcion"]);
+            $nombresTabla[2] = array_merge($nombresTabla[2], [null, "enum", "nombre", "codigo", "universidad_id", null, "descripcion"]);
         }
         //coordinador_academico
         // coordinador_de_programa
@@ -65,8 +63,7 @@ class CarrerasController extends Controller
     }
 
 
-    public function Filtros($request, &$Carreras)
-    {
+    public function Filtros($request, &$Carreras) {
         if ($request->has('selectedUniID') && $request->selectedUniID != 0) {
             $universidadid = Universidad::has('carreras')->where('id', $request->selectedUniID)->pluck('id')->toArray();
             $Carreras->whereIn('universidad_id', $universidadid);
@@ -86,8 +83,7 @@ class CarrerasController extends Controller
             $Carreras->orderBy('nombre');
         }
     }
-    public function losSelect($numberPermissions)
-    {
+    public function losSelect($numberPermissions) {
         if ($numberPermissions < intval(env('PERMISS_VER_FILTROS_SELEC'))) { //coordinador academico, coorPrograma,profe,estudiante
             $UniversidadSelect = Auth::user()->universidades;
         } else {
@@ -103,8 +99,8 @@ class CarrerasController extends Controller
     public function index(Request $request)
     {
         $permissions = Myhelp::EscribirEnLog($this, 'carrera');
-
         $numberPermissions = Myhelp::getPermissionToNumber($permissions); // retorna un numero referente a los permisos(0:error, 1:estudiante,  2: profesor, 3:++ )
+
         $titulo = __('app.label.Carreras');
         $permissions = auth()->user()->roles->pluck('name')[0];
         $Carreras = Carrera::query();
@@ -191,7 +187,8 @@ class CarrerasController extends Controller
         ]);
     }
 
-    public function UsuariosSinLosInscritos($modelo, $universidad) {
+    public function UsuariosSinLosInscritos($modelo, $universidad)
+    {
         $usuariosU = $universidad->users->pluck('id');
         $usuariosDeLaCarrera = $modelo->users->pluck('id');
 
@@ -203,21 +200,29 @@ class CarrerasController extends Controller
 
     //fin index y sus funciones
 
-    public function create() { }
+    public function create()
+    {
+    }
 
-    public function store(CarreraRequest $request) {
+    public function store(CarreraRequest $request)
+    {
         DB::beginTransaction();
         Myhelp::EscribirEnLog($this, 'carrera');
 
         try {
-            $modelInstance = resolve('App\\Models\\' . $this->modelName);
-            $ultima = $modelInstance::Where('universidad_id', $request->universidad_id)->latest('enum')->first() ?? 1;
+
+            if ($request->enum) {
+                $enum = $request->enum;
+            } else {
+                $modelInstance = resolve('App\\Models\\' . $this->modelName);
+                $enum = intval($modelInstance::latest('enum')->first()->enum) + 1 ?? 1;
+            }
+            // dd($enum);
             $Carrera = Carrera::create([
                 'nombre' => $request->nombre,
-                //otrosCampos
                 'descripcion' => $request->descripcion,
                 'universidad_id' => $request->universidad_id,
-                'enum' => $request->enum,
+                'enum' => $enum,
                 'codigo' => $request->codigo
             ]);
             DB::commit();
@@ -226,9 +231,9 @@ class CarrerasController extends Controller
             return back()->with('success', __('app.label.created_successfully2', ['nombre' => $Carrera->nombre]));
         } catch (\Throwable $th) {
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en Guardar Carrera " . $request->nombre . " - " . $th->getMessage());
+            Log::alert("U -> " . Auth::user()->name . " fallo en Guardar Carrera " . $request->nombre . " - " . $th->getMessage() . ' L:' . $th->getLine());
 
-            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.Carrera')]) . $th->getMessage());
+            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.Carrera')]) . $th->getMessage() . ' L:' . $th->getLine());
         }
     }
 
@@ -250,8 +255,8 @@ class CarrerasController extends Controller
             return redirect()->route('carrera.index')->with('success', __('app.label.created_success'));
         } catch (\Throwable $th) {
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en matricular(carrera) - " . $th->getMessage());
-            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.Universidad')]) . $th->getMessage());
+            Log::alert("U -> " . Auth::user()->name . " fallo en matricular(carrera) - " . $th->getMessage() . ' L:' . $th->getLine());
+            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.Universidad')]) . $th->getMessage() . ' L:' . $th->getLine());
         }
     }
 
@@ -261,10 +266,14 @@ class CarrerasController extends Controller
     public function edit(Carrera $Carrera)
     {
     }
-    public function update(Request $request, Carrera $Carrera)
+    public function update(CarreraRequest $request, Carrera $Carrera)
     {
+        $request->validate([
+            'codigo' => 'required|unique:carreras,codigo,' . $Carrera->id,
+        ]);
+
         DB::beginTransaction();
-        Myhelp::EscribirEnLog($this, 'carrera');
+        Myhelp::EscribirEnLog($this, ' Update carrera', '', false);
         try {
             $Carrera->update([
                 'nombre' => $request->nombre,
@@ -280,8 +289,8 @@ class CarrerasController extends Controller
         } catch (\Throwable $th) {
 
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en actualizar Carrera " . $request->nombre . " - " . $th->getMessage());
-            return back()->with('error', __('app.label.updated_error', ['nombre' => $Carrera->nombre]) . $th->getMessage());
+            Log::alert("U -> " . Auth::user()->name . " fallo en actualizar Carrera " . $request->nombre . " - " . $th->getMessage() . ' L:' . $th->getLine());
+            return back()->with('error', __('app.label.updated_error', ['nombre' => $Carrera->nombre]) . $th->getMessage() . ' L:' . $th->getLine());
         }
     }
 
@@ -305,8 +314,8 @@ class CarrerasController extends Controller
             return back()->with('success', __('app.label.deleted_successfully2', ['nombre' => $Carreras->nombre]));
         } catch (\Throwable $th) {
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en borrar Carrera " . $id . " - " . $th->getMessage());
-            return back()->with('error', __('app.label.deleted_error', ['name' => __('app.label.Carreras')]) . $th->getMessage());
+            Log::alert("U -> " . Auth::user()->name . " fallo en borrar Carrera " . $id . " - " . $th->getMessage() . ' L:' . $th->getLine());
+            return back()->with('error', __('app.label.deleted_error', ['name' => __('app.label.Carreras')]) . $th->getMessage() . ' L:' . $th->getLine());
         }
     }
 }

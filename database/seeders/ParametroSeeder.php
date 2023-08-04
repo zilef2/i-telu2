@@ -22,7 +22,7 @@ class ParametroSeeder extends Seeder
             'pMejoraContinua'    => " Estoy tratando de mejorar mi compresion en [Unidad]. Hazme una pregunta algebraica y sigue haciéndome preguntas adaptativas para que yo mejore. Si obtengo la respuesta correcta, dame una pregunta más difícil, si respondo mal, proporciona retroalimentación y dame una pregunta más fácil. ",
 
 
-            'prompExplicarTema'    => "Eres un experto en la asignatura de (materia_nombre), explica el Unidad (Unidad) para estudiante de nivel (nivel).",
+            'prompExplicarTema'    => "Eres un experto en la asignatura de (materia_nombre), explica la Unidad (Unidad) para estudiante de nivel (nivel).",
 
             'NumeroTicketDefecto' => 5, //ticket: numero promedio de preguntas que puede realizarle a la IA
         ]);

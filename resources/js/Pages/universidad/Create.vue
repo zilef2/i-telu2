@@ -79,7 +79,7 @@ watchEffect(() => {
                     </div>
                     <div>
                         <InputLabel for="codigo" :value="lang().label.codigo" />
-                        <TextInput id="codigo" type="number" class="mt-1 block w-full" v-model="form.codigo" required
+                        <TextInput id="codigo" type="text" class="mt-1 block w-full" v-model="form.codigo" required
                             :placeholder="lang().placeholder.codigo" :error="form.errors.codigo" />
                         <InputError class="mt-2" :message="form.errors.codigo" />
                     </div>

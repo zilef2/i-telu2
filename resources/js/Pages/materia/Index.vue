@@ -12,7 +12,7 @@ import pkg from 'lodash';
 import { router, usePage, Link } from '@inertiajs/vue3';
 
 import Pagination from '@/Components/Pagination.vue';
-import { CursorArrowRippleIcon, ChevronUpDownIcon,QuestionMarkCircleIcon, EyeIcon, PencilIcon, TrashIcon, UserGroupIcon } from '@heroicons/vue/24/solid';
+import { CursorArrowRippleIcon, ChevronUpDownIcon, QuestionMarkCircleIcon, EyeIcon, PencilIcon, TrashIcon, UserCircleIcon } from '@heroicons/vue/24/solid';
 
 import Create from '@/Pages/materia/Create.vue';
 import Edit from '@/Pages/materia/Edit.vue';
@@ -21,7 +21,7 @@ import Delete from '@/Pages/materia/Delete.vue';
 import Checkbox from '@/Components/Checkbox.vue';
 import InfoButton from '@/Components/InfoButton.vue';
 import { useForm } from '@inertiajs/vue3';
-import { PrimerasPalabras, vectorSelect, formatDate, CalcularEdad, CalcularSexo} from '@/global.js';
+import { PrimerasPalabras, vectorSelect, formatDate, CalcularEdad, CalcularSexo } from '@/global.ts';;
 
 const { _, debounce, pickBy } = pkg
 const props = defineProps({
@@ -31,13 +31,13 @@ const props = defineProps({
     perPage: Number,
 
     fromController: Object,
-    nombresTabla: Array,
+    nombresTabla: Object,
     respuest: String,
     errorMessage: String,
     carrerasSelect: Object,
     MateriasRequisitoSelect: Object,
     UniversidadSelect: Object,
-    numberPermissions:Number,
+    numberPermissions: Number,
 })
 
 
@@ -49,7 +49,7 @@ const data = reactive({
         selectedUni: props.filters.selectedUni,
         perPage: props.perPage,
         selectedcarr: props.filters.selectedcarr
-        
+
     },
     selectedId: [],
     multipleSelect: false,
@@ -83,12 +83,12 @@ watchEffect(() => {
     // data.numeroCarreras = ((Object.keys(props.carrerasSelect)).length)
     // console.log(data.numeroCarreras)
     // if(data.numeroCarreras > 0){
-        data.carrerasDeUSel = props.carrerasSelect?.map(
-            carrera => (
-                { label: carrera.nombre, value: carrera.id }
-            )
+    data.carrerasDeUSel = props.carrerasSelect?.map(
+        carrera => (
+            { label: carrera.nombre, value: carrera.id }
         )
-        data.carrerasDeUSel.unshift({label: 'Seleccione carrera', value:0})
+    )
+    data.carrerasDeUSel.unshift({ label: 'Seleccione carrera', value: 0 })
     // }
 })
 // console.log(data.params.carrerasDeUSel)
@@ -110,14 +110,14 @@ const select = () => {
 }
 
 onMounted(() => {
-    if(typeof data.params.selectedcarr === 'undefined' || data.params.selectedcarr === null) data.params.selectedcarr = 0
+    if (typeof data.params.selectedcarr === 'undefined' || data.params.selectedcarr === null) data.params.selectedcarr = 0
 
-    data.UniversidadSelect = vectorSelect(data.UniversidadSelect,props.UniversidadSelect,'una')
-    data.carrerasDeUSel = vectorSelect(data.carrerasDeUSel,props.carrerasSelect,'una')
+    data.UniversidadSelect = vectorSelect(data.UniversidadSelect, props.UniversidadSelect, 'una')
+    data.carrerasDeUSel = vectorSelect(data.carrerasDeUSel, props.carrerasSelect, 'una')
     // data.MateriasRequisitoSelect = vectorSelect(data.MateriasRequisitoSelect,props.MateriasRequisitoSelect,'una')
 })
 
-const vistaIA = (elid)=>{
+const vistaIA = (elid) => {
     const vista = route(route('materia.VistaTema', elid).url());
     page.visit(vista)
 }
@@ -151,8 +151,9 @@ const vistaIA = (elid)=>{
                 <div class="flex justify-between p-2">
                     <div v-if="props.numberPermissions > 1" class="flex space-x-2">
                         <SelectInput v-model="data.params.perPage" :dataSet="data.dataSet" />
-                        <DangerButton v-if="can(['delete materia'])" @click="data.deleteBulkOpen = true" v-show="data.selectedId.length != 0"
-                            class="px-3 py-1.5" v-tooltip="lang().tooltip.delete_selected">
+                        <DangerButton v-if="can(['delete materia'])" @click="data.deleteBulkOpen = true"
+                            v-show="data.selectedId.length != 0" class="px-3 py-1.5"
+                            v-tooltip="lang().tooltip.delete_selected">
                             <TrashIcon class="w-5 h-5" />
                         </DangerButton>
 
@@ -163,10 +164,10 @@ const vistaIA = (elid)=>{
                         <div v-if="data.params.selectedUni != 0 && props.numberPermissions > 1" class="bg-gray-100">
                             <SelectInput v-model="data.params.selectedcarr" id="carrer" :dataSet="data.carrerasDeUSel" />
                         </div>
-                        
+
                     </div>
-                    <TextInput v-if="can(['create materia'])" v-model="data.params.search" type="text" class="block w-3/6 md:w-2/6 lg:w-1/6 rounded-lg"
-                        :placeholder="lang().placeholder.search" />
+                    <TextInput v-if="can(['create materia'])" v-model="data.params.search" type="text"
+                        class="block w-3/6 md:w-2/6 lg:w-1/6 rounded-lg" :placeholder="lang().placeholder.search" />
                 </div>
 
                 <div class="overflow-x-auto scrollbar-table">
@@ -216,7 +217,7 @@ const vistaIA = (elid)=>{
                                             <InfoButton type="button" class="py-1.5 rounded-none"
                                                 v-tooltip="lang().tooltip.inscribir">
                                                 <Link :href="route('materia.AsignarUsers', clasegenerica.id)">
-                                                <UserGroupIcon class="w-7 h-7 px-0.5" />
+                                                <UserCircleIcon class="w-7 h-7 px-0.5" />
                                                 </Link>
                                             </InfoButton>
                                         </div>
@@ -239,19 +240,25 @@ const vistaIA = (elid)=>{
                                         </div>
                                     </div>
                                 </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-sm text-gay-600">{{ (clasegenerica.enum) }} </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-sm text-gay-600">{{ (clasegenerica.enum)
+                                }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3 underline text-sky-700">
                                     <Link :href="route('materia.show', clasegenerica.id)">
-                                        {{ (clasegenerica.nombre) }}
+                                    {{ (clasegenerica.nombre) }}
                                     </Link>
                                 </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-sm text-gay-600">{{ (clasegenerica.codigo) }} </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-sm text-gay-600">{{ (clasegenerica.papa) }} </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-sm text-gay-600">{{ (clasegenerica.cuantoshijos) }} </td>
-                                <td v-if="props.numberPermissions > 2" class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.muchos) }} </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-sm text-gay-600">{{
+                                    (clasegenerica.codigo) }} </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-sm text-gay-600">{{ (clasegenerica.papa)
+                                }} </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-sm text-gay-600">{{
+                                    (clasegenerica.cuantoshijos) }} </td>
+                                <td v-if="props.numberPermissions > 2" class="whitespace-nowrap py-4 px-2 sm:py-3">{{
+                                    (clasegenerica.muchos) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.objetivs) }} </td>
 
-                                <td class="whitespace-wrap break-words text-sm py-4 px-0">{{ PrimerasPalabras(clasegenerica.descripcion, 11) }} </td>
+                                <td class="whitespace-wrap break-words text-sm py-4 px-0">{{
+                                    PrimerasPalabras(clasegenerica.descripcion, 11) }} </td>
                             </tr>
                         </tbody>
                     </table>
@@ -265,4 +272,5 @@ const vistaIA = (elid)=>{
 
 
 
-    </AuthenticatedLayout></template>
+    </AuthenticatedLayout>
+</template>

@@ -4,7 +4,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\Schema;
 
-class CreateParametrosTable extends Migration
+class CreateMedidaControlsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,15 +13,10 @@ class CreateParametrosTable extends Migration
      */
     public function up()
     {
-        Schema::create('parametros', function (Blueprint $table) {
+        Schema::create('medida_controls', function (Blueprint $table) {
             $table->id();
-			
-            $table->text('prompEjercicios');
-            $table->text('prompObjetivos');
-            $table->text('pMejoraContinua');
-            $table->text('prompExplicarTema');
-            $table->string('NumeroTicketDefecto');
-            
+			$table->string('tokens_usados')->nullable();
+			$table->integer('user_id')->nullable();
             $table->timestamps();
         });
     }
@@ -33,6 +28,6 @@ class CreateParametrosTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('parametros');
+        Schema::dropIfExists('medida_controls');
     }
 }

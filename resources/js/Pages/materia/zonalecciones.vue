@@ -2,7 +2,7 @@
 import { reactive, watch, ref, watchEffect, onMounted } from 'vue';
 
 import pkg from 'lodash';
-import { vectorSelect, formatDate, CalcularEdad, CalcularSexo } from '@/global.js';
+import { vectorSelect, formatDate, CalcularEdad, CalcularSexo }from '@/global.ts';;
 
 const { _, debounce, pickBy } = pkg
 const props = defineProps({

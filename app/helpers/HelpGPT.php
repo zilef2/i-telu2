@@ -4,6 +4,7 @@ namespace App\helpers;
 
 use App\Models\MedidaControl;
 use App\Models\Parametro;
+use App\Models\RespuestaEjercicio;
 use OpenAI;
 
 // use Illuminate\Support\Facades\Auth;
@@ -22,7 +23,7 @@ class HelpGPT {
 
 
     //usado para sacar los ejercicios que traer GPT y ponerlos en un vector
-    private static function ApartarSujerencias($respuestaGPT, $plantillaPracticar) {
+    public static function ApartarSujerencias($respuestaGPT, $plantillaPracticar) {
         $vectorEjercicios = explode("\n", $respuestaGPT);
         $vectorEjercicios = array_filter($vectorEjercicios, 'trim');
 
@@ -60,7 +61,7 @@ class HelpGPT {
         $vectorChuleta = explode("\n", $respuestaGPT);
 
         //asegurar que el primer renglon, sea el titulo
-        if( $vectorChuleta[1] == "" || strpos(trim($vectorChuleta[0]),'¿') )
+        if( strpos(trim($vectorChuleta[0]),'¿') )
             array_unshift($vectorChuleta,"Quiz");
 
         $ArrayRespuestasCorrectas = [];
@@ -97,7 +98,7 @@ class HelpGPT {
             for ($i=$posicionInicial; $i < $correcta; $i++) { 
                 $ArrayPreguntas[$key][] = $i;
             }
-            $posicionInicial = $correcta + 1;
+            $posicionInicial = $correcta;
         }
 
         // dd( $ArrayRespuestasCorrectas, $ArrayPreguntas );
@@ -169,9 +170,10 @@ class HelpGPT {
         return ($Lapromt);
     }
 
+    //se usa para resolver ejercicios
     public static function gptPart1($pregunta, $nivel, $materia_nombre, $usuario, &$soloEjercicios, $debug = false) {
 
-        $longuitudPregunta = strlen($pregunta) > 15;
+        $longuitudPregunta = strlen($pregunta) > 7;
 
         if ($longuitudPregunta) {
             if (!$debug) {
@@ -180,14 +182,13 @@ class HelpGPT {
                 $result = $client->completions()->create([
                     'model' => 'text-davinci-003',
                     'prompt' => self::modificarPromt($materia_nombre, $pregunta, $nivel, $plantillaPracticar),
-                    'max_tokens' => HelpGPT::maxToken() // 900 or 500
+                    'max_tokens' => HelpGPT::maxToken()
                 ]);
                 $respuesta = $result['choices'][0]["text"];
                 $finishReason = $result['choices'][0];
                 $finishingReason = $finishReason["finish_reason"] ?? '';
 
                 if ($finishingReason == 'stop') {
-
                     $usageRespuesta = intval($result['usage']["completion_tokens"]); //~ 260
                     $usageRespuestaTotal = intval($result['usage']["total_tokens"]); //~ 500
 
@@ -198,12 +199,12 @@ class HelpGPT {
                         'user_id' => $usuario->id
                     ]);
                     $soloEjercicios = HelpGPT::ApartarSujerencias($respuesta, $plantillaPracticar);
-                    return [$respuesta, $restarAlToken];
+                    return [ 'respuesta' => $respuesta, 'restarAlToken' => $restarAlToken];
                 } else {
                     if ($finishingReason == 'length') {
-                        return [self::respuestaLarga, 0];
+                        return [ 'respuesta' => self::respuestaLarga, 'restarAlToken' => 0];
                     } else {
-                        return [self::servicioNOdisponible, 0];
+                        return [ 'respuesta' => self::servicioNOdisponible, 'restarAlToken' => 0];
                     }
                 }
             }
@@ -213,9 +214,9 @@ class HelpGPT {
                 2. ¿Qué es la nico-adenosina deshidrogenasa? 
                 3. ¿Qué rol juega el ATP en nuestro cuerpo?
             ";
-            return [$respuesta, 0];
+            return [ 'respuesta' => $respuesta, 'restarAlToken' => 0];
         }
-        return [self::PreguntaCorta, 0];
+        return [ 'respuesta' => self::PreguntaCorta, 'restarAlToken' => 0];
     }
     
     public static function gptResolverQuiz(&$elpromp, $subtopico, $nivel, $materia_nombre, $usuario, $debug = false) {
@@ -223,9 +224,9 @@ class HelpGPT {
         $corchetesYparentesis = self::contarModificarP($elpromp,$materia_nombre, $subtopico, $nivel);
         //todo: si corchetesYparentesis estan en cero, no debe continuar
 
-        $elpromp.= ". Al final de las opciones, imprime la respuesta correcta con este formato: RESPUESTA=A";
+        $elpromp.= ". Al final de las opciones, imprime la respuesta correcta por cada pregunta con este formato: RESPUESTA=A";
         $elpromp.= ". Cada opcion, debe ocupar una fila y deben ser 4 opciones de la A a la D.";
-        $elpromp.= ". La primera fila debe tener un titulo relacionado a lo que se evalua y ña segunda fila debe ser la primera pregunta.";
+        $elpromp.= ". La primera fila debe tener un titulo relacionado a lo que se evalua y la segunda fila debe ser la primera pregunta.";
         $elpromp = str_replace("..",".",$elpromp);
 
 
@@ -349,8 +350,14 @@ class HelpGPT {
     }
     public static function gptResolverTema(&$elpromp, $subtopico, $nivel, $materia_nombre, $usuario, $debug = false) {
         $longuitudPregunta = strlen($subtopico) > 3;
-
+        
         $elpromp = self::modificarPSubTema($elpromp,$materia_nombre, $subtopico, $nivel);
+        dd($elpromp);
+        $YaEstabaGuardada = GrabarGPT::BuscarPromp($elpromp);
+        if($YaEstabaGuardada && $YaEstabaGuardada != 0){
+            return [ 'respuesta' => $YaEstabaGuardada, 'restarAlToken' => 0];
+        }
+        
         if ($longuitudPregunta) {
             if (!$debug) {
                 $client = OpenAI::client(env('GTP_SELECT'));
@@ -375,9 +382,15 @@ class HelpGPT {
                         'user_id' => $usuario->id
                     ]);
 
-                    return [
+                    RespuestaEjercicio::create([
+                        'guardar_pregunta' => $elpromp,
                         'respuesta' => $respuesta,
-                        'restarAlToken' => $restarAlToken];
+                        'nivel' => $nivel,
+                        'precisa' => 3, // 0 (nada preciso) - 5 (muy preciso)
+                        'idExistente' => null, 
+                    ]);
+
+                    return [ 'respuesta' => $respuesta, 'restarAlToken' => $restarAlToken];
                 } else {
                     if ($finishingReason == 'length') {
                         return [
@@ -408,8 +421,8 @@ class HelpGPT {
             'restarAlToken' => 0
         ];
     }
-    private static function CalcularTokenConsumidos($usageRespuesta, $usageRespuestaTotal)
-    {
+
+    public static function CalcularTokenConsumidos($usageRespuesta, $usageRespuestaTotal) {
         $restarAlToken = 1;
         $usageRespuesta -= self::MAX_USAGE_RESPUESTA;
         $usageRespuestaTotal -= self::MAX_USAGE_TOTAL;
@@ -422,8 +435,7 @@ class HelpGPT {
         return $restarAlToken;
     }
 
-    public static function maxToken()
-    {
+    public static function maxToken() {
         if (config('app.env') === 'production') {
             return 1400; // Adjust the response length as needed
         }

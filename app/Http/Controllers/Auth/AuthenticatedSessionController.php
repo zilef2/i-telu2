@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\helpers\Myhelp;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Providers\RouteServiceProvider;
@@ -33,6 +34,14 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
 
         $request->session()->regenerate();
+        $user = Auth::User();
+        $permissions = Myhelp::EscribirEnLog($this, '-: notoken :-');
+        $numberPermissions = Myhelp::getPermissionToNumber($permissions);
+        if($numberPermissions > 9){
+            $token = $user->createToken('api-token')->plainTextToken;
+            $permissions = Myhelp::EscribirEnLog($this, '--::'.$token.' ::--');
+            // dd($token); //todo:enviar por email
+        }
 
         return redirect()->intended(RouteServiceProvider::HOME);
     }

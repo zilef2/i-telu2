@@ -82,7 +82,7 @@ class RoleController extends Controller
             return back()->with('success', __('app.label.created_successfully', ['name' => $role->name]));
         } catch (\Throwable $th) {
             DB::rollback();
-            return back()->with('error', __('app.label.created_error', ['name' => __('app.label.role')]) . $th->getMessage());
+            return back()->with('error', __('app.label.created_error', ['name' => __('app.label.role')]) . $th->getMessage() . ' L:' . $th->getLine());
         }
     }
 
@@ -127,7 +127,7 @@ class RoleController extends Controller
             return back()->with('success', __('app.label.updated_successfully', ['name' => $role->name]));
         } catch (\Throwable $th) {
             DB::rollback();
-            return back()->with('error', __('app.label.updated_error', ['name' => $role->name]) . $th->getMessage());
+            return back()->with('error', __('app.label.updated_error', ['name' => $role->name]) . $th->getMessage() . ' L:' . $th->getLine());
         }
     }
 
@@ -143,7 +143,7 @@ class RoleController extends Controller
             $role->delete();
             return back()->with('success', __('app.label.deleted_successfully', ['name' => $role->name]));
         } catch (\Throwable $th) {
-            return back()->with('error', __('app.label.deleted_error', ['name' => $role->name]) . $th->getMessage());
+            return back()->with('error', __('app.label.deleted_error', ['name' => $role->name]) . $th->getMessage() . ' L:' . $th->getLine());
         }
     }
 
@@ -154,7 +154,7 @@ class RoleController extends Controller
             $role->delete();
             return back()->with('success', __('app.label.deleted_successfully', ['name' => count($request->id) . ' ' . __('app.label.role')]));
         } catch (\Throwable $th) {
-            return back()->with('error', __('app.label.deleted_error', ['name' => count($request->id) . ' ' . __('app.label.role')]) . $th->getMessage());
+            return back()->with('error', __('app.label.deleted_error', ['name' => count($request->id) . ' ' . __('app.label.role')]) . $th->getMessage() . ' L:' . $th->getLine());
         }
     }
 }

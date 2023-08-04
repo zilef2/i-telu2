@@ -11,7 +11,7 @@ import { reactive, watch, ref, watchEffect } from 'vue';
 import pkg from 'lodash';
 import { router, usePage, Link } from '@inertiajs/vue3';
 
-import { CheckCircleIcon, EyeIcon, PencilIcon, TrashIcon, UserGroupIcon } from '@heroicons/vue/24/solid';
+import { CheckCircleIcon, EyeIcon, PencilIcon, TrashIcon, UserCircleIcon } from '@heroicons/vue/24/solid';
 
 
 import Checkbox from '@/Components/Checkbox.vue';
@@ -144,7 +144,8 @@ const inscribirSubmit = () => {
                         </nav>
                     </div>
                 </div>
-        </div>
-    </section>
+            </div>
+        </section>
 
-</AuthenticatedLayout></template>
+    </AuthenticatedLayout>
+</template>

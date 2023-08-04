@@ -35,10 +35,13 @@ class Materia extends Model {
     public function objetivos(): HasMany {
         return $this->hasMany(Objetivo::class, 'materia_id');
     }
-    public function objetivosString() {
+    public function objetivosString($cuantos = false) {
         $pluc = $this->objetivos->pluck('nombre')->toArray();
-        if(count($pluc) === 0)
+        $cuantosObjetivosTiene = count($pluc);
+        if($cuantosObjetivosTiene === 0)
             return 'Sin objetivos';
+
+        if($cuantos) return $cuantosObjetivosTiene;
         return implode(". ", $pluc);
     }
 

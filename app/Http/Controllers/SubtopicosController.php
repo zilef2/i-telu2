@@ -59,7 +59,8 @@ class subtopicosController extends Controller
             $subtopicos->orderBy('nombre');
         }
     }
-    public function losSelect($numberPermissions) {
+    public function losSelect($numberPermissions)
+    {
         if ($numberPermissions < intval(env('PERMISS_VER_FILTROS_SELEC'))) { //coorPrograma,profe,estudiante
             $UnidadsSelect = Auth::user()->unidads();
         } else {
@@ -72,7 +73,8 @@ class subtopicosController extends Controller
 
     // -fin : MapearClasePP, Filtros
 
-    public function index(Request $request) {
+    public function index(Request $request)
+    {
         $permissions = Myhelp::EscribirEnLog($this, 'subtopico');
         $numberPermissions = Myhelp::getPermissionToNumber($permissions);
 
@@ -112,23 +114,27 @@ class subtopicosController extends Controller
         ]);
     } //fin index
 
-    public function create() { }
+    public function create()
+    {
+    }
 
-    public function store(SubtopicoRequest $request) {
+    public function store(SubtopicoRequest $request)
+    {
         DB::beginTransaction();
         $ListaControladoresYnombreClase = (explode('\\', get_class($this)));
         $nombreC = end($ListaControladoresYnombreClase);
         log::info('Vista: ' . $nombreC . 'U:' . Auth::user()->name . ' ||subtopico|| ');
 
-        $modelInstance = resolve('App\\Models\\' . $this->modelName);
-        $ultima = $modelInstance::latest('enum')->first();
+        // $modelInstance = resolve('App\\Models\\' . $this->modelName);
+        // $ultima = $modelInstance::latest('enum')->first();
         try {
             $subtopico = Subtopico::create([
+                'codigo' => $request->codigo,
                 'nombre' => $request->nombre,
-                'descripcion' => $request->descripcion,
-                'unidad_id' => $request->unidad_id,
                 'enum' => $request->enum,
-                'codigo' => $request->codigo
+                'resultado_aprendizaje' => $request->resultado_aprendizaje,
+                'unidad_id' => $request->unidad_id,
+                'descripcion' => $request->descripcion,
             ]);
             DB::commit();
             Log::info("U -> " . Auth::user()->name . " Guardo subtopico " . $request->nombre . " correctamente");
@@ -136,16 +142,22 @@ class subtopicosController extends Controller
             return back()->with('success', __('app.label.created_successfully2', ['nombre' => $subtopico->nombre]));
         } catch (\Throwable $th) {
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en Guardar subtopico " . $request->nombre . " - " . $th->getMessage());
+            Log::alert("U -> " . Auth::user()->name . " fallo en Guardar subtopico " . $request->nombre . " - " . $th->getMessage() . ' L:' . $th->getLine());
 
-            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.subtopico')]) . $th->getMessage());
+            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.subtopico')]) . $th->getMessage() . ' L:' . $th->getLine());
         }
     }
 
-    public function show(subtopico $subtopico) { } public function edit(subtopico $subtopico) { }
+    public function show(subtopico $subtopico)
+    {
+    }
+    public function edit(subtopico $subtopico)
+    {
+    }
 
 
-    public function update(Request $request, $id) {
+    public function update(Request $request, $id)
+    {
         $subtopico = Subtopico::find($id);
         DB::beginTransaction();
         $ListaControladoresYnombreClase = (explode('\\', get_class($this)));
@@ -167,8 +179,8 @@ class subtopicosController extends Controller
         } catch (\Throwable $th) {
 
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en actualizar subtopico " . $request->nombre . " - " . $th->getMessage());
-            return back()->with('error', __('app.label.updated_error', ['nombre' => $subtopico->nombre]) . $th->getMessage());
+            Log::alert("U -> " . Auth::user()->name . " fallo en actualizar subtopico " . $request->nombre . " - " . $th->getMessage() . ' L:' . $th->getLine());
+            return back()->with('error', __('app.label.updated_error', ['nombre' => $subtopico->nombre]) . $th->getMessage() . ' L:' . $th->getLine());
         }
     }
 
@@ -186,8 +198,8 @@ class subtopicosController extends Controller
             return back()->with('success', __('app.label.deleted_successfully2', ['nombre' => $subtopicos->nombre]));
         } catch (\Throwable $th) {
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en borrar subtopico " . $id . " - " . $th->getMessage());
-            return back()->with('error', __('app.label.deleted_error', ['name' => __('app.label.subtopicos')]) . $th->getMessage());
+            Log::alert("U -> " . Auth::user()->name . " fallo en borrar subtopico " . $id . " - " . $th->getMessage() . ' L:' . $th->getLine());
+            return back()->with('error', __('app.label.deleted_error', ['name' => __('app.label.subtopicos')]) . $th->getMessage() . ' L:' . $th->getLine());
         }
     }
 }

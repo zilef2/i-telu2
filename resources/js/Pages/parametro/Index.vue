@@ -19,7 +19,7 @@
 
     import Checkbox from '@/Components/Checkbox.vue';
     import InfoButton from '@/Components/InfoButton.vue';
-    import {PrimerosCaracteres} from '@/global.js';
+    import {PrimerosCaracteres}from '@/global.ts';;
 
 
     const { _, debounce, pickBy } = pkg
@@ -72,12 +72,12 @@
                     <!-- <PrimaryButton class="rounded-none" @click="data.createOpen = true" v-show="can(['create parametro'])">
                         {{ lang().button.add }}
                     </PrimaryButton> -->
-                    <Create :show="data.createOpen" @close="data.createOpen = false" :title="props.title"  v-show="can(['create parametro'])"
-                        :parametrosSelect="data.parametrosSelect" />
-                    <Edit :show="data.editOpen" @close="data.editOpen = false" :parametro="props.fromController"  v-show="can(['edit parametro'])"
-                        :title="props.title" :parametrosSelect="data.parametrosSelect" />   
-                    <Delete :show="data.deleteOpen" @close="data.deleteOpen = false" :parametro="props.fromController"  v-show="can(['delete parametro'])"
-                        :title="props.title" />
+                    <Create :show="data.createOpen" @close="data.createOpen = false" :title="props.title"
+                        v-show="can(['create parametro'])" :parametrosSelect="data.parametrosSelect" />
+                    <Edit :show="data.editOpen" @close="data.editOpen = false" :parametro="props.fromController"
+                        v-show="can(['edit parametro'])" :title="props.title" :parametrosSelect="data.parametrosSelect" />
+                    <Delete :show="data.deleteOpen" @close="data.deleteOpen = false" :parametro="props.fromController"
+                        v-show="can(['delete parametro'])" :title="props.title" />
                 </div>
             </div>
             <div class="relative bg-white dark:bg-gray-800 shadow sm:rounded-lg">
@@ -91,7 +91,7 @@
                         <thead class="uppercase text-sm border-t border-gray-200 dark:border-gray-700">
                             <tr class="dark:bg-gray-900 text-left">
                                 <th v-for="(titulos, indiceN) in nombresTabla[0]" :key="indiceN"
-                                    class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800" >
+                                    class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
                                     <div class="flex justify-between items-center">
                                         <span>{{ titulos }}</span>
                                     </div>
@@ -99,13 +99,12 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr 
+                            <tr
                                 class="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-200/30 hover:dark:bg-gray-900/20">
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">
                                     <div class="flex justify-start items-center">
                                         <div class="rounded-md overflow-hidden">
-                                            <InfoButton type="button"
-                                                @click="(data.editOpen = true)"
+                                            <InfoButton type="button" @click="(data.editOpen = true)"
                                                 class="px-2 py-1.5 rounded-none" v-tooltip="lang().tooltip.edit">
                                                 <PencilIcon class="w-4 h-4" />
                                             </InfoButton>
@@ -113,9 +112,12 @@
                                     </div>
                                 </td>
                                 <!-- <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (index+1) }}</td> -->
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3 flex-wrap">{{ PrimerosCaracteres(props.fromController.prompEjercicios,50) }} </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ PrimerosCaracteres(props.fromController.prompObjetivos,50) }} </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (props.fromController.NumeroTicketDefecto) }} </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3 flex-wrap">{{
+                                                                    PrimerosCaracteres(props.fromController.prompEjercicios,50) }} </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{
+                                                                    PrimerosCaracteres(props.fromController.prompObjetivos,50) }} </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{
+                                                                    (props.fromController.NumeroTicketDefecto) }} </td>
                             </tr>
                         </tbody>
                     </table>

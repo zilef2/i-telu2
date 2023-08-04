@@ -9,7 +9,6 @@ const props = defineProps({
     roles: Number,
     permissions: Number,
 })
-
 </script>
 
 <template>

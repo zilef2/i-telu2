@@ -21,6 +21,8 @@ use App\Http\Requests\MateriumRequest;
 use App\Models\Ejercicio;
 use App\Models\LosPromps;
 use App\Models\Objetivo;
+use App\Models\Parametro;
+use App\Models\RespuestaEjercicio;
 use App\Models\Subtopico;
 use App\Models\Unidad;
 use Carbon\Carbon;
@@ -39,7 +41,8 @@ class MateriasController extends Controller
 
 
     //! index functions ()
-    public function MapearClasePP(&$materias, $numberPermissions) {
+    public function MapearClasePP(&$materias, $numberPermissions)
+    {
         $materias = $materias->get()->map(function ($materia) use ($numberPermissions) {
 
             if ($numberPermissions < 2) {
@@ -58,19 +61,21 @@ class MateriasController extends Controller
         })->filter();
         // dd($materias);
     }
-    public function fNombresTabla($numberPermissions) {
-        $nombresTabla[2] = [null,null,null,"enum","nombre","codigo", "carrera_id", null, null, null, "descripcion"];
+    public function fNombresTabla($numberPermissions)
+    {
+        $nombresTabla[2] = [null, null, null, "enum", "nombre", "codigo", "carrera_id", null, null, null, "descripcion"];
 
         if ($numberPermissions <= 2) {
-            $nombresTabla[0] = ["Edicion","Matricular","IA","#","Nombre","Codigo", "Carrera", "Unidades", "Objetivos", "descripcion"];
+            $nombresTabla[0] = ["IA", "#", "Nombre", "Codigo", "Carrera", "Unidades", "Objetivos", "descripcion"];
         } else { //not estudiante
-            $nombresTabla[0] = ["Edicion","Matricular","IA","#","Nombre","Codigo", "Carrera", "Unidades", "usuarios", "Objetivos", "descripcion"];
+            $nombresTabla[0] = ["Edicion", "Matricular", "IA", "#", "Nombre", "Codigo", "Carrera", "Unidades", "usuarios", "Objetivos", "descripcion"];
         }
 
         return $nombresTabla;
     }
 
-    public function Filtros($request, &$materias) {
+    public function Filtros($request, &$materias)
+    {
         if ($request->has('selectedUni') && $request->selectedUni != 0) {
             // dd($request->selectedUni);
             $carrerasid = Carrera::has('materias')->where('universidad_id', $request->selectedUni)->pluck('id')->toArray();
@@ -88,24 +93,19 @@ class MateriasController extends Controller
         if ($request->has(['field', 'order'])) {
             // $materias->orderBy($request->field, $request->order);
             $materias->orderBy($request->field, $request->order);
-
         } else {
             $materias->orderBy('nombre');
         }
     }
-    public function losSelect($numberPermissions, &$carrerasSelect, &$MateriasRequisitoSelect, &$UniversidadSelect, $request, &$materias) {
-        if ($request->has('selectedUni')) {
+    public function losSelect($numberPermissions, &$carrerasSelect, &$MateriasRequisitoSelect, &$UniversidadSelect, $request, &$materias)
+    {
+        if ($request->has('selectedUni') &&  $request->selectedUni != 0) {
             $carrerasSelect = Carrera::where('universidad_id', $request->selectedUni)->get();
         } else {
             $carrerasSelect = Carrera::all();
         }
-
         if ($request->has('selectedcarr') && $request->selectedcarr != 0) {
             $materias = $materias->whereIn('carrera_id', $request->selectedcarr);
-            // dd(
-            //     $request->selectedcarr,
-            //     $materias
-            // );
         }
 
         // $carrerasSelect = Carrera::has('materias')->get();
@@ -119,7 +119,8 @@ class MateriasController extends Controller
     }
 
 
-    public function index(Request $request) {
+    public function index(Request $request)
+    {
         $permissions = Myhelp::EscribirEnLog($this, ' materia');
         $numberPermissions = Myhelp::getPermissionToNumber($permissions);
 
@@ -155,35 +156,44 @@ class MateriasController extends Controller
 
         $errorMessage = '';
         return Inertia::render('materia/Index', [ //carpeta
-            'breadcrumbs'    =>  [['label' => __('app.label.materias'), 'href' => route('materia.index')]],
-            'title'          =>  $titulo,
-            'filters'        =>  $request->all(['search', 'field', 'order', 'selectedUni', 'selectedcarr']),
-            'perPage'        =>  (int) $perPage,
-            'fromController' =>  $paginated,
-            'nombresTabla'   =>  $nombresTabla,
-            'errorMessage' => $errorMessage,
-            'carrerasSelect' => $carrerasSelect,
-            'MateriasRequisitoSelect' => $MateriasRequisitoSelect,
-            'UniversidadSelect' => $UniversidadSelect,
-            'numberPermissions' => $numberPermissions,
+            'breadcrumbs'               =>  [['label' => __('app.label.materias'), 'href' => route('materia.index')]],
+            'title'                     =>  $titulo,
+            'filters'                   =>  $request->all(['search', 'field', 'order', 'selectedUni', 'selectedcarr']),
+            'perPage'                   =>  (int) $perPage,
+            'fromController'            =>  $paginated,
+            'nombresTabla'              =>  $nombresTabla,
+            'errorMessage'              => $errorMessage,
+            'carrerasSelect'            => $carrerasSelect,
+            'MateriasRequisitoSelect'   => $MateriasRequisitoSelect,
+            'UniversidadSelect'         => $UniversidadSelect,
+            'numberPermissions'         => $numberPermissions,
         ]);
     } //fin index
 
 
     //! STORE & SHOW & UPDATE & DESTTROY
-    public function store(MateriumRequest $request) {
+    public function store(MateriumRequest $request)
+    {
         DB::beginTransaction();
         Myhelp::EscribirEnLog($this, get_called_class(), '', false);
 
         try {
-            $modelInstance = resolve('App\\Models\\' . $this->modelName);
-            $ultima = $modelInstance::latest('enum')->first();
+            //usefull
+            // $modelInstance = resolve('App\\Models\\' . $this->modelName);
+            // $ultima = $modelInstance::latest('enum')->first()->enum;
+            if ($request->enum) {
+                $enum = $request->enum;
+            } else {
+                $modelInstance = resolve('App\\Models\\' . $this->modelName);
+                $enum = intval($modelInstance::latest('enum')->first()->enum) + 1 ?? 1;
+            }
+
             $materia = Materia::create([
                 'nombre' => $request->nombre,
                 //otrosCampos
                 'descripcion' => $request->descripcion,
                 'carrera_id' =>  $request->carrera_id,
-                'enum' => $request->enum,
+                'enum' => $enum,
                 'codigo' => $request->codigo
             ]);
 
@@ -195,13 +205,14 @@ class MateriasController extends Controller
             return back()->with('success', __('app.label.created_successfully2', ['nombre' => $materia->nombre]));
         } catch (\Throwable $th) {
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en Guardar materia " . $request->nombre . " - " . $th->getMessage());
+            Log::alert("U -> " . Auth::user()->name . " fallo en Guardar materia " . $request->nombre . " - " . $th->getMessage() . ' L:' . $th->getLine());
 
-            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.materia')]) . $th->getMessage());
+            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.materia')]) . $th->getMessage() . ' L:' . $th->getLine());
         }
     }
 
-    public function show($id) {
+    public function show($id)
+    {
         $materia = Materia::find($id);
         $unidads = $materia->unidads;
         $objetivos = $materia->objetivos;
@@ -224,15 +235,24 @@ class MateriasController extends Controller
             'breadcrumbs'    =>  [['label' => __('app.label.materias'), 'href' => route('materia.index')]],
         ]);
     }
-    public function edit(materia $materia) { }
+    public function edit(materia $materia)
+    {
+    }
 
-    public function update(Request $request, $id) {
-        // dd($request);
+    public function update(Request $request, $id)
+    {
         $materia = Materia::find($id);
+        $request->validate([
+            'codigo' => 'required|unique:materias,codigo,' . $id,
+        ]);
+
         $objetivos = $materia->objetivos;
         DB::beginTransaction();
         Myhelp::EscribirEnLog($this, get_called_class(), '', false);
         try {
+
+            $OriginalObj = intval($materia->objetivosString(true));
+
             $materia->update([
                 'nombre' => $request->nombre,
                 //otrosCampos
@@ -243,7 +263,6 @@ class MateriasController extends Controller
             ]);
 
             $cuantosObj = intval($request->cuantosObj);
-            $OriginalObj = intval($request->OriginalObj);
             $diferenciaObjetivos =  $cuantosObj - $OriginalObj;
 
             if ($diferenciaObjetivos >= 0) {
@@ -266,13 +285,15 @@ class MateriasController extends Controller
         } catch (\Throwable $th) {
 
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en actualizar materia " . $request->nombre . " - " . $th->getMessage());
-            return back()->with('error', __('app.label.updated_error', ['nombre' => $materia->nombre]) . $th->getMessage());
+            Log::alert("U -> " . Auth::user()->name . " fallo en actualizar materia " . $request->nombre . " - " . $th->getMessage() . ' L:' . $th->getLine());
+
+            return back()->with('error', __('app.label.updated_error', ['nombre' => $materia->nombre]) . $th->getMessage() . ' L:' . $th->getLine());
         }
     }
 
 
-    public function destroy($id) {
+    public function destroy($id)
+    {
         Myhelp::EscribirEnLog($this, get_called_class(), '', false);
 
         DB::beginTransaction();
@@ -292,15 +313,16 @@ class MateriasController extends Controller
             return back()->with('success', __('app.label.deleted_successfully2', ['nombre' => $materias->nombre]));
         } catch (\Throwable $th) {
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en borrar materia " . $id . " - " . $th->getMessage());
-            return back()->with('error', __('app.label.deleted_error', ['name' => __('app.label.materias')]) . $th->getMessage());
+            Log::alert("U -> " . Auth::user()->name . " fallo en borrar materia " . $id . " - " . $th->getMessage() . ' L:' . $th->getLine());
+            return back()->with('error', __('app.label.deleted_error', ['name' => __('app.label.materias')]) . $th->getMessage() . ' L:' . $th->getLine());
         }
     }
     //STORE & UPDATE & DESTROY
 
 
 
-    public function AsignarUsers(Request $request, $materiaid) {
+    public function AsignarUsers(Request $request, $materiaid)
+    {
         $titulo = 'Seleccione los estudiantes a matricular';
         $permissions = Myhelp::EscribirEnLog($this, 'carrera');
         if ($permissions === "estudiante") {
@@ -345,7 +367,8 @@ class MateriasController extends Controller
         ]);
     }
 
-    private function UsuariosSinLosInscritos($modelo, $carrera) {
+    private function UsuariosSinLosInscritos($modelo, $carrera)
+    {
         $usuariosU = $carrera->users->pluck('id');
         $usuariosDeLaMateria = $modelo->users->pluck('id');
 
@@ -356,7 +379,8 @@ class MateriasController extends Controller
     }
 
 
-    public function SubmitAsignarUsers(Request $request) {
+    public function SubmitAsignarUsers(Request $request)
+    {
         DB::beginTransaction();
         Myhelp::EscribirEnLog($this, ' materia');
 
@@ -373,12 +397,13 @@ class MateriasController extends Controller
             return redirect()->route('materia.index')->with('success', __('app.label.created_success'));
         } catch (\Throwable $th) {
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en matricular(materia) - " . $th->getMessage());
-            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.Universidad')]) . $th->getMessage());
+            Log::alert("U -> " . Auth::user()->name . " fallo en matricular(materia) - " . $th->getMessage() . ' L:' . $th->getLine());
+            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.Universidad')]) . $th->getMessage() . ' L:' . $th->getLine());
         }
     }
 
-    public function lookForTemas($materiaid) {
+    public function lookForTemas($materiaid)
+    {
         $materia = Materia::find($materiaid);
         $unidads = $materia->unidads;
         foreach ($unidads as $key => $value) {
@@ -403,143 +428,178 @@ class MateriasController extends Controller
 
 
     // $wolf = WolframAlphaService::query('integral of x^2');
-    public function VistaTema(Request $request, $materiaid, $ejercicioid = null, $idnivel = null, $subtemaid = null, $selectedPrompID = null) { 
+    public function VistaTema(Request $request, $materiaid, $ejercicioid = null, $idnivel = null, $subtemaid = null, $selectedPrompID = null)
+    {
+        // dd($subtemaid);
 
-        $permissions = Myhelp::EscribirEnLog($this, ' materia');
+        $permissions = Myhelp::EscribirEnLog($this, ' VistaTEma materia');
         $numberPermissions = Myhelp::getPermissionToNumber($permissions);
+        $usuario = Auth::user();
+        $restarAlToken = 0;
+        set_time_limit(180);
+        $respuesta = '';
 
-        try{
+        if ($numberPermissions > 1) {
+            try {
 
-            $vectorYSelecNiveles = HelpGPT::nivelesAplicativo();
-            if ($idnivel) {
-                $ChosenNivel = $vectorYSelecNiveles[0][$idnivel];
-            } else {
-                $ChosenNivel = '';
-            }
-
-            $usuario = Auth::user();
-            $restarAlToken = 0;
-            set_time_limit(180);
-
-
-            $materia = Materia::find($materiaid);
-            $limite = intval($usuario->limite_token_leccion);
-            $soloEjercicios = [];
-
-            $opcion = 1; //primer pantallazo
-            $respuesta = '';
-
-
-            if($numberPermissions > 4){
-                $ListaPromp = LosPromps::All();
-            }else{
-
-                $ListaPromp = $usuario->LosPromps()->Where('user_id',$usuario->id);
-                // $ListaPromp = LosPromps::Where('clasificacion', 'Expectativas Altas')->get();
-
-            }
-            $ListaPromp = HelpGPT::NEW_turnInSelectID($ListaPromp);
-
-            // dd($subtemaid !== null , $ejercicioid !== null);
-            if ($subtemaid !== null || $ejercicioid !== null) {
-                if ($subtemaid !== null) {
-                    if ($ejercicioid === 'explicar') {
-                        $subtopicoSelec = Subtopico::find($subtemaid);
-                        $temaSelec = Unidad::find($subtopicoSelec->unidad_id)->nombre;
-                        $opcion = 2; //se va aresolver un unidad        } else {
-                    }
-                    if ($ejercicioid === 'practicar') {
-                        $subtopicoSelec = Subtopico::find($subtemaid);
-                        $temaSelec = Unidad::find($subtopicoSelec->unidad_id)->nombre;
-                        $opcion = 4; //Quiz
-                    }
-                    
-
+                $vectorYSelecNiveles = HelpGPT::nivelesAplicativo();
+                if ($idnivel) {
+                    $ChosenNivel = $vectorYSelecNiveles[0][$idnivel];
                 } else {
-                    $ejercicio = Ejercicio::find($ejercicioid);
-                    $ejercicioSelec = $ejercicio->nombre;
-
-                    $subtopicoSelec = Subtopico::find($ejercicio->subtopico_id);
-                    $temaSelec = Unidad::find($subtopicoSelec->unidad_id)->nombre;
-                    $opcion = 3; //se va a resolver un ejercicio
+                    $ChosenNivel = '';
                 }
-            }
-            $selectedReasonString = '';
-            if ($opcion !== 1) {
-                if ($limite > 0) {
-                    $tiempo = session('tiempo', Carbon::now());
-                    $diffTiempos = Carbon::now()->diffInSeconds($tiempo);
-                    session(['tiempo' => Carbon::now()]);
+                $materia = Materia::find($materiaid);
+                $limite = intval($usuario->limite_token_leccion);
+                $soloEjercicios = [];
 
-                    if ($diffTiempos == 0 || $diffTiempos > 1) { //debe esperar 1 segundo almenos
-                        if($opcion != 4) {
-                            if ($opcion === 2) { //resolver unidad
-                                $selectedReasonString = LosPromps::Find($selectedPrompID)->principal;
-                                $gpt = HelpGPT::gptResolverTema($selectedReasonString, $subtopicoSelec->nombre, $ChosenNivel, $materia->nombre, $usuario, env('DEBUGGINGGPT'));
-                            }
-                            //ejercicio
-                            if ($opcion === 3) {
-                                $gpt = HelpGPT::gptPart1($ejercicioSelec, $ChosenNivel, $materia->nombre, $usuario, $soloEjercicios, env('DEBUGGINGGPT'));
-                            }
-                            $respuesta = preg_replace("/^\n\n/", "", $gpt['respuesta']);
+                $opcion = 1; //primer pantallazo
 
-                        }else{ //resolver quiz opcion = 4
-                            $selectedReasonString = LosPromps::Find($selectedPrompID)->principal;
-                            $gpt = HelpGPT::gptResolverQuiz($selectedReasonString, $subtopicoSelec->nombre, $ChosenNivel, $materia->nombre, $usuario, env('DEBUGGINGGPT'));
+                if ($numberPermissions > 4) {
+                    $ListaPromp = LosPromps::All();
+                } else {
+                    $ListaPromp = $usuario->LosPromps()->Where('user_id', $usuario->id);
+                    // $ListaPromp = LosPromps::Where('clasificacion', 'Expectativas Altas')->get();
+                }
+                $ListaPromp = HelpGPT::NEW_turnInSelectID($ListaPromp);
+
+                // dd($subtemaid !== null , $ejercicioid !== null);
+                if ($subtemaid !== null || $ejercicioid !== null) {
+                    if ($subtemaid !== null) {
+                        if ($ejercicioid === 'explicar') {
+                            $subtopicoSelec = Subtopico::find($subtemaid);
+                            $temaSelec = Unidad::find($subtopicoSelec->unidad_id)->nombre;
+                            $opcion = 2; //se va aresolver un unidad        } else {
                         }
-                        $restarAlToken = $gpt['restarAlToken'];
-                        $limite = intval($usuario->limite_token_leccion);
+                        if ($ejercicioid === 'practicar') {
+                            $subtopicoSelec = Subtopico::find($subtemaid);
+                            $temaSelec = Unidad::find($subtopicoSelec->unidad_id)->nombre;
+                            $opcion = 4; //Quiz
+                        }
                     } else {
-                        $respuesta = $this->muyFrecuente; //hizo una peticion en menos de un segundo a la anterior
-                        //todo: grabar en el log, que este usuario es desesperado o hacker jaja
+                        $ejercicio = Ejercicio::find($ejercicioid);
+                        $ejercicioSelec = $ejercicio->nombre;
+
+                        $subtopicoSelec = Subtopico::find($ejercicio->subtopico_id);
+                        $temaSelec = Unidad::find($subtopicoSelec->unidad_id)->nombre;
+                        $opcion = 3; //se va a resolver un ejercicio
                     }
-                } else { //no le quedan mas tokens
-                    $respuesta = $this->respuestaLimite;
                 }
+
+                $selectedReasonString = '';
+                if ($opcion !== 1) {
+                    if ($limite > 0) {
+                        $tiempo = session('tiempo', Carbon::now());
+                        $diffTiempos = Carbon::now()->diffInSeconds($tiempo);
+                        session(['tiempo' => Carbon::now()]);
+
+                        if ($diffTiempos == 0 || $diffTiempos > 1) { //debe esperar 1 segundo almenos
+                            if ($opcion != 4) {
+                                if ($opcion === 2) { //resolver unidad
+                                    $selectedReasonString = LosPromps::Find($selectedPrompID)->principal;
+                                    $gpt = HelpGPT::gptResolverTema($selectedReasonString, $subtopicoSelec->nombre, $ChosenNivel, $materia->nombre, $usuario, env('DEBUGGINGGPT'));
+                                }
+
+                                if ($opcion === 3) { //ejercicio
+                                    $gpt = HelpGPT::gptPart1($ejercicioSelec, $ChosenNivel, $materia->nombre, $usuario, $soloEjercicios, env('DEBUGGINGGPT'));
+                                }
+                                $respuesta = preg_replace("/^\n\n/", "", $gpt['respuesta']);
+                            } else { //resolver quiz opcion = 4
+                                $selectedReasonString = LosPromps::Find($selectedPrompID)->principal;
+                                $gpt = HelpGPT::gptResolverQuiz($selectedReasonString, $subtopicoSelec->nombre, $ChosenNivel, $materia->nombre, $usuario, env('DEBUGGINGGPT'));
+                            }
+                            $restarAlToken = $gpt['restarAlToken'];
+                            $limite = intval($usuario->limite_token_leccion);
+                        } else {
+                            $respuesta = $this->muyFrecuente; //hizo una peticion en menos de un segundo a la anterior
+                            //todo: grabar en el log, que este usuario es desesperado o hacker jaja
+                        }
+                    } else { //no le quedan mas tokens
+                        $respuesta = $this->respuestaLimite;
+                    }
+                }
+
+                $temasYValores = $this->lookForTemas(intval($materiaid));
+                $nivelSelect = $vectorYSelecNiveles[1];
+
+                set_time_limit(70);
+                session(['tiempo' => Carbon::now()]);
+                return Inertia::render('materia/vistaTem', [ //carpeta
+                    'breadcrumbs'           =>  [['label' => __('app.label.materias'), 'href' => route('materia.index')]],
+                    'title'                 =>  'Aprendiendo con GPT',
+                    'elid'                  =>  intval($materiaid),
+                    'perPage'               =>  10,
+                    'fromController'        =>  $temasYValores[0],
+                    'respuesta'             =>  $respuesta,
+                    'objetivosCarrera'      =>  $materia->objetivosString(),
+                    'temaSelec'             => $temaSelec ?? 'Esperando Unidad...',
+                    'subtopicoSelec'        => $subtopicoSelec ?? null,
+                    'ejercicioSelec'        => $ejercicioSelec ?? 'Aqui vera la pregunta',
+                    'limite'                => $limite,
+                    'usuario'               => $usuario,
+                    'materia'               => $materia,
+                    'restarAlToken'         => $restarAlToken,
+                    'nivelSelect'           => $nivelSelect,
+                    'ChosenNivel'           => $ChosenNivel,
+                    'soloEjercicios'        => $soloEjercicios,
+                    'opcion'                => $opcion,
+                    'ListaPromp'            => $ListaPromp,
+                    'numberPermissions'     => $numberPermissions,
+                    'selectedPrompID'       => intval($selectedPrompID),
+                    'selectedReasonString'  => $selectedReasonString,
+                    //solo practica
+                    'vectorChuleta'            => $gpt['vectorChuleta'] ?? [],
+                    'ArrayPreguntas'            => $gpt['ArrayPreguntas'] ?? [],
+                    'ArrayRespuestasCorrectas'   => $gpt['ArrayRespuestasCorrectas'] ?? [],
+                ]);
+            } catch (\Throwable $th) {
+                Log::alert("U -> " . Auth::user()->name . " fallo en preguntar la IA:  " . $th->getMessage() . ' L:' . $th->getLine());
+                return back()->with('error', 'fallo en preguntar la IA: ' . $th->getMessage() . ' L:' . $th->getLine());
+            }
+        } else { //solo estudiante | numberpermission == 1
+
+            $limite = intval($usuario->limite_token_leccion);
+            $materia = Materia::find($materiaid);
+            $temasYValores = $this->lookForTemas(intval($materiaid));
+            $selectedReasonString = Parametro::first()->prompExplicarTema;
+            if ($limite > 0) {
+
+                if ($subtemaid !== null) {
+                    $subtopicoSelec = Subtopico::find($subtemaid);
+                    $temaSelec = Unidad::find($subtopicoSelec->unidad_id);
+                    $gpt = HelpGPT::gptResolverTema($selectedReasonString, $subtopicoSelec->nombre, 'Profesional', $materia->nombre, $usuario, env('DEBUGGINGGPT'));
+                    $restarAlToken = $gpt['restarAlToken'];
+                    $limite = intval($usuario->limite_token_leccion);
+                    $respuesta = $gpt['respuesta'];
+                }
+            } else { //no le quedan mas tokens
+                $respuesta = $this->respuestaLimite;
             }
 
-            $temasYValores = $this->lookForTemas(intval($materiaid));
-            $nivelSelect = $vectorYSelecNiveles[1];
 
-            set_time_limit(70);
-            session(['tiempo' => Carbon::now()]);
             return Inertia::render('materia/vistaTem', [ //carpeta
                 'breadcrumbs'           =>  [['label' => __('app.label.materias'), 'href' => route('materia.index')]],
-                'elid'                  =>  intval($materiaid),
-                'title'                 =>  'Seleccione una leccion',
-                'perPage'               =>  10,
+                'title'                 =>  'Aprendiendo con GPT',
+                'elid'                 =>  $materiaid,
+
                 'fromController'        =>  $temasYValores[0],
                 'respuesta'             =>  $respuesta,
-                'objetivosCarrera'      =>  $materia->objetivosString(),
-                'temaSelec'             => $temaSelec ?? 'Esperando Unidad...',
+                'temaSelec'             => $temaSelec ?? '',
                 'subtopicoSelec'        => $subtopicoSelec ?? null,
-                'ejercicioSelec'        => $ejercicioSelec ?? 'Aqui vera la pregunta',
-                'limite'                => $limite,
                 'usuario'               => $usuario,
-                'materia'               => $materia,
+                'materia'               => $materia ?? null,
                 'restarAlToken'         => $restarAlToken,
-                'nivelSelect'           => $nivelSelect,
-                'ChosenNivel'           => $ChosenNivel,
-                'soloEjercicios'        => $soloEjercicios,
-                'opcion'                => $opcion,
-                'ListaPromp'            => $ListaPromp,
-                'selectedPrompID'       => intval($selectedPrompID),
-                'selectedReasonString'  => $selectedReasonString,
-                //solo practica
-                'vectorChuleta'            => $gpt['vectorChuleta'] ?? [],
-                'ArrayPreguntas'            => $gpt['ArrayPreguntas'] ?? [],
-                'ArrayRespuestasCorrectas'   => $gpt['ArrayRespuestasCorrectas'] ?? [],
+                'numberPermissions'     => $numberPermissions,
+                'limite'                => $limite,
+
+                'filters'        =>  $request->all(['actionEQH', 'laRespuesta']),
+
+                'opcion'                => 0,
+                'ListaPromp'            => [],
+                'selectedPrompID'       => 0,
+                'selectedReasonString'  => '',
             ]);
-        } catch (\Throwable $th) {
-            Log::alert("U -> " . Auth::user()->name . " fallo en preguntar la IA:  " . $th->getMessage());
-            return back()->with('error', 'fallo en preguntar la IA: ' . $th->getMessage());
         }
     }
-
-
-
-
-
 
     // public function masPreguntas($id,$nuevaPregunta) {
     public function masPreguntas(Request $request)
@@ -604,7 +664,6 @@ class MateriasController extends Controller
         }
     }
 
-
     //todo: maybe this is not using
     public function gptPart($request, $materia, $usuario, $productio = true)
     { //productio is for debugging
@@ -651,6 +710,95 @@ class MateriasController extends Controller
             }
         }
         return ['GPT desabilitado', 0];
+    }
+
+
+
+    public function actionEQH(Request $request)
+    {
+        $permissions = Myhelp::EscribirEnLog($this, ' materia');
+        $numberPermissions = Myhelp::getPermissionToNumber($permissions);
+        $usuario = Auth::user();
+        try {
+            $temaSelec = $request->temaSelec;
+            $subtopicoSelec = $request->subtopicoSelec;
+            $materia = Materia::find($request->materiaid);
+            $respuesta1 = $request->respuesta1;
+            $actionEQH = $request->actionEQH;
+            // dd($actionEQH,$actionEQH==1);
+            if ($actionEQH == 1) { //Ejemplo
+                //todo: aquii
+                // $selectedReasonString = Parametro::first()->prompEjemplosTema;
+                // dd(
+                //     $actionEQH,
+                //     $subtopicoSelec,
+                //     $materia,
+                //     $temaSelec,
+                // );
+                $selectedReasonString = 'Explica 2 ejemplos del subtema: ' . $subtopicoSelec['nombre']
+                    . ' de la asignatura: ' . $materia->nombre
+                    . ' del tema: ' . $temaSelec['nombre'];
+                
+                $gpt = HelpGPT::gptResolverTema($selectedReasonString, $subtopicoSelec['nombre'], 'Profesional', $materia->nombre, $usuario, env('DEBUGGINGGPT'));
+                $restarAlToken = $gpt['restarAlToken'];
+                $ejemplosRespuesta = $gpt['respuesta'];
+                
+            }
+            if ($actionEQH == 2) { //quiz
+                $quiz = true;
+                $quizPregunta = 'Una pregunta del tema, El diseño esta correcto?';
+                $quizCorrecta = 0;
+                $quizRespuestas = [
+                    'a) si',
+                    'b) no',
+                    'c) tal vez',
+                    'd) todas las anteriores',
+                ];
+            }
+            if ($actionEQH == 3) { //hacer pregunta
+                $hagapregunta = true;
+                $HacerlaPregunta = $request->HacerlaPregunta;
+                
+                $selectedReasonString = 'Aqui se responde cualquier pregunta: '. $request->HacerlaPregunta. '. En caso que no sea una pregunta para aprender, responde un mensaje que le haga entender que esto es un aplicativo para la enseñanza';
+                
+                $gpt = HelpGPT::gptResolverTema($selectedReasonString, $subtopicoSelec['nombre'], 'Profesional', $materia->nombre, $usuario, env('DEBUGGINGGPT'));
+                $restarAlToken = $gpt['restarAlToken'];
+                $RespuestaPregunta = $gpt['respuesta'];
+            }
+            $limite = intval($usuario->limite_token_leccion);
+
+            return Inertia::render('materia/EQH', [ //carpeta
+                'breadcrumbs'           =>  [['label' => __('app.label.materias'), 'href' => route('materia.index')]],
+                'title'                 =>  'Aprendiendo con GPT',
+                // 'filters'               =>  $request->all(['actionEQH', 'laRespuesta']),
+                'materia'               => $materia ?? null,
+
+                'temaSelec'             => $temaSelec ?? '',
+                'subtopicoSelec'        => $subtopicoSelec ?? '',
+                'respuesta1'            => $respuesta1 ?? '', //la que viene de versionEstudiante
+                'limite'                => $limite,
+
+                'actionEQH'             => $actionEQH,
+                'ejemplosRespuesta'     => $ejemplosRespuesta ?? null, //respuesta actual
+
+                'restarAlToken'         => $restarAlToken ?? 0,
+
+                'quiz'                  => $quiz ?? false,
+                'quizPregunta'          => $quizPregunta ?? null,
+                'quizCorrecta'          => $quizCorrecta ?? null,
+                'quizRespuestas'        => $quizRespuestas ?? null,
+
+                'hagapregunta'          => $hagapregunta ?? false,
+                'HacerlaPregunta'       => $HacerlaPregunta ?? null,
+                'RespuestaPregunta'     => $RespuestaPregunta ?? null,
+            ]);
+        } catch (\Throwable $th) {
+            Log::Critical("U -> " . Auth::user()->name . " fallo en en EQH - " . $th->getMessage() . ' L:' . $th->getLine());
+
+            $myhelp = new Myhelp();
+            $myhelp->redirect('materias.index', 0);
+            // return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.materia')]) . $th->getMessage().' L:'.$th->getLine());
+        }
     }
     //fin gpt
 }

@@ -77,7 +77,7 @@ class PermissionController extends Controller
             return back()->with('success', __('app.label.created_successfully', ['name' => $permission->name]));
         } catch (\Throwable $th) {
             DB::rollback();
-            return back()->with('error', __('app.label.created_error', ['name' => __('app.label.permission')]) . $th->getMessage());
+            return back()->with('error', __('app.label.created_error', ['name' => __('app.label.permission')]) . $th->getMessage() . ' L:' . $th->getLine());
         }
     }
 
@@ -124,7 +124,7 @@ class PermissionController extends Controller
             return back()->with('success', __('app.label.updated_successfully', ['name' => $permission->name]));
         } catch (\Throwable $th) {
             DB::rollback();
-            return back()->with('error', __('app.label.updated_error', ['name' => $permission->name]) . $th->getMessage());
+            return back()->with('error', __('app.label.updated_error', ['name' => $permission->name]) . $th->getMessage() . ' L:' . $th->getLine());
         }
     }
 
@@ -145,7 +145,7 @@ class PermissionController extends Controller
             return back()->with('success', __('app.label.deleted_successfully', ['name' => $permission->name]));
         } catch (\Throwable $th) {
             DB::rollback();
-            return back()->with('error', __('app.label.deleted_error', ['name' => $permission->name]) . $th->getMessage());
+            return back()->with('error', __('app.label.deleted_error', ['name' => $permission->name]) . $th->getMessage() . ' L:' . $th->getLine());
         }
     }
 
@@ -156,7 +156,7 @@ class PermissionController extends Controller
             $permission->delete();
             return back()->with('success', __('app.label.deleted_successfully', ['name' => count($request->id) . ' ' . __('app.label.permission')]));
         } catch (\Throwable $th) {
-            return back()->with('error', __('app.label.deleted_error', ['name' => count($request->id) . ' ' . __('app.label.permission')]) . $th->getMessage());
+            return back()->with('error', __('app.label.deleted_error', ['name' => count($request->id) . ' ' . __('app.label.permission')]) . $th->getMessage() . ' L:' . $th->getLine());
         }
     }
 }

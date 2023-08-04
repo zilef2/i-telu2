@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Validators\ValidationException;
 
 class UserController extends Controller
 {
@@ -34,7 +35,8 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(UserIndexRequest $request) {
+    public function index(UserIndexRequest $request)
+    {
         $permissions = Myhelp::EscribirEnLog($this, ' users');
         $numberPermissions = Myhelp::getPermissionToNumber($permissions);
 
@@ -123,9 +125,9 @@ class UserController extends Controller
             return back()->with('success', __('app.label.created_successfully', ['name' => $user->name]));
         } catch (\Throwable $th) {
             DB::rollback();
-            if(isset($user)) Myhelp::EscribirEnLog($this, 'STORE:users', 'usuario id:' . $user->id ?? 'x' . ' | ' . $user->name ?? 'x' . ' fallo en el guardado', false);
+            if (isset($user)) Myhelp::EscribirEnLog($this, 'STORE:users', 'usuario id:' . $user->id ?? 'x' . ' | ' . $user->name ?? 'x' . ' fallo en el guardado', false);
             else Myhelp::EscribirEnLog($this, 'STORE:users', 'usuario desconocido, fallo en el guardado', false);
-            return back()->with('error', __('app.label.created_error', ['name' => __('app.label.user')]) . $th->getMessage());
+            return back()->with('error', __('app.label.created_error', ['name' => __('app.label.user')]) . $th->getMessage() . ' L:' . $th->getLine());
         }
     }
     //fin store functions
@@ -164,7 +166,7 @@ class UserController extends Controller
         } catch (\Throwable $th) {
             DB::rollback();
             Myhelp::EscribirEnLog($this, 'UPDATE:users', 'usuario id:' . $user->id . ' | ' . $user->name . '  fallo en el actualizado', false);
-            return back()->with('error', __('app.label.updated_error', ['name' => $user->name]) . $th->getMessage());
+            return back()->with('error', __('app.label.updated_error', ['name' => $user->name]) . $th->getMessage() . ' L:' . $th->getLine());
         }
     }
 
@@ -183,8 +185,8 @@ class UserController extends Controller
             Myhelp::EscribirEnLog($this, 'DELETE:users', 'usuario id:' . $user->id . ' | ' . $user->name . ' borrado', false);
             return back()->with('success', __('app.label.deleted_successfully', ['name' => $user->name]));
         } catch (\Throwable $th) {
-            Myhelp::EscribirEnLog($this, 'DELETE:users', 'usuario id:' . $user->id . ' | ' . $user->name . ' fallo en el borrado:: ' . $th->getMessage(), false);
-            return back()->with('error', __('app.label.deleted_error', ['name' => $user->name]) . $th->getMessage());
+            Myhelp::EscribirEnLog($this, 'DELETE:users', 'usuario id:' . $user->id . ' | ' . $user->name . ' fallo en el borrado:: ' . $th->getMessage() . ' L:' . $th->getLine(), false);
+            return back()->with('error', __('app.label.deleted_error', ['name' => $user->name]) . $th->getMessage() . ' L:' . $th->getLine());
         }
     }
 
@@ -195,7 +197,7 @@ class UserController extends Controller
             $user->delete();
             return back()->with('success', __('app.label.deleted_successfully', ['name' => count($request->id) . ' ' . __('app.label.user')]));
         } catch (\Throwable $th) {
-            return back()->with('error', __('app.label.deleted_error', ['name' => count($request->id) . ' ' . __('app.label.user')]) . $th->getMessage());
+            return back()->with('error', __('app.label.deleted_error', ['name' => count($request->id) . ' ' . __('app.label.user')]) . $th->getMessage() . ' L:' . $th->getLine());
         }
     }
     //FIN : STORE - UPDATE - DELETE
@@ -215,7 +217,7 @@ class UserController extends Controller
     }
 
 
-    // Duplicate entry '1152194566' for key 'users_identificacion_unique'
+    //todo: Duplicate entry '1152194566' for key 'users_identificacion_unique'
     private function MensajeWar()
     {
         $bandera = false;
@@ -237,7 +239,7 @@ class UserController extends Controller
         ];
 
         foreach ($contares as $key => $value) {
-            $$value = session($value,0);
+            $$value = session($value, 0);
             session([$value => 0]);
             $bandera = $bandera || $$value > 0;
         }
@@ -246,8 +248,8 @@ class UserController extends Controller
         $mensaje = '';
         if ($bandera) {
             foreach ($mensajesWarnings as $key => $value) {
-                if(${$contares[$key]} > 0){
-                    $mensaje .= $value.${$contares[$key]}.'. ';
+                if (${$contares[$key]} > 0) {
+                    $mensaje .= $value . ${$contares[$key]} . '. ';
                 }
             }
         }
@@ -255,7 +257,7 @@ class UserController extends Controller
         return $mensaje;
     }
 
-    public function uploadtrabajadors(Request $request)
+    public function uploadestudiantes(Request $request)
     {
         Myhelp::EscribirEnLog($this, get_called_class(), 'Empezo a importar', false);
         $countfilas = 0;
@@ -268,8 +270,9 @@ class UserController extends Controller
 
                 Excel::import(new PersonalImport(), $request->archivo1);
 
-                $countfilas = session('CountFilas', 0);     session(['CountFilas'=> 0]);
-                
+                $countfilas = session('CountFilas', 0);
+                session(['CountFilas' => 0]);
+
                 $MensajeWarning = self::MensajeWar();
                 if ($MensajeWarning !== '') {
                     return back()->with('success', 'Usuarios nuevos: ' . $countfilas)
@@ -285,11 +288,13 @@ class UserController extends Controller
                 return back()->with('error', __('app.label.op_not_successfully') . ' archivo no seleccionado');
             }
         } catch (\Throwable $th) {
-            Myhelp::EscribirEnLog($this, 'IMPORT:users', ' Fallo importacion: ' . $th->getMessage(), false);
-            return back()->with('error', __('app.label.op_not_successfully') . ' Usuario del error: ' . session('larow')[0] . ' error en la iteracion ' . $countfilas . ' ' . $th->getMessage());
+            Myhelp::EscribirEnLog($this, 'IMPORT:users', ' Fallo importacion: ' . $th->getMessage() . ' L:' . $th->getLine(), false);
+            return back()->with('error', __('app.label.op_not_successfully') . ' Usuario del error: ' . session('larow')[0] . ' error en la iteracion ' . $countfilas . ' ' . $th->getMessage() . ' L:' . $th->getLine());
         }
     }
-    public function uploadUniversidad(Request $request)
+
+    //mio
+    public function uploadUniversidad_notusing(Request $request)
     {
         Myhelp::EscribirEnLog($this, get_called_class(), 'Empezo a importar alumnos de universidades', false);
         $countfilas = 0;
@@ -320,7 +325,7 @@ class UserController extends Controller
                         ->with('warning', $MensajeWarning);
                 }
 
-                Myhelp::EscribirEnLog($this, 'IMPORT:uploadUniversidad', ' finalizo con exito', false);
+                Myhelp::EscribirEnLog($this, 'IMPORT:uploadUniversida', ' finalizo con exito', false);
                 if ($countfilas == 0)
                     return back()->with('success', __('app.label.op_successfully') . ' No hubo cambios');
                 else
@@ -329,8 +334,84 @@ class UserController extends Controller
                 return back()->with('error', __('app.label.op_not_successfully') . ' archivo no seleccionado');
             }
         } catch (\Throwable $th) {
-            Myhelp::EscribirEnLog($this, 'IMPORT:users', ' Fallo importacion: ' . $th->getMessage(), false);
-            return back()->with('error', __('app.label.op_not_successfully') . 'Nombre del error: ' . session('larow')[0] . ' error en la fila ' . $countfilas . ' ' . $th->getMessage());
+            Myhelp::EscribirEnLog($this, 'IMPORT:users', ' Fallo importacion: ' . $th->getMessage() . ' L:' . $th->getLine(), false);
+            return back()->with('error', __('app.label.op_not_successfully') . 'Nombre del error: ' . session('larow')[0] . ' error en la fila ' . $countfilas . ' ' . $th->getMessage() . ' L:' . $th->getLine());
+        }
+    }
+
+
+    public function uploadUniversidad(Request $request)
+    {
+        Myhelp::EscribirEnLog($this, get_called_class(), 'Empezo a importar alumnos de universidades', false);
+        $countfilas = 0;
+        try {
+            if ($request->archivo1 && $request->universidadID) {
+
+                $helpExcel = new HelpExcel();
+                $mensageWarning = $helpExcel->validarArchivoExcel($request);
+                if ($mensageWarning != '') return back()->with('warning', $mensageWarning);
+
+                Excel::import(new PersonalUniversidadImport($request->universidadID), $request->archivo1);
+                // try {
+                //     Excel::import(new PersonalUniversidadImport($request->universidadID), $request->archivo1);
+                // } catch (ValidationException $e) {
+                //     $failures = $e->failures();
+                //     $frow = ''; $fattribute = []; $ferrors = []; $fvalues = [];$countF = 0;
+
+                //     foreach ($failures as $failure) {
+                //         $frow .= 'Fila: ';
+                //         $frow .= $failure->row(); // row that went wrong
+                //         // $frow .= '. atributo: ';
+                //         // $frow .= $failure->attribute(); // either heading key (if using heading row concern) or column index
+                //         // dd($failure->errors());
+                //         // dd(
+                //         //     $failure->values(),
+                //         //     $failure->errors(),
+                //         // );
+                //         $frow .= $failure->errors()[0]; // Actual error messages from Laravel validator
+                //         // $frow .= ' Valor: ';
+                //         //array_key_first($failure->values()).' '.
+                //         // $frow .= array_values($failure->values())[0]; // The values of the row that has failed.
+                //         $frow .= ". \n";
+                //         $countF++;
+
+                //         if($countF > (6*3)) break; //3 columnas
+                //     }
+                //     Myhelp::EscribirEnLog($this, 'IMPORT:uploadUniversida ValidationException', 'ERRORES: '.$countF, false);
+                //     return back()->with('warning', 'ERRORES: '.$frow);
+                // }
+                $countfilas = session('CountFilas', 0);
+                $contarVacios = session('contarVacios', 0);
+                $contarNoNumeros = session('contarNoNumeros', 0);
+
+                session(['CountFilas' => 0]);
+                session(['contarVacios' => 0]);
+                session(['contarNoNumeros' => 0]);
+
+                $HuboWarning = $contarVacios > 0 || $contarNoNumeros > 0;
+                if ($HuboWarning) {
+                    $MensajeWarning = '';
+                    $men1 = $contarNoNumeros > 0 ? '#filas con identifiaciones no validas ' . $contarNoNumeros : '';
+                    $men5 = $contarVacios > 0 ? '#filas con celdas vacias ' . $contarVacios : '';
+                    $MensajeWarning = $men1 . $men5;
+                    return back()
+                        ->with('success', 'Usuarios nuevos: ' . $countfilas)
+                        ->with('warning', $MensajeWarning);
+                }
+
+                Myhelp::EscribirEnLog($this, 'IMPORT:uploadUniversida', ' finalizo con exito', false);
+                if ($countfilas == 0)
+                    return back()->with('success', __('app.label.op_successfully') . ' No hubo cambios');
+                else
+                    return back()->with('success', __('app.label.op_successfully') . ' Se leyeron ' . $countfilas . ' filas con exito');
+            } else {
+                return back()->with('error', __('app.label.op_not_successfully') . ' archivo no seleccionado');
+            }
+        } catch (\Throwable $th) {
+            Myhelp::EscribirEnLog($this, 'IMPORT:users', ' Fallo importacion: ' . $th->getMessage() . ' L:' . $th->getLine(), false);
+            $larow2 = session('larow') ?? '';
+            $theTrace = Myhelp::cortarFrase($th->getTraceAsString(), 8);
+            return back()->with('error', __('app.label.op_not_successfully') . 'Nombre del error: ' . $larow2 . ' error en la fila ' . $countfilas . ' ' . $theTrace);
         }
     }
 }

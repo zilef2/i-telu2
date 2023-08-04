@@ -1,0 +1,6 @@
+migrations faltantes:
+clasificacion
+materia_user
+objetivos
+respuesta_ejercicios
+medida controls

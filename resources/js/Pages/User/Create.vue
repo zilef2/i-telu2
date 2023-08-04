@@ -40,7 +40,7 @@ const form = useForm({
     email: 'ajelof22@gmail.com',
     password: '',
     password_confirmation: '',
-    role: 'trabajador',
+    role: 'estudiante',
 
     identificacion: 1152194566,
     sexo: 0,
@@ -55,7 +55,7 @@ const form = useForm({
     // email: '',
     // password: '',
     // password_confirmation: '',
-    // role: 'trabajador',
+    // role: 'estudiante',
 
     // sexo:'',
     // fecha_nacimiento:'',
@@ -89,7 +89,7 @@ watchEffect(() => {
     if(form.semestre)
         form.semestre_mas_bajo = form.semestre
 })
-//TOSTUDY
+//usefull
 const roles = props.roles?.map(role => ({
     label: role.name.replace(/_/g," "),
     value: (role.name)

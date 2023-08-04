@@ -1,6 +1,41 @@
+/*
+ --DATE
+ formatToVue
+ formatDate
+ monthName
+ TransformTdate
+
+ --MATH
+
+ number_format
+ CalcularEdad
+ CalcularSexo
+ CalcularAvg
+
+ --STRING FUNCTIONS
+
+ sinTildes
+ NoUnderLines
+ ReemplazarTildes
+ PrimerosCaracteres
+ PrimerasPalabras
+ textoSinEspaciosLargos
+
+ --ARRAY
+
+ vectorSelect
+*/
+
 
 // DATE functions ->{
-    export function formatDate(date,isDateTime) {
+    export function formatToVue(date){
+        const day = date.getDate();
+        const month = date.getMonth() + 1;
+        const year = date.getFullYear();
+
+        return `${day}/${month}/${year}`;
+    }
+    export function formatDate(date,isDateTime: string) :string {
         const validDate = new Date(date)
         const day = validDate.getDate().toString().padStart(2, "0");
         // getMonthName(1)); // January
@@ -17,16 +52,16 @@
                 return `${day}-${month} | ${hourAndtime}`;
             }
             else{
-                year = year.toString().slice(-2);
-                return `${day}-${month}-${year} | ${hourAndtime}`;
+                let Stringyear = year.toString().slice(-2);
+                return `${day}-${month}-${Stringyear} | ${hourAndtime}`;
             }
         }else{
             if (anioActual == year){
                 return `${day}-${month}`;
             }
             else{
-                year = year.toString().slice(-2);
-                return `${day}-${month}-${year}`;
+                let Stringyear = year.toString().slice(-2);
+                return `${day}-${month}-${Stringyear}`;
             }
         }
     }
@@ -60,13 +95,36 @@
 
 
 // MATH 
-    export function number_format(amount, decimals, isPesos) {
+    export function CalcularAvg(TheArray,NameValue = '',isTime = false) {
+        let sum = 0
+        if(NameValue === ''){
+            TheArray.forEach((value, index, array) => {
+                sum += value;
+            })
+        }else{
+            if(isTime){ //time like: 14:18
+
+                TheArray.forEach((value, index, array) => {
+                    let justHour = value[NameValue].split(':')[0];
+                    justHour = parseInt(justHour);
+                    sum += justHour;
+                })
+            }else{
+                TheArray.forEach((value, index, array) => {
+                    sum += value[NameValue];
+                })
+            }
+        }
+        const result = number_format(sum/TheArray.length,0,false);
+        return result;
+    }
+    export function number_format(amount, decimals, isPesos: boolean) {
         amount += '';
         amount = parseFloat(amount.replace(/[^0-9\.]/g, ''));
         decimals = decimals || 0;
 
         if (isNaN(amount) || amount === 0)
-            return parseFloat(0).toFixed(decimals);
+            return parseFloat("0").toFixed(decimals);
         amount = '' + amount.toFixed(decimals);
 
         var amount_parts = amount.split(' '),
@@ -82,7 +140,8 @@
 
     export function CalcularEdad(nacimiento){
         const anioHoy = new Date().getFullYear();
-        return parseInt(anioHoy - new Date(nacimiento).getFullYear())
+        const anioNacimiento = new Date(nacimiento).getFullYear();
+        return anioHoy - anioNacimiento;
     }
 
     export function CalcularSexo(value){

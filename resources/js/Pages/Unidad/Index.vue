@@ -20,7 +20,7 @@ import Delete from '@/Pages/Unidad/Delete.vue';
 import Checkbox from '@/Components/Checkbox.vue';
 import InfoButton from '@/Components/InfoButton.vue';
 
-import { vectorSelect, formatDate, CalcularEdad, CalcularSexo } from '@/global.js';
+import { vectorSelect, formatDate, CalcularEdad, CalcularSexo }from '@/global.ts';;
 
 
 const { _, debounce, pickBy } = pkg

@@ -17,63 +17,68 @@ use Inertia\Inertia;
 
 class UniversidadsController extends Controller
 {
+    private $modelName = 'Universidad';
 
     //! index functions
-        public function MapearClasePP(&$universidads) {
-            $universidads = $universidads->get()->map(function ($universidad){
+    public function MapearClasePP(&$universidads)
+    {
+        $universidads = $universidads->get()->map(function ($universidad) {
 
-                $universidad->tresPrimeros = Myhelp::ArrayInString($universidad->users->pluck('name'));
+            $universidad->tresPrimeros = Myhelp::ArrayInString($universidad->users->pluck('name'));
 
-                $universidad->cuantosUs = $universidad->users->count();
-            
-                return $universidad;
-            });
-            // dd($universidads);
-        }
+            $universidad->cuantosUs = $universidad->users->count();
 
-        public function fNombresTabla($numberPermissions) {
-            if($numberPermissions < 5) { //coor_academico TO estudiante
-                $nombresTabla[0] = ["#","nombre", "codigo","# Inscritos"];
-                $nombresTabla[2] = ["enum","nombre", "codigo",null];
-                return $nombresTabla;
-            }
+            return $universidad;
+        });
+        // dd($universidads);
+    }
 
-            $nombresTabla =[//0: como se ven //1 como es la BD //2 orden
-                ["Acciones"],
-                [],
-                [null]
-            ];
-            $nombresTabla[0] = array_merge($nombresTabla[0] , ["Num","nombre","codigo","# Inscritos","Inscritos"]);
-            $nombresTabla[2] = array_merge($nombresTabla[2] , ["enum","nombre","codigo",null,null]);
+    public function fNombresTabla($numberPermissions)
+    {
+        if ($numberPermissions < 5) { //coor_academico TO estudiante
+            $nombresTabla[0] = ["#", "nombre", "codigo", "# Inscritos"];
+            $nombresTabla[2] = ["enum", "nombre", "codigo", null];
             return $nombresTabla;
         }
-        public function Filtros($request, &$Universidads) {
-            if ($request->has('search')) {
-                // $Universidads->whereMonth('descripcion', $request->search);
-                // $Universidads->OrwhereMonth('fecha_fin', $request->search);
-                $Universidads->orWhere('nombre', 'LIKE', "%" . $request->search . "%");
-            }
-            
-            if ($request->has(['field', 'order'])) {
-                $Universidads->orderBy($request->field, $request->order);
-            }else{
-                $Universidads->orderBy('nombre');
-            }
+
+        $nombresTabla = [ //0: como se ven //1 como es la BD //2 orden
+            ["Acciones"],
+            [],
+            [null]
+        ];
+        $nombresTabla[0] = array_merge($nombresTabla[0], ["Num", "nombre", "codigo", "# Inscritos", "Inscritos"]);
+        $nombresTabla[2] = array_merge($nombresTabla[2], ["enum", "nombre", "codigo", null, null]);
+        return $nombresTabla;
+    }
+    public function Filtros($request, &$Universidads)
+    {
+        if ($request->has('search')) {
+            // $Universidads->whereMonth('descripcion', $request->search);
+            // $Universidads->OrwhereMonth('fecha_fin', $request->search);
+            $Universidads->orWhere('nombre', 'LIKE', "%" . $request->search . "%");
         }
 
-        // public function losSelect() {}
+        if ($request->has(['field', 'order'])) {
+            $Universidads->orderBy($request->field, $request->order);
+        } else {
+            $Universidads->orderBy('nombre');
+        }
+    }
 
-    public function index(Request $request) {
-        $permissions = Myhelp::EscribirEnLog($this,'INDEX:universidad');
+    // public function losSelect() {}
+
+    public function index(Request $request)
+    {
+        $permissions = Myhelp::EscribirEnLog($this, 'INDEX:universidad');
         $numberPermissions = Myhelp::getPermissionToNumber($permissions);
 
         $titulo = __('app.label.Universidads');
         $Universidads = Universidad::query();
-        
+
         $numberPermissions = Myhelp::getPermissionToNumber($permissions);
         $nombresTabla = $this->fNombresTabla($numberPermissions);
-        if($permissions === "estudiante") {
-        }else{ // not estudiante
+        if ($permissions === "estudiante") {
+        } else { // not estudiante
             $this->Filtros($request, $Universidads);
         }
 
@@ -94,18 +99,21 @@ class UniversidadsController extends Controller
             'filters'        =>  $request->all(['search', 'field', 'order']),
             'perPage'        =>  (int) $perPage,
             'fromController' =>  $paginated,
-            'breadcrumbs'    =>  [['label' => __('app.label.Universidads'), 
-                                    'href' => route('universidad.index')]],
+            'breadcrumbs'    =>  [[
+                'label' => __('app.label.Universidads'),
+                'href' => route('universidad.index')
+            ]],
             'nombresTabla'   =>  $nombresTabla,
             'numberPermissions'   =>  $numberPermissions,
         ]);
-    }//fin index
+    } //fin index
 
-    public function AsignarUsers(Request $request, $universidadid){ //get
+    public function AsignarUsers(Request $request, $universidadid)
+    { //get
         $titulo = 'Seleccione el personal a matricular/desvincular';
-        $permissions = Myhelp::EscribirEnLog($this,'universidad');
-        if($permissions === "estudiante") {
-            Myhelp::EscribirEnLog($this,'Criticou');
+        $permissions = Myhelp::EscribirEnLog($this, 'universidad');
+        if ($permissions === "estudiante") {
+            Myhelp::EscribirEnLog($this, 'Criticou');
 
             return back()->with('error', __('app.label.no_permission'));
         } else { // not estudiante
@@ -113,7 +121,7 @@ class UniversidadsController extends Controller
         }
 
         $universidad = universidad::find($universidadid);
-        $filtroUser = $this->UsuariosSinLosInscritos($universidad,$request);
+        $filtroUser = $this->UsuariosSinLosInscritos($universidad, $request);
 
         return Inertia::render('universidad/AsignarUsers', [ //carpeta
             'title'          =>  $titulo,
@@ -130,39 +138,39 @@ class UniversidadsController extends Controller
             // 'UniversidadSelect' => $UniversidadSelect,
         ]);
     }
-    public function UsuariosSinLosInscritos($modelo,$request) {
-        $estudiantesDeLaU = $modelo->estudiantes($modelo->id,true,'estudiante');//->pluck('users.id');
-        $estudiantesDeOtraU = User::whereNotIn('id',$estudiantesDeLaU->pluck('users.id'))
-            ->WhereHas('roles',function ($query){
+    public function UsuariosSinLosInscritos($modelo, $request)
+    {
+        $estudiantesDeLaU = $modelo->estudiantes($modelo->id, true, 'estudiante'); //->pluck('users.id');
+        $estudiantesDeOtraU = User::whereNotIn('id', $estudiantesDeLaU->pluck('users.id'))
+            ->WhereHas('roles', function ($query) {
                 $query->where('name', 'estudiante');
-        });
-       
-        $profDeLaU = $modelo->estudiantes($modelo->id,true,'profesor');
-        $profDeOtraU = User::whereNotIn('id',$profDeLaU->pluck('users.id'))
-            ->WhereHas('roles',function ($query){
+            });
+
+        $profDeLaU = $modelo->estudiantes($modelo->id, true, 'profesor');
+        $profDeOtraU = User::whereNotIn('id', $profDeLaU->pluck('users.id'))
+            ->WhereHas('roles', function ($query) {
                 $query->whereNot('name', 'estudiante')
-                ->WhereNotIn('name',['superadmin','admin'])
-                ;
-        });
+                    ->WhereNotIn('name', ['superadmin', 'admin']);
+            });
 
 
         if ($request->has('search')) {
-            $estudiantesDeLaU->Where(function($query) use ($request){
+            $estudiantesDeLaU->Where(function ($query) use ($request) {
                 $query->where('name', 'LIKE', "%" . $request->search . "%");
                 // $query->orWhere('email', 'LIKE', "%" . $request->search . "%");
                 $query->orWhere('identificacion', 'LIKE', "%" . $request->search . "%");
             });
-            $estudiantesDeOtraU->Where(function($query) use ($request){
+            $estudiantesDeOtraU->Where(function ($query) use ($request) {
                 $query->where('name', 'LIKE', "%" . $request->search . "%");
                 // $query->orWhere('email', 'LIKE', "%" . $request->search . "%");
                 $query->orWhere('identificacion', 'LIKE', "%" . $request->search . "%");
             });
-            $profDeLaU->Where(function($query) use ($request){
+            $profDeLaU->Where(function ($query) use ($request) {
                 $query->where('name', 'LIKE', "%" . $request->search . "%");
                 // $query->orWhere('email', 'LIKE', "%" . $request->search . "%");
                 $query->orWhere('identificacion', 'LIKE', "%" . $request->search . "%");
             });
-            $profDeOtraU->Where(function($query) use ($request){
+            $profDeOtraU->Where(function ($query) use ($request) {
                 $query->where('name', 'LIKE', "%" . $request->search . "%");
                 // $query->orWhere('email', 'LIKE', "%" . $request->search . "%");
                 $query->orWhere('identificacion', 'LIKE', "%" . $request->search . "%");
@@ -171,44 +179,57 @@ class UniversidadsController extends Controller
 
         // dd($profDeOtraU);
         return (object) [
-            'si'=>$estudiantesDeLaU,
-            'no'=>$estudiantesDeOtraU,
+            'si' => $estudiantesDeLaU,
+            'no' => $estudiantesDeOtraU,
             // 'siNames'=>$estudiantesDeLaU->pluck('name'),
 
-            'profesors'=>$profDeLaU,
-            'noprofesors'=>$profDeOtraU,
+            'profesors' => $profDeLaU,
+            'noprofesors' => $profDeOtraU,
         ];
     }
 
-    public function create() { }
+    public function create()
+    {
+    }
 
-    public function store(UniversidadRequest $request) {
+    public function store(UniversidadRequest $request)
+    {
         DB::beginTransaction();
-                $ListaControladoresYnombreClase = (explode('\\',get_class($this))); $nombreC = end($ListaControladoresYnombreClase);
-                log::info('Vista: ' . $nombreC. 'U:'.Auth::user()->name. ' ||Universidad|| ' );
+        $ListaControladoresYnombreClase = (explode('\\', get_class($this)));
+        $nombreC = end($ListaControladoresYnombreClase);
+        log::info('Vista: ' . $nombreC . 'U:' . Auth::user()->name . ' ||Universidad|| ');
 
         try {
+            if ($request->enum === null) {
+                // dd($request->enum);
+                $modelInstance = resolve('App\\Models\\' . $this->modelName);
+                $enum = $modelInstance::latest('enum')->first()->enum ?? 1;
+                $enum++;
+            } else {
+                $enum = $request->enum;
+            }
+
             $Universidad = Universidad::create([
                 'nombre' => $request->nombre,
-                'enum' => $request->enum,
+                'enum' => $enum,
                 'codigo' => $request->codigo,
             ]);
             DB::commit();
-            Log::info("U -> ".Auth::user()->name." Guardo Universidad ".$request->nombre." correctamente");
+            Log::info("U -> " . Auth::user()->name . " Guardo Universidad " . $request->nombre . " correctamente");
 
             return back()->with('success', __('app.label.created_successfully2', ['nombre' => $Universidad->nombre]));
-
         } catch (\Throwable $th) {
             DB::rollback();
-            Log::alert("U -> ".Auth::user()->name." fallo en Guardar Universidad ".$request->nombre." - ".$th->getMessage());
+            Log::alert("U -> " . Auth::user()->name . " fallo en Guardar Universidad " . $request->nombre . " - " . $th->getMessage() . ' L:' . $th->getLine());
 
-            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.Universidad')]) . $th->getMessage());
+            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.Universidad')]) . $th->getMessage() . ' L:' . $th->getLine());
         }
     }
 
-    public function SubmitAsignarUsers(Request $request) {
+    public function SubmitAsignarUsers(Request $request)
+    {
         DB::beginTransaction();
-        Myhelp::EscribirEnLog($this,' universidad');
+        Myhelp::EscribirEnLog($this, ' universidad');
 
         try {
             $Universidad = Universidad::find($request->universidadid);
@@ -218,23 +239,24 @@ class UniversidadsController extends Controller
             );
 
             DB::commit();
-            Log::info("U -> ".Auth::user()->name." matriculo a la universidad ".count($request->selectedId)." estudiantes correctamente");
+            Log::info("U -> " . Auth::user()->name . " matriculo a la universidad " . count($request->selectedId) . " estudiantes correctamente");
 
             return back()->with('success', 'Usuarios asignados correctamente');
             // return redirect()->route('universidad.index')->with('success', __('app.label.created_success'));
 
         } catch (\Throwable $th) {
             DB::rollback();
-            Log::alert("U -> ".Auth::user()->name." fallo en matricular(universidad) - ".$th->getMessage());
-            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.Universidad')]) . $th->getMessage());
+            Log::alert("U -> " . Auth::user()->name . " fallo en matricular(universidad) - " . $th->getMessage() . ' L:' . $th->getLine());
+            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.Universidad')]) . $th->getMessage() . ' L:' . $th->getLine());
         }
     }
-    public function toEraseId(Request $request) {
+    public function toEraseId(Request $request)
+    {
         DB::beginTransaction();
-        $permission = Myhelp::EscribirEnLog($this,' universidad','Inicio de quitar estudiante de universidad');
-        
+        $permission = Myhelp::EscribirEnLog($this, ' universidad', 'Inicio de quitar estudiante de universidad');
+
         try {
-            if($permission == 'coordinador_academico' || $permission == 'coordinador_academico' || $permission == 'admin' || $permission = 'superadmin'){
+            if ($permission == 'coordinador_academico' || $permission == 'coordinador_academico' || $permission == 'admin' || $permission = 'superadmin') {
 
                 $Universidad = Universidad::find($request->universidadid);
                 // dd($request->selectedId);
@@ -243,25 +265,33 @@ class UniversidadsController extends Controller
                 );
 
                 DB::commit();
-                Log::info("U -> ".Auth::user()->name." desmatriculo a la universidad ".count($request->selectedId)." estudiantes correctamente");
-                
+                Log::info("U -> " . Auth::user()->name . " desmatriculo a la universidad " . count($request->selectedId) . " estudiantes correctamente");
+
                 return back()->with('success', 'Usuarios desvinculados correctamente');
                 // return redirect()->route('universidad.index')->with('success', 'Usuarios desmatriculados con exito');
             }
-            Log::critical("U -> ".Auth::user()->name." desmatriculo a la universidad ".count($request->selectedId)." estudiantes. Fallo en seguridad.");
-
+            Log::critical("U -> " . Auth::user()->name . " desmatriculo a la universidad " . count($request->selectedId) . " estudiantes. Fallo en seguridad.");
         } catch (\Throwable $th) {
             DB::rollback();
-            Log::alert("U -> ".Auth::user()->name." fallo en matricular(universidad) - ".$th->getMessage());
-            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.Universidad')]) . $th->getMessage());
+            Log::alert("U -> " . Auth::user()->name . " fallo en matricular(universidad) - " . $th->getMessage() . ' L:' . $th->getLine());
+            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.Universidad')]) . $th->getMessage() . ' L:' . $th->getLine());
         }
     }
 
-    public function show(Universidad $Universidad) { }
-    public function edit(Universidad $Universidad) { }
-    public function update(Request $request, Universidad $Universidad) {
+    public function show(Universidad $Universidad)
+    {
+    }
+    public function edit(Universidad $Universidad)
+    {
+    }
+    public function update(UniversidadRequest $request, Universidad $Universidad)
+    {
         DB::beginTransaction();
-        Myhelp::EscribirEnLog($this,' UPDATE:universidad ','',false);
+        Myhelp::EscribirEnLog($this, ' UPDATE:universidad ', '', false);
+
+        $request->validate([
+            'codigo' => 'required|unique:universidads,codigo,' . $Universidad->id,
+        ]);
 
         try {
             $Universidad->update([
@@ -270,14 +300,14 @@ class UniversidadsController extends Controller
                 'codigo' => $request->codigo,
             ]);
             DB::commit();
-            Log::info("U -> ".Auth::user()->name." actualizo Universidad ".$request->nombre." correctamente");
+            Log::info("U -> " . Auth::user()->name . " actualizo Universidad " . $request->nombre . " correctamente");
 
             return back()->with('success', __('app.label.updated_successfully2', ['nombre' => $Universidad->nombre]));
         } catch (\Throwable $th) {
-            
+
             DB::rollback();
-            Log::alert("U -> ".Auth::user()->name." fallo en actualizar Universidad ".$request->nombre." - ".$th->getMessage());
-            return back()->with('error', __('app.label.updated_error', ['nombre' => $Universidad->nombre]) . $th->getMessage());
+            Log::alert("U -> " . Auth::user()->name . " fallo en actualizar Universidad " . $request->nombre . " - " . $th->getMessage() . ' L:' . $th->getLine());
+            return back()->with('error', __('app.label.updated_error', ['nombre' => $Universidad->nombre]) . $th->getMessage() . ' L:' . $th->getLine());
         }
     }
 
@@ -288,8 +318,9 @@ class UniversidadsController extends Controller
      * @return \Illuminate\Http\Response
      */
     // public function destroy(Universidad $Universidad)
-    public function destroy($id) {
-         Myhelp::EscribirEnLog($this,'DELETE:universidad','',false);
+    public function destroy($id)
+    {
+        Myhelp::EscribirEnLog($this, 'DELETE:universidad', '', false);
         DB::beginTransaction();
 
         try {
@@ -297,13 +328,12 @@ class UniversidadsController extends Controller
             $Universidads = Universidad::findOrFail($id);
             $Universidads->delete();
             DB::commit();
-            Myhelp::EscribirEnLog($this,'universidad','borro Universidad id:'.$id.' correctamente',false);
+            Myhelp::EscribirEnLog($this, 'universidad', 'borro Universidad id:' . $id . ' correctamente', false);
             return back()->with('success', __('app.label.deleted_successfully2'));
-            
         } catch (\Throwable $th) {
             DB::rollback();
-            Log::alert("U -> ".Auth::user()->name." fallo en borrar Universidad ".$id." - ".$th->getMessage());
-            return back()->with('error', __('app.label.deleted_error', ['name' => __('app.label.Universidads')]) . $th->getMessage());
+            Log::alert("U -> " . Auth::user()->name . " fallo en borrar Universidad " . $id . " - " . $th->getMessage() . ' L:' . $th->getLine());
+            return back()->with('error', __('app.label.deleted_error', ['name' => __('app.label.Universidads')]) . $th->getMessage() . ' L:' . $th->getLine());
         }
     }
 }

@@ -21,7 +21,7 @@ const emit = defineEmits(["close"]);
 
 const justNames = [
     'principal',
-    'teoricaOpractica',
+    // 'teoricaOpractica',
     'clasificacion',
     'tokensAproximados',
 ]; const form = useForm({ ...Object.fromEntries(justNames.map(field => [field, ''])) });
@@ -49,7 +49,7 @@ const create = () => {
 }
 
 onMounted(() => {
-    form.teoricaOpractica = {'title':'Teorica' , 'value':'teorica'};
+    // form.teoricaOpractica = {'title':'Teorica' , 'value':'teorica'};
     form.clasificacion = {'title':'General' , 'value':'General'};
     form.tokensAproximados = '1';
 });
@@ -62,11 +62,11 @@ watchEffect(() => {
         if(form.principal.length > AdvertenciaPrompLargo) form.tokensAproximados = '' + Math.floor(form.principal.length/(AdvertenciaPrompLargo/1.5));
     }
 })
-const teoricaOpracticaForSelec = [ { title: 'Teorica', value: 'teorica' }, { title: 'Practica', value: 'practica' } ];
-const clasificacionForSelec = [ 
-    { title: 'General', value: 'General' }, //Expectativas Altas
-    { title: 'Enseñanza Explicita', value: 'Enseñanza Explicita' }
-];
+// const teoricaOpracticaForSelec = [ { title: 'Teorica', value: 'teorica' }, { title: 'Practica', value: 'practica' } ];
+// const clasificacionForSelec = [ 
+//     { title: 'General', value: 'General' }, //Expectativas Altas
+//     { title: 'Enseñanza Explicita', value: 'Enseñanza Explicita' }
+// ];
 
 </script>
 
@@ -86,14 +86,14 @@ const clasificacionForSelec = [
                             :error="form.errors[atributosform.idd]" />
                     </div> -->
 
-                    <div id="SelectVue">
+                    <!-- <div id="SelectVue">
                         <label name="labelSelectVue">{{lang().label.teoricaOpractica}}</label>
                         <v-select :options="teoricaOpracticaForSelec" label="title" v-model="form.teoricaOpractica"></v-select>
-                    </div>
-                    <div id="SelectVue">
+                    </div> -->
+                    <!-- <div id="SelectVue">
                         <label name="labelSelectVue">{{lang().label.clasificacion}}</label>
                         <v-select :options="clasificacionForSelec" label="title" v-model="form.clasificacion"></v-select>
-                    </div>
+                    </div> -->
                      <!-- <div>
                         <InputLabel for="teoricaOpractica" :value="lang().label.teoricaOpractica" />
                         <SelectInput id="teoricaOpractica" class="mt-1 block w-full" v-model="form.teoricaOpractica"
@@ -131,15 +131,13 @@ const clasificacionForSelec = [
                     </div>
                     <div class="px-2 w-full col-span-2 xl:col-span-3">
                         <div class="relative">
-                            <label for="message" class="leading-7 my-1 text-lg text-gray-900">Los campos con <b class="text-xl">*</b> son obligatorios</label>
+                            <label for="message" class="leading-7 my-1 text-lg text-gray-900">La instruccion necesita un [Tema], las siguientes variables son opcionales</label>
                             <ul class="list-decimal ml-8">
                                 <li class="font-medium font-sans text-lg ">[Asignatura]</li>
                                 <li class="font-medium font-sans text-lg ">[Unidad]</li>
-                                <li class="font-medium font-sans text-lg ">[Tema] *</li>
                             </ul>
                         </div>
                     </div>
-
 
                     <!-- <div>
                         <InputLabel for="subtopico_id" :value="lang().label.subtopico" />

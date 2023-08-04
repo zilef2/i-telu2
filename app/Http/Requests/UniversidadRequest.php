@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UniversidadRequest extends FormRequest
 {
@@ -23,9 +24,13 @@ class UniversidadRequest extends FormRequest
      */
     public function rules()
     {
+        $id = $this->route('universidad');
         return
         [
 			'nombre' => 'required',
+            'codigo' => 'required|string',
+            Rule::unique('universidads','codigo')->ignore($id)
+
         ];
     }
 }

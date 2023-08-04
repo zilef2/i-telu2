@@ -11,7 +11,7 @@ import pkg from 'lodash';
 import { router, usePage, Link } from '@inertiajs/vue3';
 
 import Pagination from '@/Components/Pagination.vue';
-import { ChevronUpDownIcon, EyeIcon, PencilIcon, TrashIcon, UserGroupIcon } from '@heroicons/vue/24/solid';
+import { ChevronUpDownIcon, EyeIcon, PencilIcon, TrashIcon, UserCircleIcon, ArrowSmallRightIcon } from '@heroicons/vue/24/solid';
 
 
 import Create from '@/Pages/universidad/Create.vue';
@@ -49,6 +49,9 @@ const data = reactive({
     generico: null,
     successMessage: '',
     dataSet: usePage().props.app.perpage,
+    params2: {
+        selectedUniID: 0,
+    }
 
 })
 
@@ -83,6 +86,16 @@ const select = () => {
     } else {
         data.multipleSelect = false
     }
+}
+
+const irCarrera = (carreraid) => {
+    data.params2.selectedUniID = carreraid
+    let params = pickBy(data.params2)
+    router.get(route("carrera.index"), params, {
+        replace: true,
+        preserveState: true,
+        preserveScroll: true,
+    })
 }
 
 </script>
@@ -129,7 +142,7 @@ const select = () => {
                                     v-on:click="order(nombresTabla[2][indiceN])"
                                     class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
                                     <div v-if="nombresTabla[2][indiceN] !== null" class="flex justify-between items-center">
-                                        <span>{{ titulos }}</span> 
+                                        <span>{{ titulos }}</span>
                                         <ChevronUpDownIcon class="w-4 h-4" />
                                     </div>
                                     <div v-else class="flex justify-between items-center">
@@ -149,7 +162,7 @@ const select = () => {
                                 <td v-if="props.numberPermissions >= 5" class="whitespace-nowrap py-4 px-2 sm:py-3">
                                     <div class="flex justify-start items-center">
                                         <div class="rounded-md overflow-hidden">
-                                            <InfoButton type="button"
+                                            <!-- <InfoButton type="button"
                                                 @click="(data.editOpen = true), (data.generico = clasegenerica)"
                                                 class="px-2 py-1.5 rounded-none" v-tooltip="lang().tooltip.edit">
                                                 <PencilIcon class="w-4 h-4" />
@@ -158,11 +171,31 @@ const select = () => {
                                                 @click="(data.deleteOpen = true), (data.generico = clasegenerica)"
                                                 class="px-2 py-1.5 rounded-none" v-tooltip="lang().tooltip.delete">
                                                 <TrashIcon class="w-4 h-4" />
-                                            </DangerButton>
+                                            </DangerButton> -->
+
+
+                                            
+                                            <button @click="(data.editOpen = true), (data.generico = clasegenerica)"
+                                                v-show="can(['isAdmin'])" type="button"
+                                                class="px-2 -mb-0.5 pt-1 rounded-l-md  hover:bg-sky-500 bg-sky-200">
+                                                <PencilIcon class="w-7 h-7" />
+                                            </button>
+                                            <button @click="(data.deleteOpen = true), (data.generico = clasegenerica)"
+                                                v-show="can(['isAdmin'])" type="button"
+                                                class="px-2 -mb-0.5 pt-1 rounded-none hover:bg-red-500 bg-red-200">
+                                                <TrashIcon class="w-7 h-7" />
+                                            </button>
                                             <Link :href="route('universidad.AsignarUsers', clasegenerica.id)"
                                                 v-show="can(['isAdmin'])" type="button"
-                                                class="px-2 -mb-1.5 py-1.5 rounded-none hover:bg-blue-500">
-                                            <UserGroupIcon class="w-4 h-4" />
+                                                class="px-2 -mb-0.5 pt-1 rounded-r-md  hover:bg-gray-500 bg-gray-200">
+                                                <UserCircleIcon class="w-7 h-7" />
+                                            </Link>
+
+
+                                            <Link @click="irCarrera(clasegenerica.id)" 
+                                                v-show="can(['isAdmin'])" type="button"
+                                                class="px-2 -mb-0.5 pt-1 rounded-r-md  hover:bg-gray-500 bg-gray-200">
+                                                <ArrowSmallRightIcon class="w-7 h-7" />
                                             </Link>
                                         </div>
                                     </div>
@@ -171,8 +204,10 @@ const select = () => {
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.nombre) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.codigo) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.cuantosUs) }} </td>
-                                <td v-if="props.numberPermissions >= 5" class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.tresPrimeros) }} </td>
-                                <td v-if="props.numberPermissions >= 5" class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.tresPrimeros) }} </td>
+                                <td v-if="props.numberPermissions >= 5" class="whitespace-nowrap py-4 px-2 sm:py-3">{{
+                                    (clasegenerica.tresPrimeros) }} </td>
+                                <td v-if="props.numberPermissions >= 5" class="whitespace-nowrap py-4 px-2 sm:py-3">{{
+                                    (clasegenerica.tresPrimeros) }} </td>
                             </tr>
                         </tbody>
                     </table>

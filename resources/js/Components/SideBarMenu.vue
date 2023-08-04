@@ -11,7 +11,7 @@ import {
 } from "@heroicons/vue/24/solid";
 import { Link } from '@inertiajs/vue3';
 import { reactive, watch } from 'vue';
-import { NoUnderLines} from '@/global.js';
+import { NoUnderLines}from '@/global.ts';;
 
 
 const data = reactive({
@@ -98,7 +98,7 @@ const toggleContent2 = () => {
                 <span class="ml-3">{{ lang().label.parametros }}</span>
                 </Link>
             </li>
-            
+
 
 
 
@@ -109,7 +109,7 @@ const toggleContent2 = () => {
             <!-- zone normal -->
         </ul>
         <button @click="toggleContent2" v-show="can(['isAdmin'])" class="text-blue-500">{{ data.showContent2 ?
-            'Ocultar universidades' : 'Mostrar universidades' }}</button>
+                    'Ocultar universidades' : 'Mostrar universidades' }}</button>
         <ul v-if="data.showContent2" class="space-y-2 my-4">
 
             <!-- <li v-show="can(['read role', 'read permission'])" class="py-2"> <p>{{ lang().label.universidadCarreras }}</p> </li> -->
@@ -171,4 +171,5 @@ const toggleContent2 = () => {
                 </Link>
             </li>
         </ul>
-    </div></template>
+    </div>
+</template>

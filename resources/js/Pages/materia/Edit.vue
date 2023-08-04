@@ -25,16 +25,13 @@ const data = reactive({
     multipleSelect: false,
 })
 
-onMounted(()=>{
-})
-
 const emit = defineEmits(["close"]);
 
 const form = useForm({
     nombre: '',
     descripcion: '',
     carrera_id: '',
-    cuantosObj: 0,
+    cuantosObj: props.materia?.objetivs,
     codigo: '',
     enum: 0,
     objetivo: [],
@@ -72,7 +69,6 @@ watchEffect(() => {
         form.descripcion = props.materia?.descripcion
         form.carrera_id = props.materia?.carrera_id
         form.cuantosObj = props.materia?.objetivs
-        form.OriginalObj = props.materia?.objetivs
         form.enum = props.materia?.enum
         form.codigo = props.materia?.codigo
         
@@ -84,6 +80,11 @@ watchEffect(() => {
         // form.objetivo[2] = props.materia?.objetivo3
     }
 })
+
+
+//not used
+onMounted(()=>{ })
+
 </script>
 
 <template>
@@ -120,7 +121,7 @@ watchEffect(() => {
                     </div>
                     <div>
                         <InputLabel for="carrera_id" :value="lang().label.carrera" />
-                        <SelectInput id="carrera_id" class="mt-1 block w-full" v-model="form.carrera_id" required :dataSet="carrerasSelect"> </SelectInput>
+                        <SelectInput id="carrera_id" class="mt-1 block w-full" v-model="form.carrera_id" required :dataSet="props.carrerasSelect"> </SelectInput>
                         <InputError class="mt-2" :message="form.errors.carrera_id" />
                     </div>
 

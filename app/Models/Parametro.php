@@ -12,7 +12,8 @@ class Parametro extends Model
     protected $fillable = [
         'prompEjercicios',
         'prompObjetivos',
-        'NumeroTicketDefecto',
+        'pMejoraContinua',
         'prompExplicarTema',
+        'NumeroTicketDefecto',
     ];
 }

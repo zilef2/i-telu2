@@ -19,7 +19,7 @@ import Delete from '@/Pages/LosPromp/Delete.vue';
 
 import Checkbox from '@/Components/Checkbox.vue';
 import InfoButton from '@/Components/InfoButton.vue';
-// import { vectorSelect, formatDate, CalcularEdad, CalcularSexo } from '@/global.js';
+// import { vectorSelect, formatDate, CalcularEdad, CalcularSexo }from '@/global.ts';;
 
 
 const { _, debounce, pickBy } = pkg
@@ -49,9 +49,8 @@ const data = reactive({
 })
 
 const order = (field) => {
-    console.log("🧈 debu field:", field);
     data.params.field = field.replace(/ /g, "_")
-
+    
     data.params.order = data.params.order === "asc" ? "desc" : "asc"
 }
 
@@ -137,7 +136,7 @@ const select = () => {
                                         <ChevronUpDownIcon class="w-4 h-4" />
                                     </div>
                                 </th>
-                               
+
                                 <th v-on:click="order('teoricaOpractica')"
                                     class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
                                     <div class="flex justify-between items-center">
@@ -147,7 +146,7 @@ const select = () => {
                                         <ChevronUpDownIcon class="w-4 h-4" />
                                     </div>
                                 </th>
-                                <th v-on:click="order('clasificacion')"
+                                <!-- <th v-on:click="order('clasificacion')"
                                     class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
                                     <div class="flex justify-between items-center">
                                         <span>
@@ -155,7 +154,7 @@ const select = () => {
                                         </span>
                                         <ChevronUpDownIcon class="w-4 h-4" />
                                     </div>
-                                </th>
+                                </th> -->
                                 <th v-on:click="order('principal')"
                                     class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
                                     <div class="flex justify-between items-center">
@@ -193,7 +192,7 @@ const select = () => {
                                 </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (index + 1) }}</td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.teoricaOpractica) }} </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.clasificacion) }} </td>
+                                <!-- <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.clasificacion) }} </td> -->
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.principal) }} </td>
                             </tr>
                         </tbody>

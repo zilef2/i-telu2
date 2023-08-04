@@ -28,10 +28,11 @@ class UnidadsController extends Controller
     private $modelName = 'Unidad';
 
 
-    public function MapearClasePP(&$unidads, $numberPermissions) {
-        $unidads = $unidads->get()->map(function ($Unidad) use ($numberPermissions) {
+    public function MapearClasePP(&$unidads, $numberPermissions)
+    {
+        $MateriasUser = Auth::user()->materias()->pluck('materias.id')->toArray();
+        $unidads = $unidads->get()->map(function ($Unidad) use ($numberPermissions, $MateriasUser) {
             if ($numberPermissions < 2) {
-                $MateriasUser = Auth::user()->materias()->pluck('materias.id')->toArray();
                 if (!in_array($Unidad->materia_id, $MateriasUser)) return null;
             }
             $Unidad->hijo = $Unidad->materia_nombre();
@@ -39,21 +40,23 @@ class UnidadsController extends Controller
         })->filter();
     }
 
-    public function fNombresTabla($numberPermissions) {
+    public function fNombresTabla($numberPermissions)
+    {
         $nombresTabla = [ //0: como se ven //1 como es la BD //2orden
             ["Acciones"],
             [],
             [null]
         ];
-        $nombresTabla[2] = array_merge($nombresTabla[2], ["enum", "nombre","codigo", "materia_id", "descripcion"]);
-        $nombresTabla[0] = array_merge($nombresTabla[0], ["#", "nombre","codigo", "materia", "descripcion"]);
+        $nombresTabla[2] = array_merge($nombresTabla[2], ["enum", "nombre", "codigo", "materia_id", "descripcion"]);
+        $nombresTabla[0] = array_merge($nombresTabla[0], ["#", "nombre", "codigo", "materia", "descripcion"]);
         return $nombresTabla;
     }
-    public function Filtros($request, &$unidads, $numberPermissions) {
+    public function Filtros($request, &$unidads, $numberPermissions)
+    {
         if ($numberPermissions < intval(env('PERMISS_VER_FILTROS_SELEC'))) { //coorPrograma,profe,estudiante
             $MateriasSelect = Auth::user()->materias->pluck('id');
 
-            $unidads->WhereIn('materia_id',$MateriasSelect);
+            $unidads->WhereIn('materia_id', $MateriasSelect);
         }
 
 
@@ -80,7 +83,8 @@ class UnidadsController extends Controller
 
         return $showCarrera;
     }
-    public function losSelect($numberPermissions) {
+    public function losSelect($numberPermissions)
+    {
         if ($numberPermissions < intval(env('PERMISS_VER_FILTROS_SELEC'))) { //coorPrograma,profe,estudiante
             $MateriasSelect = Auth::user()->materias;
         } else {
@@ -134,8 +138,11 @@ class UnidadsController extends Controller
         ]);
     } //fin index
 
-    public function create() { }
-    public function store(UnidadRequest $request) {
+    public function create()
+    {
+    }
+    public function store(UnidadRequest $request)
+    {
         DB::beginTransaction();
         Myhelp::EscribirEnLog($this, get_called_class(), '', false);
         $modelInstance = resolve('App\\Models\\' . $this->modelName);
@@ -166,14 +173,18 @@ class UnidadsController extends Controller
             return back()->with('success', __('app.label.created_successfully2', ['nombre' => $Unidad->nombre]));
         } catch (\Throwable $th) {
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en Guardar Unidad " . $request->nombre . " - " . $th->getMessage());
+            Log::alert("U -> " . Auth::user()->name . " fallo en Guardar Unidad " . $request->nombre . " - " . $th->getMessage() . ' L:' . $th->getLine());
 
-            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.Unidad')]) . $th->getMessage());
+            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.Unidad')]) . $th->getMessage() . ' L:' . $th->getLine());
         }
     }
 
-    public function show(Unidad $Unidad) { }
-    public function edit(Unidad $Unidad) { }
+    public function show(Unidad $Unidad)
+    {
+    }
+    public function edit(Unidad $Unidad)
+    {
+    }
 
     public function update(Request $request, $id)
     {
@@ -198,8 +209,8 @@ class UnidadsController extends Controller
         } catch (\Throwable $th) {
 
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en actualizar Unidad " . $request->nombre . " - " . $th->getMessage());
-            return back()->with('error', __('app.label.updated_error', ['nombre' => $Unidad->nombre]) . $th->getMessage());
+            Log::alert("U -> " . Auth::user()->name . " fallo en actualizar Unidad " . $request->nombre . " - " . $th->getMessage() . ' L:' . $th->getLine());
+            return back()->with('error', __('app.label.updated_error', ['nombre' => $Unidad->nombre]) . $th->getMessage() . ' L:' . $th->getLine());
         }
     }
 
@@ -220,8 +231,8 @@ class UnidadsController extends Controller
             return back()->with('success', __('app.label.deleted_successfully2', ['nombre' => $unidads->nombre]));
         } catch (\Throwable $th) {
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en borrar Unidad " . $id . " - " . $th->getMessage());
-            return back()->with('error', __('app.label.deleted_error', ['name' => __('app.label.unidads')]) . $th->getMessage());
+            Log::alert("U -> " . Auth::user()->name . " fallo en borrar Unidad " . $id . " - " . $th->getMessage() . ' L:' . $th->getLine());
+            return back()->with('error', __('app.label.deleted_error', ['name' => __('app.label.unidads')]) . $th->getMessage() . ' L:' . $th->getLine());
         }
     }
 

@@ -1,104 +1,106 @@
 <script setup>
-    import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-    import { Head } from '@inertiajs/vue3';
-    import Breadcrumb from '@/Components/Breadcrumb.vue';
-    import TextInput from '@/Components/TextInput.vue';
-    import PrimaryButton from '@/Components/PrimaryButton.vue';
-    import SelectInput from '@/Components/SelectInput.vue';
-    import { reactive, watch, onMounted } from 'vue';
-    import DangerButton from '@/Components/DangerButton.vue';
-    import pkg from 'lodash';
-    import { router,usePage, Link } from '@inertiajs/vue3';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import { Head } from '@inertiajs/vue3';
+import Breadcrumb from '@/Components/Breadcrumb.vue';
+import TextInput from '@/Components/TextInput.vue';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
+import SelectInput from '@/Components/SelectInput.vue';
+import { reactive, watch, onMounted } from 'vue';
+import DangerButton from '@/Components/DangerButton.vue';
+import pkg from 'lodash';
+import { router, usePage, Link } from '@inertiajs/vue3';
 
-    import Pagination from '@/Components/Pagination.vue';
-    import { ChevronUpDownIcon, EyeIcon, PencilIcon, TrashIcon, UserGroupIcon } from '@heroicons/vue/24/solid';
+import Pagination from '@/Components/Pagination.vue';
+import { ChevronUpDownIcon, EyeIcon, PencilIcon, TrashIcon, UserCircleIcon } from '@heroicons/vue/24/solid';
 
-    import Create from '@/Pages/carrera/Create.vue';
-    import Edit from '@/Pages/carrera/Edit.vue'; 
-    import Delete from '@/Pages/carrera/Delete.vue';
+import Create from '@/Pages/carrera/Create.vue';
+import Edit from '@/Pages/carrera/Edit.vue';
+import Delete from '@/Pages/carrera/Delete.vue';
 
-    import Checkbox from '@/Components/Checkbox.vue';
-    import InfoButton from '@/Components/InfoButton.vue';
+import Checkbox from '@/Components/Checkbox.vue';
+import InfoButton from '@/Components/InfoButton.vue';
 
-    import { PrimerasPalabras, vectorSelect, formatDate, CalcularEdad, CalcularSexo} from '@/global.js';
+import { PrimerasPalabras, vectorSelect, formatDate, CalcularEdad, CalcularSexo } from '@/global.ts';;
 
-    const { _, debounce, pickBy } = pkg
-    const props = defineProps({
-        title: String,
-        filters: Object,
-        breadcrumbs: Object,
-        perPage: Number,
+const { _, debounce, pickBy } = pkg
+const props = defineProps({
+    title: String,
+    filters: Object,
+    breadcrumbs: Object,
+    perPage: Number,
 
-        fromController: Object,
-        PapaSelect: Object,
-        nombresTabla: Array,
-        numberPermissions: Number,
+    fromController: Object,
+    PapaSelect: Object,
+    nombresTabla: Array,
+    numberPermissions: Number,
 
-        UniversidadSelect: Object,
-    })
-    
-    const data = reactive({
-        params: {
-            search: props.filters.search,
-            field: props.filters.field,
-            order: props.filters.order,
-            perPage: props.perPage,
-            selectedUniID: props.filters.selectedUniID,
-        },
-        selectedId: [],
-        multipleSelect: false,
-        createOpen: false,
-        editOpen: false,
-        deleteOpen: false,
-        deleteBulkOpen: false,
-        generico: null,
-        dataSet: usePage().props.app.perpage,
-    })
-        
-    const order = (field) => {
+    UniversidadSelect: Object,
+})
+
+const data = reactive({
+    params: {
+        search: props.filters.search,
+        field: props.filters.field,
+        order: props.filters.order,
+        perPage: props.perPage,
+        selectedUniID: props.filters.selectedUniID,
+    },
+    selectedId: [],
+    multipleSelect: false,
+    createOpen: false,
+    editOpen: false,
+    deleteOpen: false,
+    deleteBulkOpen: false,
+    generico: null,
+    dataSet: usePage().props.app.perpage,
+})
+
+const order = (field) => {
     console.log("🧈 debu field:", field);
 
-        data.params.field = field.replace(/ /g, "_")
+    data.params.field = field.replace(/ /g, "_")
 
-        data.params.order = data.params.order === "asc" ? "desc" : "asc"
-    }
+    data.params.order = data.params.order === "asc" ? "desc" : "asc"
+}
 
-    watch(() => _.cloneDeep(data.params), debounce(() => {
-        let params = pickBy(data.params)
-        router.get(route("carrera.index"), params, {
-            replace: true,
-            preserveState: true,
-            preserveScroll: true,
-        })
-    }, 150))
-
-    const selectAll = (event) => {
-        if (event.target.checked === false) {
-            data.selectedId = []
-        } else {
-            props.fromController?.data.forEach((generico) => {
-                data.selectedId.push(generico.id)
-            })
-        }
-    }
-    const select = () => {
-        if (props.fromController?.data.length == data.selectedId.length) {
-            data.multipleSelect = true
-        } else {
-            data.multipleSelect = false
-        }
-    }
-
-    onMounted(() =>{
-        if(typeof data.params.selectedUniID === 'undefined' || data.params.selectedUniID === null) data.params.selectedUniID = 0
-        data.UniversidadSelect = vectorSelect(data.UniversidadSelect,props.UniversidadSelect,'una')
+watch(() => _.cloneDeep(data.params), debounce(() => {
+    let params = pickBy(data.params)
+    router.get(route("carrera.index"), params, {
+        replace: true,
+        preserveState: true,
+        preserveScroll: true,
     })
+}, 150))
+
+const selectAll = (event) => {
+    if (event.target.checked === false) {
+        data.selectedId = []
+    } else {
+        props.fromController?.data.forEach((generico) => {
+            data.selectedId.push(generico.id)
+        })
+    }
+}
+const select = () => {
+    if (props.fromController?.data.length == data.selectedId.length) {
+        data.multipleSelect = true
+    } else {
+        data.multipleSelect = false
+    }
+}
+
+onMounted(() => {
+    // if (typeof data.params.selectedUniID === 'undefined' || data.params.selectedUniID === null) data.params.selectedUniID = 0
+    console.log("🧈 debu data.params.selectedUniID:", data.params.selectedUniID);
+    console.log("🧈 selectedUniID:", props.selectedUniID);
+    data.UniversidadSelect = vectorSelect(data.UniversidadSelect, props.UniversidadSelect, 'una')
+})
 
 
-const PapaSelect = props.PapaSelect?.map(universidad => ({ 
+const PapaSelect = props.PapaSelect?.map(universidad => ({
     label: universidad.nombre, value: universidad.id
- }))
-    
+}))
+
 </script>
 
 <template>
@@ -109,15 +111,15 @@ const PapaSelect = props.PapaSelect?.map(universidad => ({
         <div class="space-y-4">
             <div class="px-4 sm:px-0">
                 <div class="rounded-lg overflow-hidden w-fit">
-                    <PrimaryButton class="rounded-none" @click="data.createOpen = true" v-if="can(['create carrera'])"> 
+                    <PrimaryButton class="rounded-none" @click="data.createOpen = true" v-if="can(['create carrera'])">
                         {{ lang().button.add }}
                     </PrimaryButton>
-                    <Create :show="data.createOpen" @close="data.createOpen = false" :title="props.title" v-if="can(['create carrera'])"
-                        :PapaSelect="PapaSelect" />
-                    <Edit :show="data.editOpen" @close="data.editOpen = false" :carrera="data.generico" :title="props.title" v-if="can(['update carrera'])"
-                        :PapaSelect="PapaSelect" />
-                    <Delete :show="data.deleteOpen" @close="data.deleteOpen = false" :carrera="data.generico" v-if="can(['delete carrera'])"
-                        :title="props.title" />
+                    <Create :show="data.createOpen" @close="data.createOpen = false" :title="props.title"
+                        v-if="can(['create carrera'])" :PapaSelect="PapaSelect" />
+                    <Edit :show="data.editOpen" @close="data.editOpen = false" :carrera="data.generico" :title="props.title"
+                        v-if="can(['update carrera'])" :PapaSelect="PapaSelect" />
+                    <Delete :show="data.deleteOpen" @close="data.deleteOpen = false" :carrera="data.generico"
+                        v-if="can(['delete carrera'])" :title="props.title" />
                 </div>
             </div>
             <div class="relative bg-white dark:bg-gray-800 shadow sm:rounded-lg">
@@ -134,8 +136,8 @@ const PapaSelect = props.PapaSelect?.map(universidad => ({
                         </div>
                     </div>
 
-                    <TextInput v-if="props.numberPermissions > 1" v-model="data.params.search" type="text" class="block w-3/6 md:w-2/6 lg:w-1/6 rounded-lg"
-                        :placeholder="lang().placeholder.search" />
+                    <TextInput v-if="props.numberPermissions > 1" v-model="data.params.search" type="text"
+                        class="block w-3/6 md:w-2/6 lg:w-1/6 rounded-lg" :placeholder="lang().placeholder.search" />
                 </div>
                 <div class="overflow-x-auto scrollbar-table">
                     <table class="w-full">
@@ -160,7 +162,8 @@ const PapaSelect = props.PapaSelect?.map(universidad => ({
                         <tbody>
                             <tr v-for="(clasegenerica, index) in fromController.data" :key="index"
                                 class="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-200/30 hover:dark:bg-gray-900/20">
-                                <td v-if="can(['isCoorPrograma']) && numberPermissions > 2" class="whitespace-nowrap py-4 px-2 sm:py-3 text-center">
+                                <td v-if="can(['isCoorPrograma']) && numberPermissions > 2"
+                                    class="whitespace-nowrap py-4 px-2 sm:py-3 text-center">
                                     <input type="checkbox" @change="select" :value="clasegenerica.id"
                                         v-model="data.selectedId"
                                         class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-primary dark:text-primary shadow-sm focus:ring-primary/80 dark:focus:ring-primary dark:focus:ring-offset-gray-800 dark:checked:bg-primary dark:checked:border-primary" />
@@ -181,7 +184,7 @@ const PapaSelect = props.PapaSelect?.map(universidad => ({
                                             <Link :href="route('carrera.AsignarUsers', clasegenerica.id)"
                                                 v-show="can(['isAdmin'])" type="button"
                                                 class="px-2 -mb-1.5 py-1.5 rounded-none hover:bg-blue-500">
-                                            <UserGroupIcon class="w-4 h-4" />
+                                            <UserCircleIcon class="w-4 h-4" />
                                             </Link>
                                         </div>
                                     </div>
@@ -190,9 +193,11 @@ const PapaSelect = props.PapaSelect?.map(universidad => ({
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica?.nombre) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica?.codigo) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica?.hijo) }} </td>
-                                <td v-if="props.numberPermissions > 3" class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica?.cuantosUs) }} </td>
+                                <td v-if="props.numberPermissions > 3" class="whitespace-nowrap py-4 px-2 sm:py-3">{{
+                                    (clasegenerica?.cuantosUs) }} </td>
                                 <!-- <td v-if="props.numberPermissions > 1" class="whitespace-wrap break-words text-sm py-4 px-2 sm:py-3">{{ (clasegenerica?.tresPrimeros) }} </td> -->
-                                <td v-if="props.numberPermissions > 3" class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica?.descripcion) }} </td>
+                                <td v-if="props.numberPermissions > 3" class="whitespace-nowrap py-4 px-2 sm:py-3">{{
+                                    (clasegenerica?.descripcion) }} </td>
                             </tr>
                         </tbody>
                     </table>

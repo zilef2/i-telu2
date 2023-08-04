@@ -4,7 +4,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\Schema;
 
-class CreateParametrosTable extends Migration
+class CreateClasificacionUsersTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,15 +13,10 @@ class CreateParametrosTable extends Migration
      */
     public function up()
     {
-        Schema::create('parametros', function (Blueprint $table) {
+        Schema::create('clasificacion_users', function (Blueprint $table) {
             $table->id();
-			
-            $table->text('prompEjercicios');
-            $table->text('prompObjetivos');
-            $table->text('pMejoraContinua');
-            $table->text('prompExplicarTema');
-            $table->string('NumeroTicketDefecto');
-            
+			$table->string('nombre');
+			$table->string('descripcion')->nullable();
             $table->timestamps();
         });
     }
@@ -33,6 +28,6 @@ class CreateParametrosTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('parametros');
+        Schema::dropIfExists('clasificacion_users');
     }
 }

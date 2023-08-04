@@ -16,25 +16,36 @@ class UserSeeder extends Seeder
      */
     public function run()
     {
-        $sexos = ['Masculino', 'Femenino'];
         $genPa = env('sap_gen');
+
+        
+        $sexos = ['Masculino', 'Femenino'];
+        $grados = ['bachiller','pregrado','postgrado'];
+        $parametro = Parametro::first();
+        $NumTickesDefecto = $parametro->NumeroTicketDefecto;
 
         $superadmin = User::create([
             'name'              => 'Super',
             'email'             => 'ajelof2@gmail.com',
-            'password'          => bcrypt($genPa.'super+-*99'),
+            'password'          => bcrypt($genPa.'super0.+-*'.$genPa),
             'email_verified_at' => date('Y-m-d H:i'),
             'sexo' => $sexos[rand(0, 1)],
             'identificacion' => '11232454',
+            'limite_token_general' => $NumTickesDefecto,
+                'limite_token_leccion' => $NumTickesDefecto,
         ]); $superadmin->assignRole('superadmin');
 
+        $nombreAdmin = 'Admin';
+        $App = env('APP_NAME');
         $admin = User::create([
-            'name'              => 'Admin',
-            'email'             => 'admin@admin.com',
-            'password'          => bcrypt($genPa.'+-*'),
+            'name'              => "$nombreAdmin $App",
+            'email'             => "$nombreAdmin$App"."@gmail.com",
+            'password'          => bcrypt($genPa.'0.+-*'.$genPa),
             'email_verified_at' => date('Y-m-d H:i'),
             'sexo' => $sexos[rand(0, 1)],
             'identificacion' => '11232411',
+            'limite_token_general' => $NumTickesDefecto,
+            'limite_token_leccion' => $NumTickesDefecto,
         ]);
         $admin->assignRole('admin');
 
@@ -49,10 +60,6 @@ class UserSeeder extends Seeder
             'emerson' => '1152194514',
             'amaya' => '11521222514',
         ];
-
-        $grados = ['bachiller','pregrado','postgrado'];
-        $parametro = Parametro::first();
-        $NumTickesDefecto = $parametro->NumeroTicketDefecto;
 
         foreach ($nombresGenericos as $key => $value) {
             $yearRandom = (rand(15, 39));
@@ -70,7 +77,7 @@ class UserSeeder extends Seeder
                 'limite_token_general' => $NumTickesDefecto,
                 'limite_token_leccion' => $NumTickesDefecto,
             ]);
-            $unUsuario->assignRole('trabajador');
+            $unUsuario->assignRole('estudiante');
         }
     }
 }

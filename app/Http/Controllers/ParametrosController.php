@@ -63,7 +63,7 @@ class parametrosController extends Controller
     public function create() { }
     public function store(Request $request) {
         DB::beginTransaction();
-        Myhelp::EscribirEnLog($this, get_called_class(), '', false); //!usefull
+        Myhelp::EscribirEnLog($this, get_called_class(), '', false);
 
         try {
             $parametro = Parametro::create([
@@ -78,9 +78,9 @@ class parametrosController extends Controller
             return back()->with('success', __('app.label.created_successfully2', ['nombre' => $parametro->nombre]));
         } catch (\Throwable $th) {
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en Guardar parametro " . $request->nombre . " - " . $th->getMessage());
+            Log::alert("U -> " . Auth::user()->name . " fallo en Guardar parametro " . $request->nombre . " - " . $th->getMessage().' L:'.$th->getLine());
 
-            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.parametro')]) . $th->getMessage());
+            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.parametro')]) . $th->getMessage().' L:'.$th->getLine());
         }
     }
 
@@ -108,8 +108,8 @@ class parametrosController extends Controller
         } catch (\Throwable $th) {
 
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en actualizar parametro " . $request->nombre . " - " . $th->getMessage());
-            return back()->with('error', __('app.label.updated_error', ['nombre' => $parametro->nombre]) . $th->getMessage());
+            Log::alert("U -> " . Auth::user()->name . " fallo en actualizar parametro " . $request->nombre . " - " . $th->getMessage().' L:'.$th->getLine());
+            return back()->with('error', __('app.label.updated_error', ['nombre' => $parametro->nombre]) . $th->getMessage().' L:'.$th->getLine());
         }
     }
 
@@ -129,8 +129,8 @@ class parametrosController extends Controller
             return back()->with('success', __('app.label.deleted_successfully2', ['nombre' => $parametros->nombre]));
         } catch (\Throwable $th) {
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en borrar parametro " . $id . " - " . $th->getMessage());
-            return back()->with('error', __('app.label.deleted_error', ['name' => __('app.label.parametros')]) . $th->getMessage());
+            Log::alert("U -> " . Auth::user()->name . " fallo en borrar parametro " . $id . " - " . $th->getMessage().' L:'.$th->getLine());
+            return back()->with('error', __('app.label.deleted_error', ['name' => __('app.label.parametros')]) . $th->getMessage().' L:'.$th->getLine());
         }
     }
 }

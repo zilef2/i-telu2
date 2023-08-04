@@ -123,9 +123,9 @@ class EjerciciosController extends Controller
             return back()->with('success', __('app.label.created_successfully2', ['nombre' => $ejercicio->nombre]));
         } catch (\Throwable $th) {
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en Guardar ejercicio " . $request->nombre . " - " . $th->getMessage());
+            Log::alert("U -> " . Auth::user()->name . " fallo en Guardar ejercicio " . $request->nombre . " - " . $th->getMessage() . ' L:' . $th->getLine());
 
-            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.ejercicio')]) . $th->getMessage());
+            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.ejercicio')]) . $th->getMessage() . ' L:' . $th->getLine());
         }
     }
 
@@ -158,8 +158,8 @@ class EjerciciosController extends Controller
         } catch (\Throwable $th) {
 
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en actualizar ejercicio " . $request->nombre . " - " . $th->getMessage());
-            return back()->with('error', __('app.label.updated_error', ['nombre' => $ejercicio->nombre]) . $th->getMessage());
+            Log::alert("U -> " . Auth::user()->name . " fallo en actualizar ejercicio " . $request->nombre . " - " . $th->getMessage() . ' L:' . $th->getLine());
+            return back()->with('error', __('app.label.updated_error', ['nombre' => $ejercicio->nombre]) . $th->getMessage() . ' L:' . $th->getLine());
         }
     }
 
@@ -180,8 +180,8 @@ class EjerciciosController extends Controller
             return back()->with('success', __('app.label.deleted_successfully2', ['nombre' => $ejercicios->nombre]));
         } catch (\Throwable $th) {
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en borrar ejercicio " . $id . " - " . $th->getMessage());
-            return back()->with('error', __('app.label.deleted_error', ['name' => __('app.label.ejercicios')]) . $th->getMessage());
+            Log::alert("U -> " . Auth::user()->name . " fallo en borrar ejercicio " . $id . " - " . $th->getMessage() . ' L:' . $th->getLine());
+            return back()->with('error', __('app.label.deleted_error', ['name' => __('app.label.ejercicios')]) . $th->getMessage() . ' L:' . $th->getLine());
         }
     }
 }

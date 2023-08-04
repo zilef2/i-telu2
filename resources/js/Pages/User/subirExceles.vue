@@ -6,7 +6,7 @@ import Breadcrumb from '@/Components/Breadcrumb.vue';
 import TextInput from '@/Components/TextInput.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SelectInput from '@/Components/SelectInput.vue';
-import { reactive, watch } from 'vue';
+import { reactive, watch, onMounted } from 'vue';
 import DangerButton from '@/Components/DangerButton.vue';
 import pkg from 'lodash';
 import { useForm } from '@inertiajs/vue3';
@@ -16,7 +16,7 @@ import { BookOpenIcon, ArrowUpCircleIcon, ArrowDownCircleIcon } from '@heroicons
 
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css'
-import { PrimerasPalabras, vectorSelect, formatDate, CalcularEdad, CalcularSexo} from '@/global.js';
+import { PrimerasPalabras, vectorSelect, formatDate, CalcularEdad, CalcularSexo}from '@/global.ts';;
 
 
 const { _, debounce, pickBy } = pkg
@@ -25,8 +25,17 @@ const props = defineProps({
     // fromController: Object,
     breadcrumbs: Object,
     numUsuarios: Number,
-    UniversidadSelect: Object
+    UniversidadSelect: Object,
+    flash: String,
+
 })
+
+onMounted(() => {
+    if (props.flash.warning) {
+        data.warnn = props.flash.warning
+    }
+});
+
 const data = reactive({
     UniversidadSelect: null
 })
@@ -44,8 +53,8 @@ const form = useForm({
 //     { 'value': 2, 'label': 2 }
 // ]
 
-function uploadFiletrabajadors() {
-    form.post(route('user.uploadtrabajadors'), {
+function uploadFileestudiantes() {
+    form.post(route('user.uploadestudiantes'), {
         preserveScroll: true,
         onSuccess: () => {
             // emit("close")
@@ -56,7 +65,7 @@ function uploadFiletrabajadors() {
         onFinish: () => null,
     });
 }
-function uploadtrabajadorsUniversidad() {
+function uploadestudiantesUniversidad() {
     if(form.universidadID === null || form.universidadID === 0){
         console.log("🧈 debu form.universidadID:", form.universidadID);
         // form.setErrors({
@@ -118,16 +127,16 @@ data.UniversidadSelect = vectorSelect(data.UniversidadSelect,props.UniversidadSe
                 <section class="text-gray-600 body-font">
                     <div class="container px-5 py-24 mx-auto">
                         <div v-if="can(['create user'])" class="flex flex-wrap -m-4">
-                            <!-- user trabajadors -->
+                            <!-- user estudiantes -->
                             <div class="p-4 md:w-1/2">
                                 <div class="h-full border-2 border-gray-200 border-opacity-60 rounded-lg overflow-hidden">
                                     <ArrowUpCircleIcon class=" h-24 lg:h-48 md:h-36 w-full object-cover object-center" />
 
                                     <div class="p-6">
-                                        <h3 class="title-font text-lg font-medium text-gray-900 mb-3">Subir trabajadors</h3>
-                                        <p class="leading-relaxed mb-3"> Este formulario solo permite cargar trabajadors</p>
+                                        <h3 class="title-font text-lg font-medium text-gray-900 mb-3">Subir estudiantes</h3>
+                                        <p class="leading-relaxed mb-3"> Este formulario solo permite cargar estudiantes</p>
 
-                                        <form @submit.prevent="uploadFiletrabajadors" id="upload">
+                                        <form @submit.prevent="uploadFileestudiantes" id="upload">
                                             <input type="file" @input="form.archivo1 = $event.target.files[0]"
                                                 accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
                                             <progress v-if="form.progress" :value="form.progress.percentage" max="100"
@@ -155,7 +164,7 @@ data.UniversidadSelect = vectorSelect(data.UniversidadSelect,props.UniversidadSe
                                             <li class="text-lg">Semestre</li>
                                             <li class="text-lg">Nivel: <small class="text-lg">Primaria, bachillerato,
                                                     tecnologia, profesional,especializacion,maestría,doctorado</small></li>
-                                            <li class="text-lg">Cargo: <small class="text-lg">trabajador, profesor</small>
+                                            <li class="text-lg">Cargo: <small class="text-lg">estudiante, profesor</small>
                                             </li>
                                         </ul>
 
@@ -181,10 +190,12 @@ data.UniversidadSelect = vectorSelect(data.UniversidadSelect,props.UniversidadSe
                                     <ArrowUpCircleIcon class=" h-24 lg:h-48 md:h-36 w-full object-cover object-center" />
 
                                     <div class="p-6">
-                                        <h3 class="title-font text-lg font-medium text-gray-900 mb-3">Matricular estudiantes</h3>
-                                        <p class="leading-relaxed mb-3"> Seleccione la universidad donde va a matricular los estudiantes</p>
+                                        <h3 class="title-font text-lg font-medium text-gray-900 mb-3">Matricular estudiantes
+                                        </h3>
+                                        <p class="leading-relaxed mb-3"> Seleccione la universidad donde va a matricular los
+                                            estudiantes</p>
 
-                                        <form @submit.prevent="uploadtrabajadorsUniversidad" id="upload">
+                                        <form @submit.prevent="uploadestudiantesUniversidad" id="upload">
                                             <div>
                                                 <InputLabel for="universidadID" :value="lang().label.carrera" />
                                                 <SelectInput id="universidadID" class="mt-1 block w-full"
@@ -209,10 +220,10 @@ data.UniversidadSelect = vectorSelect(data.UniversidadSelect,props.UniversidadSe
                                         <h2 class="text-xl text-gray-900 dark:text-white">El formato necesita las siguientes
                                             columnas</h2>
                                         <ul class="list-decimal my-6 mx-5">
-                                            <li class="text-lg">Identificacion : del trabajador a inscribir</li>
-                                    </ul>
+                                            <li class="text-lg">Identificacion : del estudiante a inscribir</li>
+                                        </ul>
 
-                                    <!-- <div class="flex items-center flex-wrap my-6">
+                                        <!-- <div class="flex items-center flex-wrap my-6">
                                             <a class="text-gray-500 inline-flex items-center md:mb-2 lg:mb-0">Numero de Usuarios: </a>
                                             <span
                                                 class="text-gray-400 mr-3 inline-flex items-center lg:ml-auto md:ml-0 ml-auto leading-none text-sm pr-3 py-1 border-r-2 border-gray-200">
@@ -220,14 +231,15 @@ data.UniversidadSelect = vectorSelect(data.UniversidadSelect,props.UniversidadSe
                                                 {{  props.numUsuarios }}
                                             </span>
                                         </div> -->
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <!-- user matriculas : multiple -->
+                            <!-- user matriculas : multiple -->
 
+                        </div>
                     </div>
-                </div>
-            </section>
+                </section>
+            </div>
         </div>
-    </div>
-</AuthenticatedLayout></template>
+    </AuthenticatedLayout>
+</template>

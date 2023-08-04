@@ -13,27 +13,28 @@ return [
 
 
         //asignar - materia
-        'materias' => 'materias',
+        'materias' => 'Materias',
         'no_permission' => 'Accion no autorizada',
         //ejercicios
         'ejercicios' => 'Ejercicios',
         //subtema
+        'resultado_aprendizaje' => 'Resultado de aprendizaje',
         'stema' => 'Tema',
         'subtopicos' => 'Temas',
         //parametros
-        'parametros' => 'parametros',
+        'parametros' => 'Parametros',
         //unidad (tema)
         'unidads' => 'Unidades',
         'resultAprendizaje' => 'Resultado de Aprendizaje',
         //materia
-        'preguntaria' => 'preguntar a la IA',
-        'cuantosObj' => 'cuantos Objetivos?',
-        'objetivo' => 'objetivo',
-        'tieneRequisitos' => 'tiene Requisitos?',
-        'cuantosReq' => 'cuantos Requisitos',
-        'requisito1' => 'requisito 1',
-        'requisito2' => 'requisito 2',
-        'requisito3' => 'requisito 3',
+        'preguntaria' => 'Preguntar a la IA',
+        'cuantosObj' => 'Cuantos Objetivos?',
+        'objetivo' => 'Objetivo',
+        'tieneRequisitos' => 'Tiene Requisitos?',
+        'cuantosReq' => 'Cuantos Requisitos',
+        'requisito1' => 'Requisito 1',
+        'requisito2' => 'Requisito 2',
+        'requisito3' => 'Requisito 3',
         'carrera' => 'carrera',
         'descripcion' => 'descripcion',
         'seeTemas' => 'Unidades',

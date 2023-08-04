@@ -12,12 +12,12 @@ import pkg from 'lodash';
 import { router, usePage, Link } from '@inertiajs/vue3';
 
 import Pagination from '@/Components/Pagination.vue';
-import { CursorArrowRippleIcon, ChevronUpDownIcon, QuestionMarkCircleIcon, EyeIcon, PencilIcon, TrashIcon, UserGroupIcon } from '@heroicons/vue/24/solid';
+import { CursorArrowRippleIcon, ChevronUpDownIcon, QuestionMarkCircleIcon, EyeIcon, PencilIcon, TrashIcon, UserCircleIcon } from '@heroicons/vue/24/solid';
 
 import Checkbox from '@/Components/Checkbox.vue';
 import InfoButton from '@/Components/InfoButton.vue';
 import { useForm } from '@inertiajs/vue3';
-import { vectorSelect, formatDate, CalcularEdad, CalcularSexo } from '@/global.js';
+import { vectorSelect, formatDate, CalcularEdad, CalcularSexo } from '@/global.ts';;
 
 const { _, debounce, pickBy } = pkg
 const props = defineProps({

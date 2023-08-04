@@ -48,34 +48,26 @@ class User extends Authenticatable
     public function getUpdatedAtAttribute() { return date('d-m-Y H:i', strtotime($this->attributes['updated_at'])); }
 
     public function getEmailVerifiedAtAttribute() { return $this->attributes['email_verified_at'] == null ? null : date('d-m-Y H:i', strtotime($this->attributes['email_verified_at'])); }
-
-    public function getPermissionArray()
-    {
+    public function getPermissionArray() {
         return $this->getAllPermissions()->mapWithKeys(function ($pr) {
             return [$pr['name'] => true];
         });
     }
-
-    public function reportes()
-    {
+    public function reportes() {
         return $this->hasMany('App\Models\Reporte');
     }
 
 
-    public function universidades(): BelongsToMany
-    {
+    public function universidades(): BelongsToMany {
         return $this->BelongsToMany(Universidad::class);
     }
-    public function carreras(): BelongsToMany
-    {
+    public function carreras(): BelongsToMany {
         return $this->BelongsToMany(Carrera::class);
     }
-    public function materias(): BelongsToMany
-    {
+    public function materias(): BelongsToMany {
         return $this->BelongsToMany(Materia::class);
     }
-    public function unidads()
-    {
+    public function unidads() {
         $result = $this->materias->flatMap(function ($materia) {
             return collect($materia->unidads);
         });
@@ -83,8 +75,7 @@ class User extends Authenticatable
         return $result;
     }
 
-    public function trabajadorsSinUniversidad($elrol)
-    {
+    public function estudiantesSinUniversidad($elrol) {
         $this->doesntHave('universidad')
             ->WhereHas('roles', function ($query) use ($elrol) {
                 $query->where('name', $elrol);
@@ -92,5 +83,7 @@ class User extends Authenticatable
             ->get();
     }
 
-    public function LosPromps() { return $this->belongsToMany(LosPromps::class ); }
+    public function LosPromps() {
+        return $this->belongsToMany(LosPromps::class);
+    }
 }

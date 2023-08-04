@@ -32,6 +32,7 @@ const justNames = [
     'unidad_id',
     'enum',
     'codigo',
+    'resultado_aprendizaje',
 ]
 const form = useForm({ ...Object.fromEntries(justNames.map(field => [field, ''])) });
 
@@ -39,6 +40,7 @@ const printForm = [
     { idd: 'enum', label: 'enum', type: 'number', value: form.enum },
     { idd: 'nombre', label: 'nombre', type: 'text', value: form.nombre },
     { idd: 'codigo', label: 'codigo', type: 'text', value: form.codigo },
+    { idd: 'resultado_aprendizaje', label: 'resultado_aprendizaje', type: 'text', value: form.resultado_aprendizaje },
     { idd: 'descripcion', label: 'descripcion', type: 'text', value: form.descripcion },
 ];
 

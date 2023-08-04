@@ -15,6 +15,7 @@
     // Vue test
         npm install -g @vue/cli
         vue add @vue/unit-jest
+        npm install vue-select@beta
     // datetime
         npm install --save luxon vue-datetime weekstart
         npm install --save luxon vue-datetime weekstart --force

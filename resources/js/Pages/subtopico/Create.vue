@@ -30,6 +30,7 @@ const form = useForm({
     enum: '',
     codigo: '',
     descripcion: '',
+    resultado_aprendizaje: '',
     unidad_id: 0,
 })
 const create = () => {
@@ -66,7 +67,7 @@ watchEffect(() => {
                 <div class="my-6 grid xs:grid-cols-1 sm:grid-cols-2 gap-6">
                     <div>
                         <InputLabel for="enum" :value="lang().label.enum" />
-                        <TextInput id="enum" type="text" class="mt-1 block w-full" v-model="form.enum" required
+                        <TextInput id="enum" type="number" class="mt-1 block w-full" v-model="form.enum" required
                             :placeholder="lang().placeholder.enum" :error="form.errors.enum" />
                         <InputError class="mt-2" :message="form.errors.enum" />
                     </div>
@@ -83,16 +84,22 @@ watchEffect(() => {
                         <InputError class="mt-2" :message="form.errors.codigo" />
                     </div>
                     <div>
-                        <InputLabel for="descripcion" :value="lang().label.descripcion" />
-                        <TextInput id="descripcion" type="text" class="mt-1 block w-full" v-model="form.descripcion"
-                            required :placeholder="lang().placeholder.descripcion" :error="form.errors.descripcion" />
-                        <InputError class="mt-2" :message="form.errors.descripcion" />
+                        <InputLabel for="resultado_aprendizaje" :value="lang().label.resultado_aprendizaje" />
+                        <TextInput id="resultado_aprendizaje" type="text" class="mt-1 block w-full" v-model="form.resultado_aprendizaje"
+                            required :placeholder="lang().placeholder.resultado_aprendizaje" :error="form.errors.resultado_aprendizaje" />
+                        <InputError class="mt-2" :message="form.errors.resultado_aprendizaje" />
                     </div>
                     <div>
                         <InputLabel for="unidad_id" :value="lang().label.materia" />
                         <SelectInput name="unidad_id" class="mt-1 block w-full" v-model="form.unidad_id" required
-                            :dataSet="UnidadsSelect"> </SelectInput>
+                        :dataSet="UnidadsSelect"> </SelectInput>
                         <InputError class="mt-2" :message="form.errors.unidad_id" />
+                    </div>
+                    <div>
+                        <InputLabel for="descripcion" :value="lang().label.descripcion" />
+                        <TextInput id="descripcion" type="text" class="mt-1 block w-full" v-model="form.descripcion"
+                            required :placeholder="lang().placeholder.descripcion" :error="form.errors.descripcion" />
+                        <InputError class="mt-2" :message="form.errors.descripcion" />
                     </div>
                 </div>
 

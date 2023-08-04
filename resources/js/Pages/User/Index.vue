@@ -18,7 +18,7 @@ import DeleteBulk from '@/Pages/User/DeleteBulk.vue';
 import Checkbox from '@/Components/Checkbox.vue';
 import { router, usePage, useForm, Link } from '@inertiajs/vue3';
 
-import { number_format, formatDate, CalcularEdad, CalcularSexo } from '@/global.js';
+import { number_format, formatDate, CalcularEdad, CalcularSexo }from '@/global.ts';;
 
 const { _, debounce, pickBy } = pkg
 const props = defineProps({
@@ -123,15 +123,13 @@ watchEffect(() => {
                             v-tooltip="lang().tooltip.delete_selected">
                             <TrashIcon class="w-5 h-5" />
                         </DangerButton>
-                        <Link :href="route('subirexceles')"
-                            v-show="can(['create user'])" type="button"
+                        <Link :href="route('subirexceles')" v-show="can(['create user'])" type="button"
                             class="px-2 -mb-1.5 py-1.5 rounded-none hover:bg-blue-500">
-                            <UserCircleIcon class="w-9 h-9" />Subir excel
+                        <UserCircleIcon class="w-9 h-9" />Subir excel
                         </Link>
                     </div>
                     <TextInput v-if="props.numberPermissions > 1" v-model="data.params.search" type="text"
-                        class="block w-4/6 md:w-3/6 lg:w-2/6 rounded-lg"
-                        placeholder="Nombre, correo, nivel o ID " />
+                        class="block w-4/6 md:w-3/6 lg:w-2/6 rounded-lg" placeholder="Nombre, correo, nivel o ID " />
                 </div>
                 <div class="overflow-x-auto scrollbar-table">
                     <table class="w-full">
@@ -154,7 +152,7 @@ watchEffect(() => {
 
                                 <th class="px-2 py-4 cursor-pointer" v-on:click="order('identificacion')">
                                     <div class="flex justify-between items-center"> <span>{{ lang().label.identificacion
-                                    }}</span>
+                                                                                }}</span>
                                         <ChevronUpDownIcon class="w-4 h-4" />
                                     </div>
                                 </th>
@@ -181,13 +179,13 @@ watchEffect(() => {
                                 <!-- <th class="px-2 py-4 cursor-pointer" v-on:click="order('semestre_mas_bajo')"> <div class="flex justify-between items-center"> <span>{{ lang().label.semestre_mas_bajo }}</span> <ChevronUpDownIcon class="w-4 h-4" /> </div> </th> -->
                                 <th class="px-2 py-4 cursor-pointer" v-on:click="order('limite_token_general')">
                                     <div class="flex justify-between items-center"> <span>{{
-                                        lang().label.limite_token_general }}</span>
+                                                                                lang().label.limite_token_general }}</span>
                                         <ChevronUpDownIcon class="w-4 h-4" />
                                     </div>
                                 </th>
                                 <th class="px-2 py-4 cursor-pointer" v-on:click="order('limite_token_leccion')">
                                     <div class="flex justify-between items-center"> <span>{{ lang().label.limite_token_lec
-                                    }}</span>
+                                                                                }}</span>
                                         <ChevronUpDownIcon class="w-4 h-4" />
                                     </div>
                                 </th>
@@ -223,14 +221,14 @@ watchEffect(() => {
 
                                 </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{
-                                    user.roles.length == 0 ? 'not selected' : user.roles[0].name
-                                }}</td>
+                                                                    user.roles.length == 0 ? 'not selected' : user.roles[0].name
+                                                                    }}</td>
                                 <!-- <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.created_at }}</td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.updated_at }}</td> -->
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.identificacion }}</td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.sexo }}</td>
                                 <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">{{
-                                    CalcularEdad(user.fecha_nacimiento) }}</td>
+                                                                    CalcularEdad(user.fecha_nacimiento) }}</td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.pgrado }}</td>
                                 <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">{{ user.semestre }}</td>
                                 <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">{{ user.limite_token_general }}

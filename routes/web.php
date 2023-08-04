@@ -10,7 +10,7 @@ use App\Http\Controllers\SubtopicosController;
 use App\Http\Controllers\UnidadsController;
 use App\Http\Controllers\UniversidadsController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\parametrosController;
+use App\Http\Controllers\ParametrosController;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
@@ -22,14 +22,16 @@ use Illuminate\Support\Facades\Session;
 use Inertia\Inertia;
 
 
-Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
-});
+// Route::get('/', function () {
+//     return Inertia::render('Welcome', [
+//         'canLogin' => Route::has('login'),
+//         'canRegister' => Route::has('register'),
+//         'laravelVersion' => Application::VERSION,
+//         'phpVersion' => PHP_VERSION,
+//     ]);
+// });
+Route::get('/', function () { return redirect('/login'); });
+
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard', [
@@ -61,7 +63,7 @@ Route::middleware('auth', 'verified')->group(function () {
     Route::resource('/permission', PermissionController::class)->except('create', 'show', 'edit');
     Route::post('/permission/destroy-bulk', [PermissionController::class, 'destroyBulk'])->name('permission.destroy-bulk');
 
-    Route::resource('/parametro', parametrosController::class);
+    Route::resource('/parametro', ParametrosController::class);
 
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -93,6 +95,7 @@ Route::middleware('auth', 'verified')->group(function () {
     // Route::get('/masPreguntas/{id}/{nuevaPregunta}', [MateriasController::class,'masPreguntas'])->name('materia.masPreguntas');
     Route::get('/masPreguntas', [MateriasController::class, 'masPreguntas'])->name('materia.masPreguntas');
     // Route::post('/masPreguntasPost', [MateriasController::class,'masPreguntasPost'])->name('materia.masPreguntasPost');
+    Route::match(['post', 'get'],'/Estudiando', [MateriasController::class, 'actionEQH'])->name('materia.actionEQH');
 
     // #universidad
     Route::get('/AsignaruserUni/{universidadid}', [UniversidadsController::class, 'AsignarUsers'])->name('universidad.AsignarUsers');

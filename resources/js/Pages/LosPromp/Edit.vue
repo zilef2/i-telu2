@@ -16,6 +16,7 @@ const props = defineProps({
     show: Boolean,
     title: String,
     LosPromp: Object,
+    numberPermissions: Number,
 })
 
 const data = reactive({
@@ -68,25 +69,33 @@ const clasificacionForSelec = [
                 <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
                     {{ lang().label.add }} {{ props.title }}
                 </h2>
-                <div class="my-6 grid grid-cols-1 gap-6">
-                    <div>
+                <div class="my-6 grid xs:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                    <div v-if="numberPermissions > 5">
                         <InputLabel for="teoricaOpractica" :value="lang().label.teoricaOpractica" />
                         <SelectInput id="teoricaOpractica" class="mt-1 block w-full" v-model="form.teoricaOpractica" required :dataSet="teoricaOpracticaForSelec"> </SelectInput>
                         <InputError class="mt-2" :message="form.errors.teoricaOpractica" />
                     </div>
-                    <div>
+                    <div v-if="numberPermissions > 5">
                         <InputLabel for="clasificacion" :value="lang().label.clasificacion" />
                         <SelectInput id="clasificacion" class="mt-1 block w-full" v-model="form.clasificacion" required :dataSet="clasificacionForSelec"> </SelectInput>
                         <InputError class="mt-2" :message="form.errors.clasificacion" />
                     </div>
 
-                    <div class="p-2 w-full h-full">
+                    <div class="pt-3 w-full h-full col-span-2 xl:col-span-3">
                         <div class="relative h-full">
                             <label for="message" class="leading-7 text-lg text-gray-900">Principal</label>
-
                             <textarea v-model="form.principal" id="message" name="message" rows="10" cols="35"
                                 class="dark:text-white dark:bg-black h-auto resize-none w-full bg-gray-100 bg-opacity-50 rounded border border-gray-300 focus:border-indigo-500 dark:focus:bg-gray-800 focus:bg-white focus:ring-2 focus:ring-indigo-200 
                                 text-base outline-none text-gray-700 py-1 px-3 leading-6 transition-colors duration-200 ease-in-out"></textarea>
+                        </div>
+                    </div>
+                    <div class="px-2 w-full col-span-2 xl:col-span-3">
+                        <div class="relative">
+                            <label for="message" class="leading-7 my-1 text-lg text-gray-900">La instruccion necesita un [Tema], las siguientes variables son opcionales</label>
+                            <ul class="list-decimal ml-8">
+                                <li class="font-medium font-sans text-lg ">[Asignatura]</li>
+                                <li class="font-medium font-sans text-lg ">[Unidad]</li>
+                            </ul>
                         </div>
                     </div>
                 </div>

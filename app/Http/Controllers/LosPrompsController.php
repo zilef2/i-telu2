@@ -19,11 +19,13 @@ class LosPrompsController extends Controller
     // - MapearClasePP, Filtros
 
     //no necesita esto?
-    public function MapearClasePP(&$LosPromps, $numberPermissions) {
-        $LosPromps = LosPromps::all();
+    public function MapearClasePP(&$LosPromps, $numberPermissions)
+    {
+        $LosPromps = $LosPromps->get();
     }
 
-    public function Filtros($request, &$LosPromps) {
+    public function Filtros($request, &$LosPromps)
+    {
         if ($request->has('search')) {
             $LosPromps->where('principal', 'LIKE', "%" . $request->search . "%");
             // $LosPromps->whereMonth('teoricaOpractica', $request->search);
@@ -32,14 +34,14 @@ class LosPrompsController extends Controller
         }
 
         if ($request->has(['field', 'order'])) {
-            $LosPromps->orderBy($request->field, $request->order);
+            $LosPromps = $LosPromps->orderBy($request->field, $request->order);
         } else {
             $LosPromps->orderBy('principal');
         }
     }
 
-
-    public function index(Request $request) {
+    public function index(Request $request)
+    {
         $permissions = Myhelp::EscribirEnLog($this, 'LosPromp');
         $numberPermissions = Myhelp::getPermissionToNumber($permissions);
         $titulo = __('app.label.LosPromps');
@@ -48,9 +50,7 @@ class LosPrompsController extends Controller
 
         $perPage = $request->has('perPage') ? $request->perPage : 10;
         if ($permissions === "estudiante") {
-            //todo: validar que no pueda buscar
         } else { // not estudiante
-
             $this->Filtros($request, $LosPromps);
         }
 
@@ -68,64 +68,73 @@ class LosPrompsController extends Controller
         );
 
         return Inertia::render('LosPromp/Index', [ //carpeta
-            'breadcrumbs'    =>  [[ 'label' => __('app.label.LosPromps'), 'href' => route('LosPromp.index') ]],
-            'title'          =>  $titulo,
-            'filters'        =>  $request->all(['search', 'field', 'order']),
-            'perPage'        =>  (int) $perPage,
-            'fromController' =>  $paginated,
-
+            'breadcrumbs'           =>  [['label' => __('app.label.LosPromps'), 'href' => route('LosPromp.index')]],
+            'title'                 =>  $titulo,
+            'filters'               =>  $request->all(['search', 'field', 'order']),
+            'perPage'               =>  (int) $perPage,
+            'fromController'        =>  $paginated,
+            'numberPermissions'     =>  $numberPermissions,
         ]);
     } //fin index
 
 
-    public function create() { }
+    public function create()
+    {
+    }
 
-    public function store(Request $request) {
+    public function store(Request $request)
+    {
         DB::beginTransaction();
         $permissions = Myhelp::EscribirEnLog($this, 'LosPromp');
         $numberPermissions = Myhelp::getPermissionToNumber($permissions);
         try {
             $IntegerMispromps = 0;
-            if($numberPermissions < 4){ 
+            if ($numberPermissions < 4) {
                 $IntegerMispromps = Auth::user()->LosPromps()->count();
                 $limitePromps = intval(env('LIMITEPROMPSPERSONA'));
-                if($IntegerMispromps >= $limitePromps){
+                if ($IntegerMispromps >= $limitePromps) {
                     return back()->with('warning', __('app.label.created_error', ['nombre' => 'Numero maximo de registros']));
                 }
             }
 
             $promptTemporal = $request->principal;
             $contador = HelpGPT::contarModificarP($promptTemporal);
-            if( $contador['corchetes'] != 0 || $contador['parentesis'] != 0 ){
+            if ($contador['corchetes'] != 0 || $contador['parentesis'] != 0) {
                 $LosPromp = LosPromps::create([
                     'principal' => $request->principal,
-                    'teoricaOpractica' => $request->teoricaOpractica['value'],
-                    'clasificacion' => $request->clasificacion['value'],
+                    'teoricaOpractica' => 'teorica',
+                    'clasificacion' => 'General',
+                    // 'teoricaOpractica' => $request->teoricaOpractica['value'],
+                    // 'clasificacion' => $request->clasificacion['value'],
                     'tokensAproximados' => $request->tokensAproximados,
                 ]);
                 DB::commit();
                 Log::info("U -> " . Auth::user()->name . " Guardo LosPromp " . $request->nombre . " correctamente");
                 return back()->with('success', __('app.label.created_successfully2', ['nombre' => $LosPromp->nombre]));
-            }else{
+            } else {
                 return back()->with('warning', 'Advertencia: La instruccion no tiene variables');
             }
-
         } catch (\Throwable $th) {
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en Guardar LosPromp  - " . $th->getMessage());
+            Log::alert("U -> " . Auth::user()->name . " fallo en Guardar LosPromp  - " . $th->getMessage() . ' L:' . $th->getLine());
 
             if (config('app.env') === 'production') {
-                return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.LosPromp')]) . $th->getMessage());
-            }else{
+                return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.LosPromp')]) . $th->getMessage() . ' L:' . $th->getLine());
+            } else {
                 return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.LosPromp')]) . $th);
             }
         }
     }
 
-    public function show(LosPromps $LosPromp) { }
-    public function edit(LosPromps $LosPromp) { }
+    public function show(LosPromps $LosPromp)
+    {
+    }
+    public function edit(LosPromps $LosPromp)
+    {
+    }
 
-    public function update(Request $request, $id) {
+    public function update(Request $request, $id)
+    {
         $LosPromp = LosPromps::find($id);
         DB::beginTransaction();
         Myhelp::EscribirEnLog($this, get_called_class(), '', false);
@@ -134,8 +143,8 @@ class LosPrompsController extends Controller
             // dd($LosPromp,$request->nombre);
             $LosPromp->update([
                 'principal' => $request->principal,
-                'teoricaOpractica' => $request->teoricaOpractica,
-                'clasificacion' => $request->clasificacion,
+                // 'teoricaOpractica' => $request->teoricaOpractica,
+                // 'clasificacion' => $request->clasificacion,
             ]);
             DB::commit();
             Log::info("U -> " . Auth::user()->name . " actualizo LosPromp " . $request->nombre . " correctamente");
@@ -144,13 +153,14 @@ class LosPrompsController extends Controller
         } catch (\Throwable $th) {
 
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en actualizar LosPromp " . $request->nombre . " - " . $th->getMessage());
-            return back()->with('error', __('app.label.updated_error', ['nombre' => $LosPromp->nombre]) . $th->getMessage());
+            Log::alert("U -> " . Auth::user()->name . " fallo en actualizar LosPromp " . $request->nombre . " - " . $th->getMessage() . ' L:' . $th->getLine());
+            return back()->with('error', __('app.label.updated_error', ['nombre' => $LosPromp->nombre]) . $th->getMessage() . ' L:' . $th->getLine());
         }
     }
 
     // public function destroy(LosPromp $LosPromp)
-    public function destroy($id) {
+    public function destroy($id)
+    {
         Myhelp::EscribirEnLog($this, get_called_class(), '', false);
 
         DB::beginTransaction();
@@ -165,8 +175,8 @@ class LosPrompsController extends Controller
             return back()->with('success', __('app.label.deleted_successfully2', ['nombre' => $LosPromps->nombre]));
         } catch (\Throwable $th) {
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en borrar LosPromp " . $id . " - " . $th->getMessage());
-            return back()->with('error', __('app.label.deleted_error', ['name' => __('app.label.LosPromps')]) . $th->getMessage());
+            Log::alert("U -> " . Auth::user()->name . " fallo en borrar LosPromp " . $id . " - " . $th->getMessage() . ' L:' . $th->getLine());
+            return back()->with('error', __('app.label.deleted_error', ['name' => __('app.label.LosPromps')]) . $th->getMessage() . ' L:' . $th->getLine());
         }
     }
 }
