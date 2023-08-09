@@ -31,6 +31,7 @@ const props = defineProps({
     fromController: Object,
 
     UnidadsSelect: Object,
+    numberPermissions: Number,
 })
 
 const data = reactive({
@@ -137,7 +138,7 @@ onMounted(() =>{
                                 <th class="px-2 py-4 text-center">
                                     <Checkbox v-model:checked="data.multipleSelect" @change="selectAll" />
                                 </th>
-                                <th class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
+                                <th v-if = "props.numberPermissions > 1" class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
                                     <div class="flex justify-between items-center">
                                         <span>
                                             Acciones
@@ -145,14 +146,6 @@ onMounted(() =>{
                                         <ChevronUpDownIcon class="w-4 h-4" />
                                     </div>
                                 </th>
-                                <!-- <th class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
-                                    <div class="flex justify-between items-center">
-                                        <span>
-                                            #
-                                        </span>
-                                        <ChevronUpDownIcon class="w-4 h-4" />
-                                    </div>
-                                </th> -->
                                 <th v-on:click="order('enum')"
                                     class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
                                     <div class="flex justify-between items-center">
@@ -190,7 +183,8 @@ onMounted(() =>{
                                         <ChevronUpDownIcon class="w-4 h-4" />
                                     </div>
                                 </th>
-                                <th v-on:click="order('resultado_aprendizaje')"
+                                <th v-if = "props.numberPermissions > 1" 
+                                    v-on:click="order('resultado_aprendizaje')"
                                     class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
                                     <div class="flex justify-between items-center">
                                         <span>
@@ -218,7 +212,7 @@ onMounted(() =>{
                                         v-model="data.selectedId"
                                         class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-primary dark:text-primary shadow-sm focus:ring-primary/80 dark:focus:ring-primary dark:focus:ring-offset-gray-800 dark:checked:bg-primary dark:checked:border-primary" />
                                 </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">
+                                <td v-if = "props.numberPermissions > 1" class="whitespace-nowrap py-4 px-2 sm:py-3">
                                     <div class="flex justify-start items-center">
                                         <div class="rounded-md overflow-hidden">
                                             <InfoButton type="button"
@@ -238,7 +232,7 @@ onMounted(() =>{
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.nombre) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.codigo) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.hijo) }} </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.resultado_aprendizaje) }}
+                                <td v-if = "props.numberPermissions > 1" class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.resultado_aprendizaje) }}
                                 </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.descripcion) }} </td>
                             </tr>

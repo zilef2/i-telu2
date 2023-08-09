@@ -11,7 +11,7 @@ import pkg from 'lodash';
 import { router, usePage, Link } from '@inertiajs/vue3';
 
 import Pagination from '@/Components/Pagination.vue';
-import { ChevronUpDownIcon, EyeIcon, PencilIcon, TrashIcon, UserCircleIcon } from '@heroicons/vue/24/solid';
+import { ChevronUpDownIcon, ArrowSmallRightIcon, PencilIcon, TrashIcon, UserCircleIcon } from '@heroicons/vue/24/solid';
 
 import Create from '@/Pages/carrera/Create.vue';
 import Edit from '@/Pages/carrera/Edit.vue';
@@ -44,6 +44,10 @@ const data = reactive({
         order: props.filters.order,
         perPage: props.perPage,
         selectedUniID: props.filters.selectedUniID,
+    },
+    params2: {
+        // selectedUni:0,
+        selectedcarr:0,
     },
     selectedId: [],
     multipleSelect: false,
@@ -96,6 +100,17 @@ onMounted(() => {
     data.UniversidadSelect = vectorSelect(data.UniversidadSelect, props.UniversidadSelect, 'una')
 })
 
+const irCarrera = (selectedUni, selectedcarr) => {
+    
+    data.params2.selectedUni = selectedUni
+    data.params2.selectedcarr = selectedcarr
+    let params = pickBy(data.params2)
+    router.get(route("materia.index"), params, {
+        replace: true,
+        preserveState: true,
+        preserveScroll: true,
+    })
+}
 
 const PapaSelect = props.PapaSelect?.map(universidad => ({
     label: universidad.nombre, value: universidad.id
@@ -185,6 +200,11 @@ const PapaSelect = props.PapaSelect?.map(universidad => ({
                                                 v-show="can(['isAdmin'])" type="button"
                                                 class="px-2 -mb-1.5 py-1.5 rounded-none hover:bg-blue-500">
                                             <UserCircleIcon class="w-4 h-4" />
+                                            </Link>
+                                            <Link @click="irCarrera(clasegenerica.universidad_id,clasegenerica.id)" 
+                                                v-show="can(['isAdmin'])" type="button"
+                                                class="px-2 -mb-0.5 pt-1 rounded-r-md  hover:bg-gray-500 bg-gray-200">
+                                                <ArrowSmallRightIcon class="w-7 h-7" />
                                             </Link>
                                         </div>
                                     </div>

@@ -19,7 +19,8 @@ import Edit from '@/Pages/universidad/Edit.vue';
 import Delete from '@/Pages/universidad/Delete.vue';
 
 import Checkbox from '@/Components/Checkbox.vue';
-import InfoButton from '@/Components/InfoButton.vue';
+// import InfoButton from '@/Components/InfoButton.vue';
+import GroupButtonsIndex from '@/Components/uiverse/GroupButtonsIndex.vue';
 
 const { _, debounce, pickBy } = pkg
 const props = defineProps({
@@ -162,20 +163,19 @@ const irCarrera = (carreraid) => {
                                 <td v-if="props.numberPermissions >= 5" class="whitespace-nowrap py-4 px-2 sm:py-3">
                                     <div class="flex justify-start items-center">
                                         <div class="rounded-md overflow-hidden">
-                                            <!-- <InfoButton type="button"
-                                                @click="(data.editOpen = true), (data.generico = clasegenerica)"
-                                                class="px-2 py-1.5 rounded-none" v-tooltip="lang().tooltip.edit">
-                                                <PencilIcon class="w-4 h-4" />
-                                            </InfoButton>
-                                            <DangerButton type="button"
-                                                @click="(data.deleteOpen = true), (data.generico = clasegenerica)"
-                                                class="px-2 py-1.5 rounded-none" v-tooltip="lang().tooltip.delete">
-                                                <TrashIcon class="w-4 h-4" />
-                                            </DangerButton> -->
 
+                                            <!-- @editar="() => (data.editOpen = true), (data.generico = clasegenerica)"  -->
+                                            <GroupButtonsIndex v-show="can(['isAdmin'])"
+                                                :visualizar="['Editar','Borrar','Matricular','Ver']"
+                                                :ruta="'universidad.AsignarUsers'"
+                                                :id1="clasegenerica.id"
 
+                                                @editar="(data.editOpen = true), (data.generico = clasegenerica)" 
+                                                @justdelete="(data.deleteOpen = true), (data.generico = clasegenerica)"
+                                                @irHijo="irCarrera(clasegenerica.id)" 
+                                            />
                                             
-                                            <button @click="(data.editOpen = true), (data.generico = clasegenerica)"
+                                            <!-- <button @click="(data.editOpen = true), (data.generico = clasegenerica)"
                                                 v-show="can(['isAdmin'])" type="button"
                                                 class="px-2 -mb-0.5 pt-1 rounded-l-md  hover:bg-sky-500 bg-sky-200">
                                                 <PencilIcon class="w-7 h-7" />
@@ -196,7 +196,7 @@ const irCarrera = (carreraid) => {
                                                 v-show="can(['isAdmin'])" type="button"
                                                 class="px-2 -mb-0.5 pt-1 rounded-r-md  hover:bg-gray-500 bg-gray-200">
                                                 <ArrowSmallRightIcon class="w-7 h-7" />
-                                            </Link>
+                                            </Link> -->
                                         </div>
                                     </div>
                                 </td>

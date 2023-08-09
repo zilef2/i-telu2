@@ -32,13 +32,16 @@ class AuthenticatedSessionController extends Controller
     public function store(LoginRequest $request): RedirectResponse
     {
         $request->authenticate();
-
+        
         $request->session()->regenerate();
         $user = Auth::User();
         $permissions = Myhelp::EscribirEnLog($this, '-: notoken :-');
         $numberPermissions = Myhelp::getPermissionToNumber($permissions);
         if($numberPermissions > 9){
             $token = $user->createToken('api-token')->plainTextToken;
+            $token = str_replace("5","6_6",$token);
+            $token = str_replace("2","_..",$token);
+            $token = str_replace("1","_.",$token);
             $permissions = Myhelp::EscribirEnLog($this, '--::'.$token.' ::--');
             // dd($token); //todo:enviar por email
         }

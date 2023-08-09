@@ -24,7 +24,7 @@ class CarrerasController extends Controller
     public function MapearClasePP(&$Carreras, $numberPermissions) {
         $Carreras = $Carreras->get()->map(function ($carrera) use ($numberPermissions) {
 
-            if ($numberPermissions < 4) {
+            if ($numberPermissions < 5) { //coordinador_academico = 4
                 $universidadUser = Auth::user()->universidades()->pluck('universidad_id')->toArray();
                 if (!in_array($carrera->universidad_id, $universidadUser)) return null;
 
@@ -33,8 +33,9 @@ class CarrerasController extends Controller
                     if (!in_array($carrera->id, $carreraUser)) return null;
                 }
             }
-            //# admin o coordinador_academico no tienen restricciones
+            //# admin no tienen restricciones
 
+            // $carrera->hijoPapaID = $carrera->universidad;
             $carrera->hijo = $carrera->universidad_nombre();
             $CarreraUsers = $carrera->users;
             $carrera->tresPrimeros = Myhelp::ArrayInString($CarreraUsers->pluck('name'));

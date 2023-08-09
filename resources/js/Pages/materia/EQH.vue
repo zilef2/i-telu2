@@ -21,7 +21,7 @@ const props = defineProps({
     //EQH
     actionEQH: Number,
     ejemplosRespuesta: String,
-    restarAlToken: Number, //no using
+    restarAlToken: Number,
 
 
     quiz: Boolean,
@@ -32,6 +32,7 @@ const props = defineProps({
     hagapregunta: Boolean,
     HacerlaPregunta: String,
     RespuestaPregunta: String,
+    RespuestaUnicaCorrecta: String,
 })
 
 //todo: poner un link para devolverse a la materia seleccionada
@@ -64,6 +65,10 @@ const data = reactive({
 })
 
 const PreguntarGPT = (actionEQH) => {
+    if(actionEQH == 2) {
+        data.IntegerRespondioCorrectamente = 0
+        data.Yarespondio = false
+    }
     _.cloneDeep(data.params)
     // watch(() => _.cloneDeep(data.params), debounce(() => {
     data.params.actionEQH = actionEQH
@@ -85,10 +90,10 @@ const PreguntarGPT = (actionEQH) => {
     })
 }
 
-
-
 watch(() => data.chosenRespuesta, (newX) => {
     if (data.IntegerRespondioCorrectamente === 0) {
+        console.log("🧈 debu props.quizCorrecta:", props.quizCorrecta);
+        console.log("🧈 debu data.chosenRespuesta:", data.chosenRespuesta);
         data.IntegerRespondioCorrectamente = props.quizCorrecta == data.chosenRespuesta ? 2 : 1;
         data.Yarespondio = true
     }else{
@@ -98,7 +103,9 @@ watch(() => data.chosenRespuesta, (newX) => {
 
 //not using
 watchEffect(() => { });
-onMounted(() => { })
+onMounted(() => { 
+
+ })
 const form = useForm({ });
 
 
@@ -113,29 +120,34 @@ const paAbajo = () => { window.scrollTo(0, document.body.scrollHeight); }
         <Breadcrumb :title="title" :breadcrumbs="breadcrumbs" />
         <div v-if="props.limite > 0">
             <section v-if="props.limite > -1 && !form.processing" class="body-font relative">
-                <div class="container px-5 pt-6 mx-auto">
+                <div class="container px-5 pt-2 mx-auto">
                     <Link :href="route('materia.VistaTema', props.materia.id)"
-                        class="my-8 border text-left border-green-700  bg-green-700 text-white rounded-md px-4 py-2 m-2 transition duration-500 ease select-none hover:bg-green-600 focus:outline-none focus:shadow-outline">
+                        class="my-4 border text-left border-sky-700  bg-black text-white rounded-md px-4 py-2 m-2 transition duration-500 ease select-none hover:bg-sky-600 focus:outline-none focus:shadow-outline">
                         Regresar
                     </Link>
-                    <div class="flex flex-col text-center w-full mt-4">
+                    <div class="flex flex-col text-center w-full mt-2">
                         <div class="p-1">
-
-                            <h1 class="sm:text-3xl text-2xl font-medium title-font my-6 text-gray-900 dark:text-white">
+                            <h1 class="sm:text-3xl text-2xl font-medium title-font mb-2 text-gray-900 dark:text-white">
                                 {{ props.temaSelec.nombre }}</h1>
                             <p class="lg:w-2/3 mx-auto leading-relaxed text-xl text-gray-600 dark:text-white">
                                 {{ props.subtopicoSelec.nombre }}
                             </p>
                         </div>
-                        <!-- zona EQH -->
+
+
                         <!-- Ejemplos -->
+                        <p class="mt-5 text-sm font-sans text-gray-400">Tokens consumidos: {{ props.restarAlToken }} </p>
+                        <p class="mb-5 text-sm font-sans text-gray-400">Tokens restantes: {{ props.limite }}</p>
                         <div v-if="props.ejemplosRespuesta"
                             class="w-full mt-6 mx-auto border border-t-2 border-x-0 border-b-0 border-black">
                             <p class="my-5 text-lg font-sans font-extrabold">Ejemplos</p>
                             <div class="text-left">{{ props.ejemplosRespuesta }}</div>
                         </div>
+
+
+
                         <!-- Quiz -->
-                        <div v-if="props.quiz" class="flex items-center justify-center p-12">
+                        <div v-if="props.quiz " class="flex items-center justify-center p-2">
                             <div class="mx-auto w-full max-w-[550px]">
                                 <form action="https://formbold.com/s/FORM_ID" method="POST">
                                     <div class="mb-5">
@@ -161,13 +173,16 @@ const paAbajo = () => { window.scrollTo(0, document.body.scrollHeight); }
                                 <div v-if="data.IntegerRespondioCorrectamente != 0" class='m-12 space-y-6'>
                                     <div v-if="data.IntegerRespondioCorrectamente == 2" class="bg-green-100 border-t border-b border-green-500 text-green-700 px-4 py-3"
                                         role="alert">
-                                        <p class="font-bold">Correcto</p>
+                                        <p class="font-bold">¡Correcto!</p>
                                     </div>
                                     <div v-else class="bg-red-100 border-t border-b border-red-500 text-red-700 px-4 py-3"
                                         role="alert">
-                                        <p class="font-bold">Incorrecto</p>
-                                        <p class="text-sm"></p>
+                                        <p class="font-bold">¡Incorrecto!</p>
                                     </div>
+                                    
+                                    <p class="text-sm">
+                                        {{ props.RespuestaUnicaCorrecta }}
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -189,10 +204,13 @@ const paAbajo = () => { window.scrollTo(0, document.body.scrollHeight); }
 
                             <div class="w-full flex items-center justify-center bg-gray-100">
                                 <div class="w-full mx-auto py-6">
-                                    <h1 class="text-xl text-center font-bold mb-6"> Aprender más </h1>
+                                    <h1 class="text-xl text-center font-medium mb-6"> Aprender más </h1>
                                     <div class="bg-white px-6 py-4 my-3 w-3/4 mx-auto shadow rounded-md flex items-center">
                                         <div class="w-full text-center mx-auto">
-                                            <!-- click="data.params.actionEQH = 1" -->
+                                            <button type="button" @click="submitGPTEQH(4)"
+                                                class="border border-sky-500 bg-sky-500 text-white rounded-md px-4 py-2 m-2 transition duration-500 ease select-none hover:bg-blue-300 focus:outline-none focus:shadow-outline">
+                                                Simplificar
+                                            </button>
                                             <button type="button" @click="PreguntarGPT(1)"
                                                 class="border border-green-500 bg-green-500 text-white rounded-md px-4 py-2 m-2 transition duration-500 ease select-none hover:bg-green-600 focus:outline-none focus:shadow-outline">
                                                 Examples
@@ -205,10 +223,7 @@ const paAbajo = () => { window.scrollTo(0, document.body.scrollHeight); }
                                                 class="border border-teal-500 bg-teal-500 text-white rounded-md px-4 py-2 m-2 transition duration-500 ease select-none hover:bg-teal-600 focus:outline-none focus:shadow-outline">
                                                 Hacer una pregunta
                                             </button> -->
-                                            <Link :href="route('materia.VistaTema', props.materia.id)"
-                                                class="my-8 border text-left border-green-700  bg-green-700 text-white rounded-md px-4 py-2 m-2 transition duration-500 ease select-none hover:bg-green-600 focus:outline-none focus:shadow-outline">
-                                                Regresar
-                                            </Link>
+                                            
                                         </div>
                                     </div>
                                     <div class="flex items-center justify-center p-12">
@@ -217,21 +232,25 @@ const paAbajo = () => { window.scrollTo(0, document.body.scrollHeight); }
                                                 <div class="-mx-3 flex flex-wrap">
                                                     <div class="px-3 sm:w-full">
                                                         <div class="mb-5">
-                                                            <label for="fName"
-                                                                class="mb-3 block text-base font-medium text-sky-800">
-                                                                Pregunte algo relacionado al tema.
+                                                            <label for="fName" class="mb-3 block text-xl text-center font-medium text-sky-800">
+                                                                ¿Alguna pregunta?
                                                             </label>
+                                                            <p class="my-2 text-center">Es su responsabilidad las preguntas que va a desarrollar alrededor del tema.</p>
                                                             <input type="text" name="fName" id="fName"
                                                                 placeholder="Pregunte algo relacionado al tema" v-model="data.params.HacerlaPregunta"
                                                                 class="w-full rounded-md border border-gray-600 bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-[#6A64F1] focus:shadow-md" />
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div>
+                                                <div class="mx-5 text-center">
                                                     <button @click="PreguntarGPT(3)"
-                                                        class="hover:shadow-form rounded-md bg-[#6A64F1] py-3 px-8 text-center text-base font-semibold text-white outline-none">
+                                                        class="hover:shadow-form rounded-md bg-[#6A64F1] py-2 px-8 text-center text-base font-semibold text-white outline-none">
                                                         Preguntar
                                                     </button>
+                                                    <Link :href="route('materia.VistaTema', props.materia.id)"
+                                                        class="my-8  border text-left border-black  bg-black text-white rounded-md px-8 py-2 m-2 transition duration-500 ease select-none hover:bg-sky-600 focus:outline-none focus:shadow-outline">
+                                                        Regresar
+                                                    </Link>
                                                 </div>
                                             </div>
                                         </div>
@@ -245,6 +264,19 @@ const paAbajo = () => { window.scrollTo(0, document.body.scrollHeight); }
             </section>
             <div v-else class="w-full flex item-center mt-10">
                 <p class="text-red-400 mx-auto text-xl">Limite de tokens</p>
+            </div>
+        </div>
+        <div v-else class="body-font relative">
+            <div class="container px-5 pt-6 mx-auto">
+                <div class="flex flex-col text-center w-full mt-4">
+                    <h1 class="text-2xl font-medium title-font mb-4 text-red-600 ">
+                        Limite de tokens
+                    </h1>
+                </div>
+                <Link :href="route('materia.VistaTema', props.materia.id)"
+                    class="my-4 border text-left border-sky-700  bg-black text-white rounded-md px-4 py-2 m-2 transition duration-500 ease select-none hover:bg-sky-600 focus:outline-none focus:shadow-outline">
+                    Regresar
+                </Link>
             </div>
         </div>
 

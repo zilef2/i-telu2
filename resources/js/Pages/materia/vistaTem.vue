@@ -68,7 +68,9 @@ const props = defineProps({
     vectorChuleta: Array,
     ArrayPreguntas: Array,
     ArrayRespuestasCorrectas: Array,
-
+    
+    //validada por profesor
+    notvalidbyteacher: Boolean,
 })
 
 const data = reactive({
@@ -374,10 +376,9 @@ const respuestaChuleta = (opcionRespuesta, correcta, NumPregunta) => {
                                                 </div>
                                                 <div v-if="props.opcion == 2" class="p-2 w-1/2">
                                                     <div class="relative">
-                                                        <label for="pregunta"
-                                                            class="dark:text-white leading-7 text-sm text-gray-600">Resultado
-                                                            de
-                                                            aprendizaje</label>
+                                                        <label for="pregunta" class="dark:text-white leading-7 text-sm text-gray-600">
+                                                            Resultado de aprendizaje
+                                                        </label>
                                                         <p
                                                             class="dark:text-white w-full bg-gray-100 bg-opacity-50 rounded border border-gray-300 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out">
                                                             {{ subtopicoSelec.resultado_aprendizaje != null ?
@@ -437,7 +438,6 @@ const respuestaChuleta = (opcionRespuesta, correcta, NumPregunta) => {
                                             </div>
                                         </form>
                                     </div>
-
                                 </div>
                             </section>
                         </div>
@@ -490,8 +490,7 @@ const respuestaChuleta = (opcionRespuesta, correcta, NumPregunta) => {
                             <h2 class="text-xl text-indigo-500 tracking-widest font-medium title-font mb-1">Sin unidades
                             </h2>
                             <p class="lg:w-2/3 mx-auto leading-relaxed text-base">
-                                La materia seleccionada no tiene unidades, por favor, asignele un Unidad para mostralo
-                                aquí...
+                                La materia seleccionada no tiene unidades...
                             </p>
                         </div>
                     </div>
@@ -503,6 +502,7 @@ const respuestaChuleta = (opcionRespuesta, correcta, NumPregunta) => {
             <VersionEstudiante :fromController="props.fromController" :respuesta="props.respuesta"
                 :temaSelec="props.temaSelec" :subtopicoSelec="props.subtopicoSelec" :usuario="props.usuario"
                 :materia="props.materia" :numberPermissions="props.numberPermissions" :restarAlToken="props.restarAlToken"
+                :notvalidbyteacher="props.notvalidbyteacher"
                 :limite="props.limite" @EstudianteToGPT="(subtopicoid) => CallStudent(subtopicoid)" />
         </div>
 

@@ -34,6 +34,12 @@ Route::get('/', function () { return redirect('/login'); });
 
 
 Route::get('/dashboard', function () {
+    $permissions = auth()->user()->roles->pluck('name')[0];
+    
+    if($permissions == "estudiante"){
+        return redirect('/materia');
+    }
+
     return Inertia::render('Dashboard', [
         'users'         => (int) User::count(),
         'roles'         => (int) Role::count(),
@@ -94,8 +100,11 @@ Route::middleware('auth', 'verified')->group(function () {
     Route::get('/VistaTema/{materiaID}/{ejercicioID?}/{nivel?}/{temaid?}/{selectedprompid?}', [MateriasController::class, 'VistaTema'])->name('materia.VistaTema');
     // Route::get('/masPreguntas/{id}/{nuevaPregunta}', [MateriasController::class,'masPreguntas'])->name('materia.masPreguntas');
     Route::get('/masPreguntas', [MateriasController::class, 'masPreguntas'])->name('materia.masPreguntas');
-    // Route::post('/masPreguntasPost', [MateriasController::class,'masPreguntasPost'])->name('materia.masPreguntasPost');
-    Route::match(['post', 'get'],'/Estudiando', [MateriasController::class, 'actionEQH'])->name('materia.actionEQH');
+    // Route::match(['post', 'get'],'/Estudiando', [MateriasController::class, 'actionEQH'])->name('materia.actionEQH');
+    Route::post('/Estudiando', [MateriasController::class, 'actionEQH'])->name('materia.actionEQH');
+    Route::get('/Estudiando', function(){
+        return redirect('/materia');
+    })->name('materia.actionEQH');
 
     // #universidad
     Route::get('/AsignaruserUni/{universidadid}', [UniversidadsController::class, 'AsignarUsers'])->name('universidad.AsignarUsers');

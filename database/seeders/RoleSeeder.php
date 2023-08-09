@@ -81,12 +81,11 @@ class RoleSeeder extends Seeder
         ]);
 
         $estudiante->givePermissionTo([
-            // 'read universidad',
-            'read carrera',
+            // 'read carrera',
             'read materia',
-            'read Unidad',
-            'read subtopico',
-            'read ejercicio', // 'update ejercicio', // 'create ejercicio', // 'delete ejercicio',
+            // 'read Unidad',
+            // 'read subtopico',
+            // 'read ejercicio', // 'update ejercicio', // 'create ejercicio', // 'delete ejercicio',
         ]);
 
         // $role->revokePermissionTo($permission);

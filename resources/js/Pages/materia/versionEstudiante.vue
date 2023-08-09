@@ -4,7 +4,7 @@ import { router, useForm, Link } from '@inertiajs/vue3';
 
 import pkg from 'lodash';
 
-import { vectorSelect, formatDate, CalcularEdad, CalcularSexo }from '@/global.ts';;
+import { vectorSelect, formatDate, CalcularEdad, CalcularSexo } from '@/global.ts';;
 
 const { _, debounce, pickBy } = pkg
 const props = defineProps({
@@ -22,6 +22,7 @@ const props = defineProps({
 
     respuestaEQH: String,
     laRespuesta: String,
+    notvalidbyteacher: Boolean,
 })
 
 const data = reactive({
@@ -71,7 +72,7 @@ const submitGPTEQH = (action) => {
 }
 
 onMounted(() => { })
-watchEffect(() => { 
+watchEffect(() => {
 
     form.temaSelec = props.temaSelec
     form.subtopicoSelec = props.subtopicoSelec
@@ -81,7 +82,7 @@ watchEffect(() => {
 </script>
 <template>
     <div>
-        {{ props.users }}
+        <!-- {{ props.users }} -->
         <div>
             <div class="space-y-4">
                 <div class="relative bg-white dark:bg-gray-800 shadow sm:rounded-lg">
@@ -133,9 +134,15 @@ watchEffect(() => {
                                     </div>
                                 </div>
                             </div>
+
+                            <div class="text-center mt-8">
+                                <Link :href="route('materia.index')"
+                                    class="text-center my-4 border border-sky-700  bg-black text-white rounded-md px-4 py-2 m-2 transition duration-500 ease select-none hover:bg-sky-600 focus:outline-none focus:shadow-outline">
+                                    Regresar
+                                </Link>
+                            </div>
                         </div>
                     </section>
-
 
                     <zonalecciones :temaIDSelected="data.temaIDSelected" :ejercicio="data.ejercicio"
                         :subtopSelected="data.subtopSelected" :temaSelectedName="data.temaSelectedName"
@@ -165,8 +172,19 @@ watchEffect(() => {
                                     Tokens consumidos: {{ props.restarAlToken }}
                                 </p>
                             </div>
-                            <div class="w-full mt-6 mx-auto">
-                                {{ props.respuesta }}
+                            <div class="w-full flex mt-6 mx-auto">
+
+                                <div class="flex-none w-14 ..." :class="{'w-44' : props.respuesta.length > 500}"> </div>
+                                <div class="grow ...">
+                                    <p class="text-justify font-sans">{{ props.respuesta }} </p>
+                                    <p class="mb-4 mt-12 text-center text-lg font-sans">
+                                        ¡Recuerde que esto es un mensaje generado por Inteligencia artificial, Por favor
+                                        verifique que los resultados son consistentes!
+                                    </p>
+                                </div>
+                                <div class="flex-none w-14 ..." :class="{'w-44' : props.respuesta.length > 500}"> </div>
+                            </div>
+                            <div v-if="props.notvalidbyteacher" class="w-full flex mt-6 mx-auto">
                                 <div class="w-full mt-1 mx-auto">
 
                                     <div class="w-full flex items-center justify-center dark:bg-gray-800 bg-gray-100">
@@ -175,9 +193,13 @@ watchEffect(() => {
                                             <div
                                                 class="bg-white dark:bg-gray-600 px-6 py-4 my-3 w-3/4 mx-auto shadow rounded-md flex items-center">
                                                 <div class="w-full text-center mx-auto">
+                                                    <button type="button" @click="submitGPTEQH(4)"
+                                                        class="border border-sky-500 bg-sky-500 text-white rounded-md px-4 py-2 m-2 transition duration-500 ease select-none hover:bg-blue-300 focus:outline-none focus:shadow-outline">
+                                                        Simplificar
+                                                    </button>
                                                     <button type="button" @click="submitGPTEQH(1)"
                                                         class="border border-green-500 bg-green-500 text-white rounded-md px-4 py-2 m-2 transition duration-500 ease select-none hover:bg-green-600 focus:outline-none focus:shadow-outline">
-                                                        Examples
+                                                        Ejemplos
                                                     </button>
                                                     <button type="button" @click="submitGPTEQH(2)"
                                                         class="border border-yellow-500 bg-yellow-500 text-white rounded-md px-4 py-2 m-2 transition duration-500 ease select-none hover:bg-yellow-600 focus:outline-none focus:shadow-outline">
@@ -187,6 +209,10 @@ watchEffect(() => {
                                                         class="border border-teal-500 bg-teal-500 text-white rounded-md px-4 py-2 m-2 transition duration-500 ease select-none hover:bg-teal-600 focus:outline-none focus:shadow-outline">
                                                         Hacer una pregunta
                                                     </button> -->
+                                                    <Link :href="route('materia.index')"
+                                                        class="my-4 border text-left border-sky-700  bg-black text-white rounded-md px-4 py-2 m-2 transition duration-500 ease select-none hover:bg-sky-600 focus:outline-none focus:shadow-outline">
+                                                        Regresar
+                                                    </Link>
                                                 </div>
                                             </div>
                                         </div>
@@ -216,5 +242,4 @@ watchEffect(() => {
 <style>
 textarea {
     @apply px-3 py-2 border border-gray-300 rounded-md;
-}
-</style>
+}</style>

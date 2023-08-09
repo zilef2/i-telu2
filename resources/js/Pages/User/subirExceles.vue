@@ -130,7 +130,7 @@ data.UniversidadSelect = vectorSelect(data.UniversidadSelect,props.UniversidadSe
                             <!-- user estudiantes -->
                             <div class="p-4 md:w-1/2">
                                 <div class="h-full border-2 border-gray-200 border-opacity-60 rounded-lg overflow-hidden">
-                                    <ArrowUpCircleIcon class=" h-24 lg:h-48 md:h-36 w-full object-cover object-center" />
+                                    <ArrowUpCircleIcon class=" h-12 lg:h-24  w-full object-cover object-center" />
 
                                     <div class="p-6">
                                         <h3 class="title-font text-lg font-medium text-gray-900 mb-3">Subir estudiantes</h3>
@@ -187,7 +187,7 @@ data.UniversidadSelect = vectorSelect(data.UniversidadSelect,props.UniversidadSe
                             <!-- user_universidad -->
                             <div class="p-4 md:w-1/2">
                                 <div class="h-full border-2 border-gray-200 border-opacity-60 rounded-lg overflow-hidden">
-                                    <ArrowUpCircleIcon class=" h-24 lg:h-48 md:h-36 w-full object-cover object-center" />
+                                    <ArrowUpCircleIcon class=" h-12 lg:h-24 w-full object-cover object-center" />
 
                                     <div class="p-6">
                                         <h3 class="title-font text-lg font-medium text-gray-900 mb-3">Matricular estudiantes
@@ -220,8 +220,20 @@ data.UniversidadSelect = vectorSelect(data.UniversidadSelect,props.UniversidadSe
                                         <h2 class="text-xl text-gray-900 dark:text-white">El formato necesita las siguientes
                                             columnas</h2>
                                         <ul class="list-decimal my-6 mx-5">
-                                            <li class="text-lg">Identificacion : del estudiante a inscribir</li>
+                                            <li class="text-lg">usuario: del estudiante a inscribir</li>
+                                            <li class="text-lg">codigo de la carrera</li>
+                                            <li class="text-lg">codigo de la materia</li>
                                         </ul>
+
+                                        <div class="p-4 max-w-md mx-auto">
+                                            <div class="relative overflow-hidden">
+                                                <img src="/EXCELmatricularEstudiantes.png" alt="imagen excel matriculas" class="rounded-lg transition-transform duration-500 transform hover:scale-110">
+                                                <!-- <div class="absolute inset-0 bg-gradient-to-tr from-purple-600 to-pink-500 opacity-70"></div>
+                                                <div class="absolute inset-0 flex items-center justify-center">
+                                                <h2 class="text-white font-bold text-2xl">¡Efecto Llamativo!</h2> -->
+                                                <!-- </div> -->
+                                            </div>
+                                        </div>
 
                                         <!-- <div class="flex items-center flex-wrap my-6">
                                             <a class="text-gray-500 inline-flex items-center md:mb-2 lg:mb-0">Numero de Usuarios: </a>

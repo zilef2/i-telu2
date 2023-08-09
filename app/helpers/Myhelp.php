@@ -1,5 +1,10 @@
 <?php
 
+// JUST THIS PROJECT
+// STRING
+// LARAVEL
+// dates
+
 namespace App\helpers;
 
 use Illuminate\Database\Eloquent\Collection;
@@ -133,7 +138,7 @@ class Myhelp {
 
                 if ($permissions == 'admin' || $permissions == 'superadmin') {
                     $ElMensaje = $mensaje != '' ? ' Mensaje: ' . $mensaje : '';
-                    Log::channel('soloadmin')->info('Vista:' . $nombreC . ' Padre: ' . $nombreP . '|  U:' . Auth::user()->name . $ElMensaje);
+                    Log::channel('soloadmin')->info('Vista:' . $nombreC . ' Padre: ' . $nombreP . '|  U:' . Auth::user()->name .' clase: '. $clase . $ElMensaje);
                 } else {
                     Log::info('Vista: ' . $nombreC . ' Padre: ' . $nombreP . 'U:' . Auth::user()->name . ' ||' . $clase . '|| ' . ' Mensaje: ' . $mensaje);
                 }
@@ -143,7 +148,10 @@ class Myhelp {
             }
         }
 
-        public static function getPermissionToNumber($permissions) {
+        public static function getPermissionToNumber($permissions = null) {
+            if ($permissions === null)
+                $permissions = auth()->user()->roles->pluck('name')[0];
+
             if ($permissions == 'estudiante') return 1;
             if ($permissions == 'profesor') return 2;
             if ($permissions == 'coordinador_de_programa') return 3;
@@ -151,6 +159,14 @@ class Myhelp {
             if ($permissions == 'admin') return 5;
             if ($permissions == 'superadmin') return 10;
             return 0;
+        }
+        public static function getPropertieAutoIncrement($modelName, $RequestPropertie,$StringPropertie) {
+            if ($RequestPropertie) {
+                return $RequestPropertie;
+            } else {
+                $modelInstance = resolve('App\\Models\\' . $modelName);
+                return intval($modelInstance::latest($StringPropertie)->first()->$StringPropertie) + 1 ?? 1;
+            }
         }
     //fin LARAVEL
 

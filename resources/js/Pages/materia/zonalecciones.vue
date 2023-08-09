@@ -1,10 +1,7 @@
 <script setup>
 import { reactive, watch, ref, watchEffect, onMounted } from 'vue';
+// import { vectorSelect, formatDate, CalcularEdad, CalcularSexo }from '@/global.ts';;
 
-import pkg from 'lodash';
-import { vectorSelect, formatDate, CalcularEdad, CalcularSexo }from '@/global.ts';;
-
-const { _, debounce, pickBy } = pkg
 const props = defineProps({
     temaIDSelected: Number,
     ejercicio: Object,

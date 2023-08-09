@@ -1,4 +1,6 @@
 /*
+-- this Project
+
  --DATE
  formatToVue
  formatDate
@@ -26,9 +28,32 @@
  vectorSelect
 */
 
+// this Project
+export function LookForValueInArray(arrayOfObjects:Object[] , searchValue): String {
+    //ex: { title: '123', value: 1 },
+    let foundObject = '';
+    for (const obj of arrayOfObjects) {
+        
+        if(typeof searchValue == 'string'){
+            // if (obj['title'] === searchValue) {
+            //     foundObject = obj['value'];
+            // }
+            return '';
+        }else{
+            if (obj['title'] === searchValue['title']) {
+                foundObject = obj['value'];
+                break;
+            }
+        }
+    }
+    
+    return foundObject;
+}
+// end this Project
+
 
 // DATE functions ->{
-    export function formatToVue(date){
+    export function formatToVue(date) : String{
         const day = date.getDate();
         const month = date.getMonth() + 1;
         const year = date.getFullYear();
@@ -36,7 +61,9 @@
         return `${day}/${month}/${year}`;
     }
     export function formatDate(date,isDateTime: string) :string {
-        const validDate = new Date(date)
+        let validDate = new Date(date)
+        validDate = new Date(validDate.getTime() + (5 * 60 * 60 * 1000)) //correccion con GTM -5
+        // console.log("🧈 debu validDate:", validDate);
         const day = validDate.getDate().toString().padStart(2, "0");
         // getMonthName(1)); // January
         const month = monthName((validDate.getMonth() + 1).toString().padStart(2, "0"));
@@ -64,6 +91,19 @@
                 return `${day}-${month}-${Stringyear}`;
             }
         }
+    }
+    export function formatTime(date) :string {
+        let validDate
+        if(date){
+            validDate = new Date(date)
+        }else{
+            validDate = new Date()
+        }
+        // validDate = new Date(validDate.getTime() + (5 * 60 * 60 * 1000))
+
+            let hora = validDate.getHours();
+            let hourAndtime =  hora + ':'+ (validDate.getMinutes() < 10 ? '0': '') + validDate.getMinutes()  + ':00';
+            return `${hourAndtime}`;
     }
     export function monthName(monthNumber){
         if(monthNumber == 1) return 'Enero';
@@ -204,3 +244,11 @@
         return vectorSelect;
     }
 
+
+
+
+/* remember functions
+    watch(() => form.tipoRes, (newX) => {
+        data.selectedPrompID = 'Selecciona un promp'
+    })
+*/

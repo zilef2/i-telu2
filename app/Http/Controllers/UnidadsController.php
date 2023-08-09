@@ -42,11 +42,19 @@ class UnidadsController extends Controller
 
     public function fNombresTabla($numberPermissions)
     {
+        if($numberPermissions > 1)
         $nombresTabla = [ //0: como se ven //1 como es la BD //2orden
             ["Acciones"],
             [],
             [null]
         ];
+        else{
+            $nombresTabla = [ //0: como se ven //1 como es la BD //2orden
+                [],
+                [],
+                []
+            ];
+        }
         $nombresTabla[2] = array_merge($nombresTabla[2], ["enum", "nombre", "codigo", "materia_id", "descripcion"]);
         $nombresTabla[0] = array_merge($nombresTabla[0], ["#", "nombre", "codigo", "materia", "descripcion"]);
         return $nombresTabla;
@@ -145,15 +153,21 @@ class UnidadsController extends Controller
     {
         DB::beginTransaction();
         Myhelp::EscribirEnLog($this, get_called_class(), '', false);
-        $modelInstance = resolve('App\\Models\\' . $this->modelName);
-        $ultima = $modelInstance::latest('enum')->first();
+
+        if ($request->enum) {
+            $enum = $request->enum;
+        } else {
+            $modelInstance = resolve('App\\Models\\' . $this->modelName);
+            $enum = intval($modelInstance::latest('enum')->first()->enum) + 1 ?? 1;
+        }
+
         try {
             $Unidad = Unidad::create([
                 'nombre' => $request->nombre,
                 //otrosCampos
                 'descripcion' => $request->descripcion,
                 'materia_id' => $request->materia_id,
-                'enum' => $request->enum,
+                'enum' => $enum,
                 'codigo' => $request->codigo
             ]);
 
@@ -186,13 +200,14 @@ class UnidadsController extends Controller
     {
     }
 
-    public function update(Request $request, $id)
+    public function update(UnidadRequest $request, $id)
     {
         $Unidad = Unidad::find($id);
         DB::beginTransaction();
         $ListaControladoresYnombreClase = (explode('\\', get_class($this)));
         $nombreC = end($ListaControladoresYnombreClase);
         log::info('Vista: ' . $nombreC . 'U:' . Auth::user()->name . ' ||Unidad|| ');
+
         try {
             // dd($Unidad,$request->nombre);
             $Unidad->update([

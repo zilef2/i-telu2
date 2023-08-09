@@ -101,7 +101,6 @@ class HelpGPT {
             $posicionInicial = $correcta;
         }
 
-        // dd( $ArrayRespuestasCorrectas, $ArrayPreguntas );
         return [
             'vectorChuleta' => $NuevoVectorChuleta,
             'ArrayRespuestasCorrectas' => $ArrayRespuestasCorrectas,
@@ -129,17 +128,20 @@ class HelpGPT {
         $remplazarPofavo = [
             'asignatura' => $materia_nombre,
             'materia_nombre' => $materia_nombre,
+            'materia' => $materia_nombre,
+            'Materia' => $materia_nombre,
 
             'tema' => $Unidad,
             'Unidad' => $Unidad,
+            'unidad' => $Unidad,
 
             'nivel' => $nivel,
         ];
         
+        $myhelp = new Myhelp();
         foreach ($remplazarPofavo as $key => $value) {
             $corchetes = "[".$key."]";
             $parentesis = "(".$key.")";
-            $myhelp = new Myhelp();
             $ArrayCorche = $myhelp->EncontrarEnString($Lapromt,$corchetes);
             $contadorC += count($ArrayCorche);
             $ArrayParent = $myhelp->EncontrarEnString($Lapromt,$parentesis);
@@ -157,16 +159,8 @@ class HelpGPT {
     }
 
     private static function modificarPSubTema($Lapromt, $materia_nombre, $Unidad, $nivel) {
-        // $Lapromt = Parametro::first()->prompExplicarTema;
+        // dd($Unidad);
         self::contarModificarP($Lapromt, $materia_nombre, $Unidad, $nivel);
-
-        // $Lapromt = str_replace("[asignatura]", $materia_nombre, $Lapromt);
-        // $Lapromt = str_replace("[tema]", $Unidad, $Lapromt);
-        // $Lapromt = str_replace("[nivel de habilidad del estudiante tema]", $nivel, $Lapromt);
-
-        // $Lapromt = str_replace("(materia_nombre)", $materia_nombre, $Lapromt);
-        // $Lapromt = str_replace("(Unidad)", $Unidad, $Lapromt);
-        // $Lapromt = str_replace("(nivel)", $nivel, $Lapromt);
         return ($Lapromt);
     }
 
@@ -221,11 +215,12 @@ class HelpGPT {
     
     public static function gptResolverQuiz(&$elpromp, $subtopico, $nivel, $materia_nombre, $usuario, $debug = false) {
         
+        //contarModificarP cambia [tema] = el tema seleccionado
         $corchetesYparentesis = self::contarModificarP($elpromp,$materia_nombre, $subtopico, $nivel);
         //todo: si corchetesYparentesis estan en cero, no debe continuar
 
         $elpromp.= ". Al final de las opciones, imprime la respuesta correcta por cada pregunta con este formato: RESPUESTA=A";
-        $elpromp.= ". Cada opcion, debe ocupar una fila y deben ser 4 opciones de la A a la D.";
+        $elpromp.= ". Cada opcion, debe ocupar una fila y deben ser 4 opciones de la A a la D";
         $elpromp.= ". La primera fila debe tener un titulo relacionado a lo que se evalua y la segunda fila debe ser la primera pregunta.";
         $elpromp = str_replace("..",".",$elpromp);
 
@@ -352,16 +347,22 @@ class HelpGPT {
         $longuitudPregunta = strlen($subtopico) > 3;
         
         $elpromp = self::modificarPSubTema($elpromp,$materia_nombre, $subtopico, $nivel);
-        dd($elpromp);
+
+
         $YaEstabaGuardada = GrabarGPT::BuscarPromp($elpromp);
-        if($YaEstabaGuardada && $YaEstabaGuardada != 0){
+        if($YaEstabaGuardada && $YaEstabaGuardada !== ''){
             return [ 'respuesta' => $YaEstabaGuardada, 'restarAlToken' => 0];
         }
-        
+
+        //todo:
+        // $numberPermission = Myhelp::getPermissionToNumber();
+        // if($numberPermission === 1)
+        // return [ 'respuesta' => env('NOTVALIDATEDBYTEACHER'), 'restarAlToken' => 0];
+
+
         if ($longuitudPregunta) {
             if (!$debug) {
                 $client = OpenAI::client(env('GTP_SELECT'));
-                // dd($elpromp);
                 $result = $client->completions()->create([
                     'model' => 'text-davinci-003',
                     'prompt' => $elpromp,
@@ -382,12 +383,19 @@ class HelpGPT {
                         'user_id' => $usuario->id
                     ]);
 
+
+                    //todo: si esprofesor tendra mucho mas peso, que si es alumno
+                    //todo: deberia guardar, pero si es profesor, sobreescribe 
+                    //todo: pero por ahora, solo guarda cuando es profesor o mas
+                    // if($numberPermission === 1)
+                    // $respuesta = 'Solo estudiante. '.$respuesta;
+
                     RespuestaEjercicio::create([
                         'guardar_pregunta' => $elpromp,
                         'respuesta' => $respuesta,
                         'nivel' => $nivel,
-                        'precisa' => 3, // 0 (nada preciso) - 5 (muy preciso)
-                        'idExistente' => null, 
+                        'precisa' => 3, //todo: 0 (nada preciso) - 5 (muy preciso)
+                        'idExistente' => null,
                     ]);
 
                     return [ 'respuesta' => $respuesta, 'restarAlToken' => $restarAlToken];
@@ -484,5 +492,101 @@ class HelpGPT {
         // $ListaPromp = LosPromps::Where('clasificacion','Expectativas Altas')->Where('teoricaOpractica','teorica')->get();
         }
         return $result;
+    }
+
+
+    //quiz de actionEQH
+    public static function gptQuizEstudiante(&$elpromp, $subtopico, $nivel, $materia_nombre, $usuario, $debug = false) {
+        
+        //contarModificarP cambia [tema] = el tema seleccionado
+        $corchetesYparentesis = self::contarModificarP($elpromp,$materia_nombre, $subtopico, $nivel);
+        //todo: si corchetesYparentesis estan en cero, no debe continuar
+
+        $elpromp.= ". Al final, imprime la respuesta correcta con este formato: RESPUESTA=A";
+        $elpromp.= ". Cada opcion, debe ocupar una fila y deben ser 4 opciones de la A a la D";
+        $elpromp.= ". La primera fila debe tener un titulo relacionado a lo que se evalua y la segunda fila debe ser la primera pregunta.";
+        $elpromp = str_replace("..",".",$elpromp);
+
+        $longuitudPregunta = strlen($subtopico) > 3;
+        if ($longuitudPregunta) {
+            // if ($debug) {
+            if (!$debug) { //this one is ok
+
+                $client = OpenAI::client(env('GTP_SELECT'));
+                $result = $client->completions()->create([
+                    'model' => 'text-davinci-003',
+                    'prompt' => $elpromp,
+                    'max_tokens' => HelpGPT::maxToken()
+                ]);
+                $respuesta = $result['choices'][0]["text"];
+                $finishReason = $result['choices'][0];
+                $finishingReason = $finishReason["finish_reason"] ?? '';
+
+                if ($finishingReason == 'stop') {
+                    $usageRespuesta = intval($result['usage']["completion_tokens"]); //~ 260
+                    $usageRespuestaTotal = intval($result['usage']["total_tokens"]); //~ 500
+                    $chuleta = self::ApartarChuleta($respuesta, 'RESPUESTA=');
+                    $restarAlToken = HelpGPT::CalcularTokenConsumidos($usageRespuesta, $usageRespuestaTotal);
+
+                    $tokensAntes = intval($usuario->limite_token_leccion);
+                    $usuario->update(['limite_token_leccion' => ($tokensAntes) - $restarAlToken]);
+                    MedidaControl::create([
+                        'tokens_usados' => $restarAlToken,
+                        'user_id' => $usuario->id
+                    ]);
+
+                        return [
+                        'vectorChuleta' => $chuleta['vectorChuleta'],
+                        'ArrayPreguntas' => $chuleta['ArrayPreguntas'],
+                        'ArrayRespuestasCorrectas' => $chuleta['ArrayRespuestasCorrectas'],
+                        'restarAlToken' => $restarAlToken,
+                    ];
+                    
+                } else {
+                    if ($finishingReason == 'length') {
+                        return [
+                            'vectorChuleta' => [self::respuestaLarga],
+                            'ArrayPreguntas' => [],
+                            'ArrayRespuestasCorrectas' => [],
+                            'restarAlToken' => 0,
+                        ];
+                    } else {
+                        return [
+                            'vectorChuleta' => ['El servicio no esta disponible'],
+                            'ArrayPreguntas' => [],
+                            'ArrayRespuestasCorrectas' => [],
+                            'restarAlToken' => 0,
+                        ];
+                    }
+                }
+            } 
+            
+            //debug
+            $respuesta = "
+                1. ¿Cual es la Definicion de un limite (debuging)?
+                A. Un limite se refiere a la frontera o extremo máximo de algo 
+                B. El limite es una palabra usada para agregar numero a otro 
+                C. El limite es un medio de transporte 
+                D. El limite es un signo de aritmética 
+                RESPUESTA=A
+            ";
+            $chuleta = self::ApartarChuleta($respuesta, 'RESPUESTA');
+
+            $finishingReason = 'stop';
+            $usageRespuesta = 260;
+            $usageRespuestaTotal = 500;
+            return [
+                'vectorChuleta' => $chuleta['vectorChuleta'], //array con la respuesta pura de la IA
+                'ArrayPreguntas' => $chuleta['ArrayPreguntas'], //keys de la ubicacion de las preguntas
+                'ArrayRespuestasCorrectas' => $chuleta['ArrayRespuestasCorrectas'], //keys de la respuesta
+                'restarAlToken' => 0,
+            ];
+        }
+        return [
+            'vectorChuleta' => ['El Subtema es demasiado corto'],
+            'ArrayPreguntas' => [],
+            'ArrayRespuestasCorrectas' => [],
+            'restarAlToken' => 0,
+        ];
     }
 }

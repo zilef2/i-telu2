@@ -20,6 +20,7 @@ import Delete from '@/Pages/materia/Delete.vue';
 
 import Checkbox from '@/Components/Checkbox.vue';
 import InfoButton from '@/Components/InfoButton.vue';
+import superButton from '@/Components/uiverse/superButton.vue';
 import { useForm } from '@inertiajs/vue3';
 import { PrimerasPalabras, vectorSelect, formatDate, CalcularEdad, CalcularSexo } from '@/global.ts';;
 
@@ -214,29 +215,36 @@ const vistaIA = (elid) => {
                                 <td v-if="numberPermissions > 2" class="whitespace-nowrap py-4 px-2 sm:py-3">
                                     <div class="flex justify-start items-center ml-6">
                                         <div class="rounded-md overflow-hidden">
-                                            <InfoButton type="button" class="py-1.5 rounded-none"
-                                                v-tooltip="lang().tooltip.inscribir">
-                                                <Link :href="route('materia.AsignarUsers', clasegenerica.id)">
-                                                <UserCircleIcon class="w-7 h-7 px-0.5" />
-                                                </Link>
-                                            </InfoButton>
+                                            <Link :href="route('materia.AsignarUsers', clasegenerica.id)">
+                                                <InfoButton type="button" class="py-1.5 rounded-none"
+                                                    v-tooltip="lang().tooltip.inscribir">
+                                                    <UserCircleIcon class="w-7 h-7 px-0.5" />
+                                                </InfoButton>
+                                            </Link>
                                         </div>
                                     </div>
                                 </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">
                                     <div v-if="clasegenerica.cuantoshijos != 0" class="flex justify-start items-center">
                                         <div class="rounded-md overflow-hidden">
-                                            <InfoButton type="button" class="rounded-lg"
-                                                v-tooltip="lang().tooltip.preguntaria">
-                                                <Link :href="route('materia.VistaTema', clasegenerica.id)">
-                                                <QuestionMarkCircleIcon class="w-8 h-8 p-1" />
-                                                </Link>
-                                            </InfoButton>
+                                            <!-- <Link :href="route('materia.VistaTema', clasegenerica.id)">
+                                                <InfoButton type="button" class="rounded-lg"
+                                                    v-tooltip="lang().tooltip.preguntaria">
+                                                    <QuestionMarkCircleIcon class="w-8 h-8 -p-1" />
+                                                </InfoButton>
+                                            </Link> -->
+                                            <superButton type="button" class="rounded-lg"
+                                                :ruta="'materia.VistaTema'"
+                                                :id1="clasegenerica.id"
+                                                :texto="'Estudiar'">
+                                            </superButton>
+                                            
+
                                         </div>
                                     </div>
                                     <div v-else class="flex justify-start items-center">
-                                        <div class="rounded-md overflow-hidden ml-6">
-                                            x
+                                        <div class="rounded-md overflow-hidden">
+                                            Sin información
                                         </div>
                                     </div>
                                 </td>

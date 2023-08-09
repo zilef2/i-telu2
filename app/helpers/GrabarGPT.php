@@ -2,7 +2,9 @@
 
 namespace App\helpers;
 
+use App\Models\MedidaControl;
 use App\Models\RespuestaEjercicio;
+use Illuminate\Support\Facades\Auth;
 
 // use Illuminate\Support\Facades\Auth;
 // use Illuminate\Support\Facades\Log;
@@ -21,26 +23,35 @@ class GrabarGPT {
 
     //usado para sacar los ejercicios que traer GPT y ponerlos en un vector
     public static function EncontroONull($collection){
-
         if($collection){
-            if(count($collection) > 0) return $collection->first();
-            else return 0;
+            if(($collection->count()) > 0) return $collection->first()->respuesta;
+            else{
+                MedidaControl::create([
+                    'tokens_usados' => 0,
+                    'user_id' => Auth::user()->id
+                ]);
+                return '';
+            }
         }else{
             return null;
         }
     }
 
     public static function BuscarPromp($StringPregunta) {
+
         $encontroExacto = RespuestaEjercicio::Where('guardar_pregunta', $StringPregunta);
-        $exacto = self::EncontroONull($encontroExacto);
-        dd($exacto);
-        return $exacto->respuesta;
+        $EncontroONull = self::EncontroONull($encontroExacto);
+        if($EncontroONull !== null) return $EncontroONull;
+
+        $numberPermission = Myhelp::getPermissionToNumber();
+        if($numberPermission === 1)
+        $StringPregunta = 'Solo estudiante. '.$StringPregunta;
+
+        $encontroExacto = RespuestaEjercicio::Where('guardar_pregunta', $StringPregunta);
+        return self::EncontroONull($encontroExacto);
         
+        //todo: using?
         $encontroSimilar = RespuestaEjercicio::Where('guardar_pregunta', 'LIKE', "%" . $StringPregunta . "%");
-        $parecido = self::EncontroONull($encontroSimilar);
-
-        return $parecido->respuesta;
-
-
+        return self::EncontroONull($encontroSimilar);
     }
 }

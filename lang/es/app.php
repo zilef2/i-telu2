@@ -2,7 +2,7 @@
 
 return [
     'label' => [
-        'enum' => 'Numeración',
+        'enum' => 'Semestre',
         //losPromps
         'LosPromp' => 'Instrucción',
         'losPromps' => 'Instrucciones',

@@ -22,7 +22,6 @@ use App\Models\Ejercicio;
 use App\Models\LosPromps;
 use App\Models\Objetivo;
 use App\Models\Parametro;
-use App\Models\RespuestaEjercicio;
 use App\Models\Subtopico;
 use App\Models\Unidad;
 use Carbon\Carbon;
@@ -41,8 +40,7 @@ class MateriasController extends Controller
 
 
     //! index functions ()
-    public function MapearClasePP(&$materias, $numberPermissions)
-    {
+    public function MapearClasePP(&$materias, $numberPermissions) {
         $materias = $materias->get()->map(function ($materia) use ($numberPermissions) {
 
             if ($numberPermissions < 2) {
@@ -61,21 +59,19 @@ class MateriasController extends Controller
         })->filter();
         // dd($materias);
     }
-    public function fNombresTabla($numberPermissions)
-    {
+    public function fNombresTabla($numberPermissions) {
         $nombresTabla[2] = [null, null, null, "enum", "nombre", "codigo", "carrera_id", null, null, null, "descripcion"];
 
         if ($numberPermissions <= 2) {
-            $nombresTabla[0] = ["IA", "#", "Nombre", "Codigo", "Carrera", "Unidades", "Objetivos", "descripcion"];
+            $nombresTabla[0] = ["IA", "Semestre", "Nombre", "Codigo", "Carrera", "Unidades", "Objetivos", "descripcion"];
         } else { //not estudiante
-            $nombresTabla[0] = ["Edicion", "Matricular", "IA", "#", "Nombre", "Codigo", "Carrera", "Unidades", "usuarios", "Objetivos", "descripcion"];
+            $nombresTabla[0] = ["Edicion", "Matricular", "IA", "Semestre", "Nombre", "Codigo", "Carrera", "Unidades", "usuarios", "Objetivos", "descripcion"];
         }
 
         return $nombresTabla;
     }
 
-    public function Filtros($request, &$materias)
-    {
+    public function Filtros($request, &$materias) {
         if ($request->has('selectedUni') && $request->selectedUni != 0) {
             // dd($request->selectedUni);
             $carrerasid = Carrera::has('materias')->where('universidad_id', $request->selectedUni)->pluck('id')->toArray();
@@ -428,8 +424,7 @@ class MateriasController extends Controller
 
 
     // $wolf = WolframAlphaService::query('integral of x^2');
-    public function VistaTema(Request $request, $materiaid, $ejercicioid = null, $idnivel = null, $subtemaid = null, $selectedPrompID = null)
-    {
+    public function VistaTema(Request $request, $materiaid, $ejercicioid = null, $idnivel = null, $subtemaid = null, $selectedPrompID = null) {
         // dd($subtemaid);
 
         $permissions = Myhelp::EscribirEnLog($this, ' VistaTEma materia');
@@ -546,6 +541,9 @@ class MateriasController extends Controller
                     'numberPermissions'     => $numberPermissions,
                     'selectedPrompID'       => intval($selectedPrompID),
                     'selectedReasonString'  => $selectedReasonString,
+
+                    'notvalidbyteacher'     => $respuesta != env('NOTVALIDATEDBYTEACHER'),
+
                     //solo practica
                     'vectorChuleta'            => $gpt['vectorChuleta'] ?? [],
                     'ArrayPreguntas'            => $gpt['ArrayPreguntas'] ?? [],
@@ -575,7 +573,6 @@ class MateriasController extends Controller
                 $respuesta = $this->respuestaLimite;
             }
 
-
             return Inertia::render('materia/vistaTem', [ //carpeta
                 'breadcrumbs'           =>  [['label' => __('app.label.materias'), 'href' => route('materia.index')]],
                 'title'                 =>  'Aprendiendo con GPT',
@@ -590,6 +587,7 @@ class MateriasController extends Controller
                 'restarAlToken'         => $restarAlToken,
                 'numberPermissions'     => $numberPermissions,
                 'limite'                => $limite,
+                'notvalidbyteacher'     => $respuesta != env('NOTVALIDATEDBYTEACHER'),
 
                 'filters'        =>  $request->all(['actionEQH', 'laRespuesta']),
 
@@ -602,8 +600,7 @@ class MateriasController extends Controller
     }
 
     // public function masPreguntas($id,$nuevaPregunta) {
-    public function masPreguntas(Request $request)
-    {
+    public function masPreguntas(Request $request) {
         $usuario = Auth::user();
         // dd(
         //     $request->id,
@@ -665,8 +662,7 @@ class MateriasController extends Controller
     }
 
     //todo: maybe this is not using
-    public function gptPart($request, $materia, $usuario, $productio = true)
-    { //productio is for debugging
+    public function gptPart($request, $materia, $usuario, $productio = true) { //productio is for debugging
         if ($productio) {
 
             $plantillaPracticar = 'Ejercicios para practicar';
@@ -713,48 +709,48 @@ class MateriasController extends Controller
     }
 
 
-
     public function actionEQH(Request $request)
     {
         $permissions = Myhelp::EscribirEnLog($this, ' materia');
         $numberPermissions = Myhelp::getPermissionToNumber($permissions);
         $usuario = Auth::user();
+        
         try {
             $temaSelec = $request->temaSelec;
             $subtopicoSelec = $request->subtopicoSelec;
             $materia = Materia::find($request->materiaid);
             $respuesta1 = $request->respuesta1;
             $actionEQH = $request->actionEQH;
-            // dd($actionEQH,$actionEQH==1);
+
             if ($actionEQH == 1) { //Ejemplo
-                //todo: aquii
-                // $selectedReasonString = Parametro::first()->prompEjemplosTema;
-                // dd(
-                //     $actionEQH,
-                //     $subtopicoSelec,
-                //     $materia,
-                //     $temaSelec,
-                // );
-                $selectedReasonString = 'Explica 2 ejemplos del subtema: ' . $subtopicoSelec['nombre']
+                //todo: Tener un parametro para esto
+                $selectedReasonString = 'Explica con minimo de 2 ejemplos, '
+                    . 'el subtema: ' . $subtopicoSelec['nombre']
+                    . ' del tema: ' . $temaSelec['nombre']
                     . ' de la asignatura: ' . $materia->nombre
-                    . ' del tema: ' . $temaSelec['nombre'];
+                    ;
                 
                 $gpt = HelpGPT::gptResolverTema($selectedReasonString, $subtopicoSelec['nombre'], 'Profesional', $materia->nombre, $usuario, env('DEBUGGINGGPT'));
-                $restarAlToken = $gpt['restarAlToken'];
                 $ejemplosRespuesta = $gpt['respuesta'];
                 
             }
             if ($actionEQH == 2) { //quiz
+                $selectedReasonString = 'Genere una pregunta de seleccion multiple sobre [tema] de la asignatura [materia].';
                 $quiz = true;
-                $quizPregunta = 'Una pregunta del tema, El diseño esta correcto?';
-                $quizCorrecta = 0;
-                $quizRespuestas = [
-                    'a) si',
-                    'b) no',
-                    'c) tal vez',
-                    'd) todas las anteriores',
-                ];
+                $gpt = HelpGPT::gptQuizEstudiante($selectedReasonString, $subtopicoSelec['nombre'], 'Profesional', $materia->nombre, $usuario, env('DEBUGGINGGPT'));
+                $quizPregunta = $gpt['vectorChuleta'][0];
+                $quizCorrectaString = trim($gpt['vectorChuleta'][$gpt['ArrayRespuestasCorrectas'][0]]);
+                $myhelp = new Myhelp();
+                if(count($myhelp->EncontrarEnString($quizCorrectaString,"RESPUESTA=A")) > 0 ) $quizCorrecta = 0;
+                if(count($myhelp->EncontrarEnString($quizCorrectaString,"RESPUESTA=B")) > 0 ) $quizCorrecta = 1;
+                if(count($myhelp->EncontrarEnString($quizCorrectaString,"RESPUESTA=C")) > 0 ) $quizCorrecta = 2;
+                if(count($myhelp->EncontrarEnString($quizCorrectaString,"RESPUESTA=D")) > 0 ) $quizCorrecta = 3;
+
+                array_shift($gpt['vectorChuleta']);
+                $RespuestaUnicaCorrecta = array_pop($gpt['vectorChuleta']);
+                $quizRespuestas = $gpt['vectorChuleta'];
             }
+
             if ($actionEQH == 3) { //hacer pregunta
                 $hagapregunta = true;
                 $HacerlaPregunta = $request->HacerlaPregunta;
@@ -762,9 +758,25 @@ class MateriasController extends Controller
                 $selectedReasonString = 'Aqui se responde cualquier pregunta: '. $request->HacerlaPregunta. '. En caso que no sea una pregunta para aprender, responde un mensaje que le haga entender que esto es un aplicativo para la enseñanza';
                 
                 $gpt = HelpGPT::gptResolverTema($selectedReasonString, $subtopicoSelec['nombre'], 'Profesional', $materia->nombre, $usuario, env('DEBUGGINGGPT'));
-                $restarAlToken = $gpt['restarAlToken'];
                 $RespuestaPregunta = $gpt['respuesta'];
             }
+
+            if ($actionEQH == 4) { //Ejemplo
+                //todo: Tener un parametro para esto
+                $selectedReasonString = 'Explica de una manera mas sencilla y simple, '
+                    . 'el subtema: ' . $subtopicoSelec['nombre']
+                    . ' del tema: ' . $temaSelec['nombre']
+                    . ' de la asignatura: ' . $materia->nombre
+                    ;
+                
+                $gpt = HelpGPT::gptResolverTema($selectedReasonString, $subtopicoSelec['nombre'], 'Profesional', $materia->nombre, $usuario, env('DEBUGGINGGPT'));
+                $ejemplosRespuesta = $gpt['respuesta'];
+                
+            }
+
+            
+            $restarAlToken = $gpt['restarAlToken'];
+
             $limite = intval($usuario->limite_token_leccion);
 
             return Inertia::render('materia/EQH', [ //carpeta
@@ -787,6 +799,7 @@ class MateriasController extends Controller
                 'quizPregunta'          => $quizPregunta ?? null,
                 'quizCorrecta'          => $quizCorrecta ?? null,
                 'quizRespuestas'        => $quizRespuestas ?? null,
+                'RespuestaUnicaCorrecta'=> $RespuestaUnicaCorrecta ?? null,
 
                 'hagapregunta'          => $hagapregunta ?? false,
                 'HacerlaPregunta'       => $HacerlaPregunta ?? null,

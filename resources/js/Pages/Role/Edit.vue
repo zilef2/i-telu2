@@ -78,15 +78,15 @@ const select = () => {
         <Modal :show="props.show" @close="emit('close')">
             <form class="p-6" @submit.prevent="update">
                 <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
-                    {{ lang().label.edit }} {{ props.title }}
+                    {{ lang().label.edit }} {{ props.title }} {{form.name}}
                 </h2>
                 <div class="my-6 space-y-4">
-                    <div>
+                    <!-- <div>
                         <InputLabel for="name" :value="lang().label.role" />
                         <TextInput id="name" type="text" class="mt-1 block w-full" v-model="form.name" required
                             :placeholder="lang().placeholder.name" :error="form.errors.name" />
                         <InputError class="mt-2" :message="form.errors.name" />
-                    </div>
+                    </div> -->
                     <div>
                         <InputLabel :value="lang().label.permission" />
                         <InputError class="mt-2" :message="form.errors.permissions" />

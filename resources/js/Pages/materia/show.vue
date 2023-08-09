@@ -72,14 +72,15 @@ onMounted(() => {
 
         <section class="text-gray-600 body-font overflow-hidden">
             <!-- <h2 class="text-sm title-font text-gray-500 tracking-widest">Materia</h2> -->
-            <h1 class="text-gray-900 text-3xl title-font font-medium mb-4">{{ props.fromController.nombre }} </h1>
-            <h1 class="text-gray-900 text-lg title-font font-medium mb-4">{{ props.fromController.descripcion }} </h1>
-            <h1 class="text-gray-900 text-xl title-font font-medium my-6">Objetivos </h1>
-            <ul class="list-decimal">
-                <li v-for="objetivo in props.objetivos" class="text-gray-900 text-xl title-font font-medium mb-4">{{
+            <h1 class="text-xl title-font font-medium text-center my-1 text-zinc-600">Contenido de</h1>
+            <h1 class="text-sky-700 text-3xl title-font text-center font-medium mb-4">{{ props.fromController.nombre }} </h1>
+            <h1 class="text-gray-900 text-lg title-font text-justify font-medium mb-4">{{ props.fromController.descripcion }} </h1>
+            <h1 class="text-sky-700 text-2xl title-font font-medium text-center mt-10 mb-5">Objetivos </h1>
+            <ol class="list-decimal mb-12">
+                <li v-for="objetivo in props.objetivos" class="text-gray-900 text-xl title-font font-medium mb-4"> - {{
                     objetivo.nombre
                 }} </li>
-            </ul>
+            </ol>
 
             <div v-if="props.unidads.length" class="lg:w-4/5 w-full mx-auto overflow-auto">
                 <table class="table-auto w-full text-left whitespace-no-wrap">
