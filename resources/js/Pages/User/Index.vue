@@ -201,7 +201,7 @@ watchEffect(() => {
                         <tbody>
                             <tr v-for="(user, index) in users.data" :key="index"
                                 class="border-t border-gray-200 dark:border-gray-700 hover:bg-sky-100 hover:dark:bg-gray-900/20"
-                                :class="index % 2 == 0 ? 'bg-gray-200' : ''">
+                                :class="index % 2 == 0 ? 'bg-gray-100 dark:bg-gray-800' : ''">
 
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-center">
                                     <input

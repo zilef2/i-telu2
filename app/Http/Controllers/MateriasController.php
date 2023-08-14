@@ -432,6 +432,7 @@ class MateriasController extends Controller
         $usuario = Auth::user();
         $restarAlToken = 0;
         set_time_limit(180);
+        $unidad = Unidad::where('materia_id',$materiaid)->first();
         $respuesta = '';
 
         if ($numberPermissions > 1) {
@@ -483,31 +484,22 @@ class MateriasController extends Controller
                 $selectedReasonString = '';
                 if ($opcion !== 1) {
                     if ($limite > 0) {
-                        $tiempo = session('tiempo', Carbon::now());
-                        $diffTiempos = Carbon::now()->diffInSeconds($tiempo);
-                        session(['tiempo' => Carbon::now()]);
-
-                        if ($diffTiempos == 0 || $diffTiempos > 1) { //debe esperar 1 segundo almenos
-                            if ($opcion != 4) {
-                                if ($opcion === 2) { //resolver unidad
-                                    $selectedReasonString = LosPromps::Find($selectedPrompID)->principal;
-                                    $gpt = HelpGPT::gptResolverTema($selectedReasonString, $subtopicoSelec->nombre, $ChosenNivel, $materia->nombre, $usuario, env('DEBUGGINGGPT'));
-                                }
-
-                                if ($opcion === 3) { //ejercicio
-                                    $gpt = HelpGPT::gptPart1($ejercicioSelec, $ChosenNivel, $materia->nombre, $usuario, $soloEjercicios, env('DEBUGGINGGPT'));
-                                }
-                                $respuesta = preg_replace("/^\n\n/", "", $gpt['respuesta']);
-                            } else { //resolver quiz opcion = 4
+                        if ($opcion != 4) {
+                            if ($opcion === 2) { //resolver unidad
                                 $selectedReasonString = LosPromps::Find($selectedPrompID)->principal;
-                                $gpt = HelpGPT::gptResolverQuiz($selectedReasonString, $subtopicoSelec->nombre, $ChosenNivel, $materia->nombre, $usuario, env('DEBUGGINGGPT'));
+                                $gpt = HelpGPT::gptResolverTema($selectedReasonString, $subtopicoSelec->nombre,$unidad->nombre, $ChosenNivel, $materia->nombre, $usuario, env('DEBUGGINGGPT'));
                             }
-                            $restarAlToken = $gpt['restarAlToken'];
-                            $limite = intval($usuario->limite_token_leccion);
-                        } else {
-                            $respuesta = $this->muyFrecuente; //hizo una peticion en menos de un segundo a la anterior
-                            //todo: grabar en el log, que este usuario es desesperado o hacker jaja
+
+                            if ($opcion === 3) { //ejercicio
+                                $gpt = HelpGPT::gptPart1($ejercicioSelec, $ChosenNivel, $materia->nombre, $usuario, $soloEjercicios, env('DEBUGGINGGPT'));
+                            }
+                            $respuesta = preg_replace("/^\n\n/", "", $gpt['respuesta']);
+                        } else { //resolver quiz opcion = 4
+                            $selectedReasonString = LosPromps::Find($selectedPrompID)->principal;
+                            $gpt = HelpGPT::gptResolverQuiz($selectedReasonString, $subtopicoSelec->nombre, $ChosenNivel, $materia->nombre, $usuario, env('DEBUGGINGGPT'));
                         }
+                        $restarAlToken = $gpt['restarAlToken'];
+                        $limite = intval($usuario->limite_token_leccion);
                     } else { //no le quedan mas tokens
                         $respuesta = $this->respuestaLimite;
                     }
@@ -564,7 +556,7 @@ class MateriasController extends Controller
                 if ($subtemaid !== null) {
                     $subtopicoSelec = Subtopico::find($subtemaid);
                     $temaSelec = Unidad::find($subtopicoSelec->unidad_id);
-                    $gpt = HelpGPT::gptResolverTema($selectedReasonString, $subtopicoSelec->nombre, 'Profesional', $materia->nombre, $usuario, env('DEBUGGINGGPT'));
+                    $gpt = HelpGPT::gptResolverTema($selectedReasonString, $subtopicoSelec->nombre,$unidad->nombre, 'Profesional', $materia->nombre, $usuario, env('DEBUGGINGGPT'));
                     $restarAlToken = $gpt['restarAlToken'];
                     $limite = intval($usuario->limite_token_leccion);
                     $respuesta = $gpt['respuesta'];
@@ -719,6 +711,7 @@ class MateriasController extends Controller
             $temaSelec = $request->temaSelec;
             $subtopicoSelec = $request->subtopicoSelec;
             $materia = Materia::find($request->materiaid);
+            $unidad = Unidad::where('materia_id',$materia->id)->first();
             $respuesta1 = $request->respuesta1;
             $actionEQH = $request->actionEQH;
 
@@ -730,7 +723,7 @@ class MateriasController extends Controller
                     . ' de la asignatura: ' . $materia->nombre
                     ;
                 
-                $gpt = HelpGPT::gptResolverTema($selectedReasonString, $subtopicoSelec['nombre'], 'Profesional', $materia->nombre, $usuario, env('DEBUGGINGGPT'));
+                $gpt = HelpGPT::gptResolverTema($selectedReasonString, $subtopicoSelec['nombre'],$unidad->nombre, 'Profesional', $materia->nombre, $usuario, env('DEBUGGINGGPT'));
                 $ejemplosRespuesta = $gpt['respuesta'];
                 
             }
@@ -755,9 +748,14 @@ class MateriasController extends Controller
                 $hagapregunta = true;
                 $HacerlaPregunta = $request->HacerlaPregunta;
                 
-                $selectedReasonString = 'Aqui se responde cualquier pregunta: '. $request->HacerlaPregunta. '. En caso que no sea una pregunta para aprender, responde un mensaje que le haga entender que esto es un aplicativo para la enseñanza';
+                $selectedReasonString = 'Responda lo siguiente con el contexto 
+                de la asignatura:'.$materia->nombre.'. 
+                el subtema: ' . $subtopicoSelec['nombre']
+                .' del tema: ' . $temaSelec['nombre'].'
+                el objetivo es explicar el tema en términos fáciles de entender. Esto podría incluir proporcionar instrucciones paso a paso para resolver un problema, sugerir recursos en línea para un estudio más profundo. 
+                La pregunta es: '. $request->HacerlaPregunta. '. En caso que no sea una pregunta para aprender de '.$materia->nombre.', responde un mensaje que le haga entender que esto es un aplicativo para la enseñanza. Debes ser muy restrictivo en si responder a la pregunta o no.';
                 
-                $gpt = HelpGPT::gptResolverTema($selectedReasonString, $subtopicoSelec['nombre'], 'Profesional', $materia->nombre, $usuario, env('DEBUGGINGGPT'));
+                $gpt = HelpGPT::gptResolverTema($selectedReasonString, $subtopicoSelec['nombre'],$unidad->nombre, 'Profesional', $materia->nombre, $usuario, env('DEBUGGINGGPT'));
                 $RespuestaPregunta = $gpt['respuesta'];
             }
 
@@ -769,7 +767,7 @@ class MateriasController extends Controller
                     . ' de la asignatura: ' . $materia->nombre
                     ;
                 
-                $gpt = HelpGPT::gptResolverTema($selectedReasonString, $subtopicoSelec['nombre'], 'Profesional', $materia->nombre, $usuario, env('DEBUGGINGGPT'));
+                $gpt = HelpGPT::gptResolverTema($selectedReasonString, $subtopicoSelec['nombre'],$unidad->nombre, 'Profesional', $materia->nombre, $usuario, env('DEBUGGINGGPT'));
                 $ejemplosRespuesta = $gpt['respuesta'];
                 
             }

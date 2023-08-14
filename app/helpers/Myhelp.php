@@ -49,13 +49,6 @@ class Myhelp {
             $NuevaPos = strlen($frase);
             $ResultOnce = strpos($frase, $busqueda);
 
-            // if($busqueda == '[tema]')
-            // dd($ResultOnce);
-            //ResultOnce,  = 2
-            //frase,  = a [tema]
-            //busqueda,  = [tema]
-            //strlen($frase)  =  8
-
             while ($ResultOnce !== false && $ResultOnce < $NuevaPos) {
                 $Resultado[] = $ResultOnce;
                 $NuevaPos = $ResultOnce + strlen($busqueda);
@@ -86,8 +79,12 @@ class Myhelp {
             return $frase;
         }
 
-        public static function ArrayInString($Elarray, $limite = 3)
-        {
+        //! explicar que hace
+        public static function ArrayInString2($Elarray, $limite = 3) {
+
+        }
+        //! explicar que hace
+        public static function ArrayInString($Elarray, $limite = 3) {
             $Elarray = $Elarray->toArray();
             // dd($Elarray instanceof Collection);
             if (count($Elarray) > $limite) {

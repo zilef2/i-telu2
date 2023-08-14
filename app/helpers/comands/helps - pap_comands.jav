@@ -1,22 +1,16 @@
-
-//?helps
-    //memory limit
-        C:\laragon\bin\php\php-7.4.30-Win32-vc15-x64\php.ini
-
-    //permissions deined
-        mv /home/aplicativoswebco/public_html/modulonom/bootstrap/cache /home/aplicativoswebco/public_html/modulonom/bootstrap/cache_2
-        mkdir /home/aplicativoswebco/public_html/modulonom/storage/framework/cache/data
-// FIN helps
+//misterdebug - crud-generator-laravel
+php artisan make:crud foo "nombre:string"
+//para borrar:  
+php artisan rm:crud foo --force
 
 //models
-    Php artisan make:model CentroTrabajo --all
-    Php artisan make:model Producto --all
+    Php artisan make:model foo --all
 
 //middleware
     php artisan make:middleware IsAdmin
 
 
-//#--  correo - EXPORT AND IMPORTS
+# EXPORT AND IMPORTS AND CORREO
     //CORREO
     php artisan make:mail ExampleMail
 
@@ -24,7 +18,9 @@
     // php artisan make:export ExampleExport --model=Empresa
     // php artisan make:import ExampleImport --model=User
 
-//despliegue
+
+
+# DESPLIEGUE
 
 composer dump-autoload
 php artisan key:generate
@@ -48,4 +44,9 @@ rm -r /home/aplicativoswebco/public_html/modulonom/storage/logs/laravel.log
 
 mv /home/aplicativoswebco/public_html/modulonom/bootstrap/cache /home/aplicativoswebco/public_html/modulonom/bootstrap/cache_2
 mkdir /home/aplicativoswebco/public_html/modulonom/storage/framework/cache/data
-        
+
+
+# DEPENDENCIAS
+
+//composer
+    composer require mrdebug/crudgen --dev

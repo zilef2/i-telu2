@@ -25,7 +25,7 @@ import SwitchLangNavbar from '@/Components/SwitchLangNavbar.vue';
                     <slot />
                 </div>
                 <div
-                    class="hidden lg:flex lg:flex-col px-6 py-4 justify-center items-center space-y-2 bg-primary text-white">
+                    class="hidden lg:flex lg:flex-col px-6 py-4 justify-center items-center space-y-2 bg-gray-100 dark:bg-gray-200 text-white">
                     <slot name="illustration" />
                 </div>
             </div>

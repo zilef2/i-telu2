@@ -29,7 +29,7 @@ const irHijo = () => {
 
 <template>
     <div class="flex flex-col">
-        <div class="border border-gray-100 py-3 flex gap-1 shadow-xl">
+        <div class="border border-gray-50 py-3 flex gap-1 shadow-xl">
 
             <div v-if="visualizar[0] != ''" 
                 @click="editar()"

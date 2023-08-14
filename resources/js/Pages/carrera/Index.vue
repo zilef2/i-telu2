@@ -19,8 +19,18 @@ import Delete from '@/Pages/carrera/Delete.vue';
 
 import Checkbox from '@/Components/Checkbox.vue';
 import InfoButton from '@/Components/InfoButton.vue';
+import GroupButtonsIndex from '@/Components/uiverse/GroupButtonsIndex.vue';
 
 import { PrimerasPalabras, vectorSelect, formatDate, CalcularEdad, CalcularSexo } from '@/global.ts';;
+import {
+    TransitionRoot,
+    TransitionChild,
+    Dialog,
+    DialogPanel,
+    DialogTitle,
+} from '@headlessui/vue'
+const isOpen = ref(false)
+function closeModal() { isOpen.value = false }
 
 const { _, debounce, pickBy } = pkg
 const props = defineProps({
@@ -176,7 +186,9 @@ const PapaSelect = props.PapaSelect?.map(universidad => ({
                         </thead>
                         <tbody>
                             <tr v-for="(clasegenerica, index) in fromController.data" :key="index"
-                                class="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-200/30 hover:dark:bg-gray-900/20">
+                                class="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-200/30 hover:dark:bg-gray-900/20"
+                                :class="index % 2 == 0 ? 'bg-gray-100 dark:bg-gray-800' : ''">
+                                
                                 <td v-if="can(['isCoorPrograma']) && numberPermissions > 2"
                                     class="whitespace-nowrap py-4 px-2 sm:py-3 text-center">
                                     <input type="checkbox" @change="select" :value="clasegenerica.id"
@@ -186,26 +198,15 @@ const PapaSelect = props.PapaSelect?.map(universidad => ({
                                 <td v-if="numberPermissions > 3" class="whitespace-nowrap py-4 px-2 sm:py-3">
                                     <div class="flex justify-start items-center">
                                         <div class="rounded-md overflow-hidden">
-                                            <InfoButton type="button"
-                                                @click="(data.editOpen = true), (data.generico = clasegenerica)"
-                                                class="px-2 py-1.5 rounded-none" v-tooltip="lang().tooltip.edit">
-                                                <PencilIcon class="w-4 h-4" />
-                                            </InfoButton>
-                                            <DangerButton type="button"
-                                                @click="(data.deleteOpen = true), (data.generico = clasegenerica)"
-                                                class="px-2 py-1.5 rounded-none" v-tooltip="lang().tooltip.delete">
-                                                <TrashIcon class="w-4 h-4" />
-                                            </DangerButton>
-                                            <Link :href="route('carrera.AsignarUsers', clasegenerica.id)"
-                                                v-show="can(['isAdmin'])" type="button"
-                                                class="px-2 -mb-1.5 py-1.5 rounded-none hover:bg-blue-500">
-                                            <UserCircleIcon class="w-4 h-4" />
-                                            </Link>
-                                            <Link @click="irCarrera(clasegenerica.universidad_id,clasegenerica.id)" 
-                                                v-show="can(['isAdmin'])" type="button"
-                                                class="px-2 -mb-0.5 pt-1 rounded-r-md  hover:bg-gray-500 bg-gray-200">
-                                                <ArrowSmallRightIcon class="w-7 h-7" />
-                                            </Link>
+                                            <GroupButtonsIndex v-show="can(['isAdmin'])"
+                                                :visualizar="['Editar','Borrar','Matricular','Ver']"
+                                                :ruta="'carrera.AsignarUsers'"
+                                                :id1="clasegenerica.id"
+
+                                                @editar="(data.editOpen = true), (data.generico = clasegenerica)" 
+                                                @justdelete="(data.deleteOpen = true), (data.generico = clasegenerica)"
+                                                @irHijo="irCarrera(clasegenerica.universidad_id, clasegenerica.id, clasegenerica.cuantasCarreras)"
+                                            />
                                         </div>
                                     </div>
                                 </td>
@@ -227,5 +228,43 @@ const PapaSelect = props.PapaSelect?.map(universidad => ({
                 </div>
             </div>
         </div>
+        <template>
+            <TransitionRoot appear :show="isOpen" as="template">
+                <Dialog as="div" @close="closeModal" class="relative z-10">
+                    <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0"
+                        enter-to="opacity-100" leave="duration-200 ease-in" leave-from="opacity-100" leave-to="opacity-0">
+                        <div class="fixed inset-0 bg-black bg-opacity-25" />
+                    </TransitionChild>
+
+                    <div class="fixed inset-0 overflow-y-auto">
+                        <div class="flex min-h-full items-center justify-center p-4 text-center">
+                            <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95"
+                                enter-to="opacity-100 scale-100" leave="duration-200 ease-in"
+                                leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
+                                <DialogPanel
+                                    class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                                    <DialogTitle as="h3" class="text-lg font-medium leading-6 text-gray-900">
+                                        Sin carreras
+                                    </DialogTitle>
+                                    <div class="mt-2">
+                                        <p class="text-sm text-gray-500">
+                                            Esta universidad no tiene carreras inscritas
+                                        </p>
+                                    </div>
+
+                                    <div class="mt-4">
+                                        <button type="button"
+                                            class="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                                            @click="closeModal">
+                                            Listo
+                                        </button>
+                                    </div>
+                                </DialogPanel>
+                            </TransitionChild>
+                        </div>
+                    </div>
+                </Dialog>
+            </TransitionRoot>
+        </template>
     </AuthenticatedLayout>
 </template>

@@ -7,8 +7,17 @@ import {
     ShieldCheckIcon,
     ClockIcon,
     PresentationChartLineIcon,
-    BanknotesIcon,
+
+    CheckCircleIcon,
+    ClipboardDocumentCheckIcon,
+    ClipboardDocumentListIcon,
+    ClipboardDocumentIcon,
+    ClipboardIcon,
+    CircleStackIcon,
+    CpuChipIcon,
+    BeakerIcon,
 } from "@heroicons/vue/24/solid";
+
 import { Link } from '@inertiajs/vue3';
 import { reactive, watch } from 'vue';
 import { NoUnderLines}from '@/global.ts';;
@@ -66,7 +75,7 @@ const toggleContent2 = () => {
                 <span class="ml-3">{{ lang().label.user }}</span>
                 </Link>
             </li>
-            <button v-show="can(['isAdmin'])" @click="toggleContent" class="text-blue-500">
+            <button v-show="can(['isAdmin'])" @click="toggleContent" class="text-blue-500 underline">
                 {{ data.showContent ? 'Ocultar roles' : 'Mostrar roles' }}
             </button>
 
@@ -94,22 +103,22 @@ const toggleContent2 = () => {
                 class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
                 :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('parametro.index') }">
                 <Link :href="route('parametro.index')" class="flex items-center py-2 px-4">
-                <PresentationChartLineIcon class="w-6 h-5" />
+                <CpuChipIcon class="w-6 h-5" />
                 <span class="ml-3">{{ lang().label.parametros }}</span>
                 </Link>
             </li>
-
-
-
-
-
-
-
-
-            <!-- zone normal -->
         </ul>
-        <button @click="toggleContent2" v-show="can(['isAdmin'])" class="text-blue-500">{{ data.showContent2 ?
-                    'Ocultar universidades' : 'Mostrar universidades' }}</button>
+
+
+
+
+
+
+
+
+        <!-- zone normal -->
+        <button @click="toggleContent2" v-show="can(['isAdmin'])" class="text-blue-500 underline">{{ data.showContent2 ?
+                    'Ocultar menu' : 'Mostrar menu' }}</button>
         <ul v-if="data.showContent2" class="space-y-2 my-4">
 
             <!-- <li v-show="can(['read role', 'read permission'])" class="py-2"> <p>{{ lang().label.universidadCarreras }}</p> </li> -->
@@ -117,7 +126,7 @@ const toggleContent2 = () => {
                 class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
                 :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('universidad.index') }">
                 <Link :href="route('universidad.index')" class="flex items-center py-1 px-4">
-                <PresentationChartLineIcon class="w-6 h-5" />
+                <CircleStackIcon class="w-6 h-5" />
                 <span class="ml-3">{{ lang().label.universidad }}</span>
                 </Link>
             </li>
@@ -126,7 +135,7 @@ const toggleContent2 = () => {
                 class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
                 :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('carrera.index') }">
                 <Link :href="route('carrera.index')" class="flex items-center py-1 px-4">
-                <PresentationChartLineIcon class="w-6 h-5" />
+                <ClipboardIcon class="w-6 h-5" />
                 <span class="ml-3">{{ lang().label.carrera }}</span>
                 </Link>
             </li>
@@ -134,7 +143,7 @@ const toggleContent2 = () => {
                 class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
                 :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('materia.index') }">
                 <Link :href="route('materia.index')" class="flex items-center py-1 px-4">
-                <PresentationChartLineIcon class="w-6 h-5" />
+                <ClipboardDocumentIcon class="w-6 h-5" />
                 <span class="ml-3">Matricula</span>
                 </Link>
             </li>
@@ -142,7 +151,7 @@ const toggleContent2 = () => {
                 class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
                 :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('Unidad.index') }">
                 <Link :href="route('Unidad.index')" class="flex items-center py-1 px-4">
-                <PresentationChartLineIcon class="w-6 h-5" />
+                <ClipboardDocumentListIcon class="w-6 h-5" />
                 <span class="ml-3">{{ lang().label.Unidad }}</span>
                 </Link>
             </li>
@@ -150,15 +159,20 @@ const toggleContent2 = () => {
                 class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
                 :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('subtopico.index') }">
                 <Link :href="route('subtopico.index')" class="flex items-center py-1 px-4">
-                <PresentationChartLineIcon class="w-6 h-5" />
+                <ClipboardDocumentCheckIcon class="w-6 h-5" />
                 <span class="ml-3">{{ lang().label.subtopico }}</span>
                 </Link>
             </li>
+
+
+            <button v-show="can(['isAdmin'])" class="text-blue-500">
+                Promps
+            </button>
             <li v-show="can(['isAdmin']) || can(['profesor']) || can(['coordinador_de_programa']) || can(['coordinador_academico'])"
                 class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
                 :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('LosPromp.index') }">
                 <Link :href="route('LosPromp.index')" class="flex items-center py-2 px-4">
-                <PresentationChartLineIcon class="w-6 h-5" />
+                <BeakerIcon class="w-6 h-5" />
                 <span class="ml-3">{{ lang().label.losPromps }}</span>
                 </Link>
             </li>
@@ -166,7 +180,7 @@ const toggleContent2 = () => {
                 class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
                 :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('ejercicio.index') }">
                 <Link :href="route('ejercicio.index')" class="flex items-center py-1 px-4">
-                <PresentationChartLineIcon class="w-6 h-5" />
+                <CheckCircleIcon class="w-6 h-5" />
                 <span class="ml-3">{{ lang().label.ejercicio }}</span>
                 </Link>
             </li>

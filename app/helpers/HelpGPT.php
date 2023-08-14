@@ -120,49 +120,54 @@ class HelpGPT {
         return ($Lapromt);
     }
 
-    public static function contarModificarP(&$Lapromt, $materia_nombre = '', $Unidad = '', $nivel = '') {
+    public static function contarModificarP(&$Lapromt,$materia_nombre = '', $subtopico = '',$Unidad = '', $nivel = '') {
+        
         $Lapromt = strtolower($Lapromt);
+        $myhelp = new Myhelp();
 
         $contadorC = 0;
         $contadorP = 0;
+
         $remplazarPofavo = [
+            'Asignatura' => $materia_nombre,
             'asignatura' => $materia_nombre,
             'materia_nombre' => $materia_nombre,
             'materia' => $materia_nombre,
             'Materia' => $materia_nombre,
 
-            'tema' => $Unidad,
+            'concepto que se enseña' => $Unidad,
+            'Concepto que se enseña' => $Unidad,
+
+            'Tema' => $subtopico,
+            'tema' => $subtopico,
+
             'Unidad' => $Unidad,
             'unidad' => $Unidad,
 
             'nivel' => $nivel,
         ];
         
-        $myhelp = new Myhelp();
         foreach ($remplazarPofavo as $key => $value) {
-            $corchetes = "[".$key."]";
-            $parentesis = "(".$key.")";
+            $keyflexible = strtolower($key);
+            $corchetes = "[". $keyflexible."]";
+            $parentesis = "(".$keyflexible.")";
+
             $ArrayCorche = $myhelp->EncontrarEnString($Lapromt,$corchetes);
             $contadorC += count($ArrayCorche);
             $ArrayParent = $myhelp->EncontrarEnString($Lapromt,$parentesis);
             $contadorP += count($ArrayParent);
 
             if($contadorC !== 0){
-                $Lapromt = str_replace($corchetes, $value, $Lapromt);
+                $Lapromt = str_replace($corchetes, strtolower($value), strtolower($Lapromt));
             }
             if($contadorP !== 0){
-                $Lapromt = str_replace($parentesis, $value, $Lapromt);
+                $Lapromt = str_replace($parentesis, strtolower($value), strtolower($Lapromt));
             }
 
         }
         return [ 'corchetes' => $contadorC, 'parentesis' => $contadorP];
     }
 
-    private static function modificarPSubTema($Lapromt, $materia_nombre, $Unidad, $nivel) {
-        // dd($Unidad);
-        self::contarModificarP($Lapromt, $materia_nombre, $Unidad, $nivel);
-        return ($Lapromt);
-    }
 
     //se usa para resolver ejercicios
     public static function gptPart1($pregunta, $nivel, $materia_nombre, $usuario, &$soloEjercicios, $debug = false) {
@@ -343,12 +348,10 @@ class HelpGPT {
             'restarAlToken' => 0,
         ];
     }
-    public static function gptResolverTema(&$elpromp, $subtopico, $nivel, $materia_nombre, $usuario, $debug = false) {
+    public static function gptResolverTema(&$elpromp, $subtopico,$unidad, $nivel, $materia_nombre, $usuario, $debug = false) {
         $longuitudPregunta = strlen($subtopico) > 3;
         
-        $elpromp = self::modificarPSubTema($elpromp,$materia_nombre, $subtopico, $nivel);
-
-
+        self::contarModificarP($elpromp,$materia_nombre, $subtopico,$unidad, $nivel);
         $YaEstabaGuardada = GrabarGPT::BuscarPromp($elpromp);
         if($YaEstabaGuardada && $YaEstabaGuardada !== ''){
             return [ 'respuesta' => $YaEstabaGuardada, 'restarAlToken' => 0];

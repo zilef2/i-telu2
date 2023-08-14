@@ -193,19 +193,19 @@ const paAbajo = () => { window.scrollTo(0, document.body.scrollHeight); }
                             <p class="my-5 text-lg font-sans font-extrabold text-left">{{ props.HacerlaPregunta }}</p>
                                 <p class="text-left">{{ props.RespuestaPregunta }}</p>
                         </div>
-
-
-
                     </div>
+
+
+
                     <div class="w-full mt-6 mx-auto border border-t-2 border-x-0 border-b-0 border-black">
                         <p class="my-5 text-lg font-sans font-extrabold">Explicacion inicial</p>
                         <p class="text-left">{{ props.respuesta1 }}</p>
                         <div class="w-full mt-1 mx-auto">
 
-                            <div class="w-full flex items-center justify-center bg-gray-100">
+                            <div class="w-full flex items-center justify-center bg-gray-100 dark:bg-gray-900">
                                 <div class="w-full mx-auto py-6">
                                     <h1 class="text-xl text-center font-medium mb-6"> Aprender más </h1>
-                                    <div class="bg-white px-6 py-4 my-3 w-3/4 mx-auto shadow rounded-md flex items-center">
+                                    <div class="bg-white dark:bg-gray-900/100 px-6 py-4 my-3 w-3/4 mx-auto shadow rounded-md flex items-center">
                                         <div class="w-full text-center mx-auto">
                                             <button type="button" @click="submitGPTEQH(4)"
                                                 class="border border-sky-500 bg-sky-500 text-white rounded-md px-4 py-2 m-2 transition duration-500 ease select-none hover:bg-blue-300 focus:outline-none focus:shadow-outline">
@@ -238,7 +238,7 @@ const paAbajo = () => { window.scrollTo(0, document.body.scrollHeight); }
                                                             <p class="my-2 text-center">Es su responsabilidad las preguntas que va a desarrollar alrededor del tema.</p>
                                                             <input type="text" name="fName" id="fName"
                                                                 placeholder="Pregunte algo relacionado al tema" v-model="data.params.HacerlaPregunta"
-                                                                class="w-full rounded-md border border-gray-600 bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-[#6A64F1] focus:shadow-md" />
+                                                                class="w-full rounded-md border border-gray-600 dark:bg-black bg-white py-3 px-6 text-base font-medium text-gray-800 dark:text-white outline-none focus:border-[#6A64F1] focus:shadow-md" />
                                                         </div>
                                                     </div>
                                                 </div>

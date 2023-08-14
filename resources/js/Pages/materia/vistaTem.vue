@@ -91,7 +91,8 @@ const data = reactive({
 
 onMounted(() => {
     data.nivel = 3
-    data.tipoResSelect = [{ label: 'Practica', value: 'practica' }, { label: 'Teorica', value: 'teorica' }]
+    // data.tipoResSelect = [{ label: 'Practica', value: 'practica' }, { label: 'Teorica', value: 'teorica' }]
+    data.tipoResSelect = [{ label: 'Teorica', value: 'teorica' }]
     data.ListaPromp = props.ListaPromp;
 
     if (props.ArrayPreguntas)
@@ -105,7 +106,7 @@ const form = useForm({
     nivel: 1,
     pregunta: '', //para la zona libre
     respuestagpt: props.respuesta,
-    tipoRes: 'practica',
+    tipoRes: 'teorica',
 });
 
 watchEffect(() => {

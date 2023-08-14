@@ -115,7 +115,7 @@ watchEffect(() => {
                                             <div v-if="clasegenerica.sub.length" class=" mt-4">
                                                 <div v-for="(subtopicos, Jindex) in clasegenerica.sub" :key="Jindex"
                                                     class="grid grid-cols-2 gap-2 items-center">
-                                                    <p class="text-center text-gray-800 ml-2 hover:text-sky-300">
+                                                    <p class="text-center dark:text-white text-gray-800 ml-2 hover:text-sky-300">
                                                         {{ subtopicos.nombre }}
                                                     </p>
                                                     <button @click="(EstudianteGPT(subtopicos.id))"

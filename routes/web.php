@@ -104,7 +104,7 @@ Route::middleware('auth', 'verified')->group(function () {
     Route::post('/Estudiando', [MateriasController::class, 'actionEQH'])->name('materia.actionEQH');
     Route::get('/Estudiando', function(){
         return redirect('/materia');
-    })->name('materia.actionEQH');
+    });
 
     // #universidad
     Route::get('/AsignaruserUni/{universidadid}', [UniversidadsController::class, 'AsignarUsers'])->name('universidad.AsignarUsers');

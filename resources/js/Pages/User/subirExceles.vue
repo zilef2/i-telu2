@@ -12,7 +12,7 @@ import pkg from 'lodash';
 import { useForm } from '@inertiajs/vue3';
 import InputError from '@/Components/InputError.vue';
 
-import { BookOpenIcon, ArrowUpCircleIcon, ArrowDownCircleIcon } from '@heroicons/vue/24/solid';
+import { DocumentArrowUpIcon, ArrowUpCircleIcon, ArrowDownCircleIcon } from '@heroicons/vue/24/solid';
 
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css'
@@ -130,7 +130,7 @@ data.UniversidadSelect = vectorSelect(data.UniversidadSelect,props.UniversidadSe
                             <!-- user estudiantes -->
                             <div class="p-4 md:w-1/2">
                                 <div class="h-full border-2 border-gray-200 border-opacity-60 rounded-lg overflow-hidden">
-                                    <ArrowUpCircleIcon class=" h-12 lg:h-24  w-full object-cover object-center" />
+                                    <DocumentArrowUpIcon class="mt-5 h-12 lg:h-24  w-full object-cover object-center" />
 
                                     <div class="p-6">
                                         <h3 class="title-font text-lg font-medium text-gray-900 mb-3">Subir estudiantes</h3>
@@ -187,7 +187,7 @@ data.UniversidadSelect = vectorSelect(data.UniversidadSelect,props.UniversidadSe
                             <!-- user_universidad -->
                             <div class="p-4 md:w-1/2">
                                 <div class="h-full border-2 border-gray-200 border-opacity-60 rounded-lg overflow-hidden">
-                                    <ArrowUpCircleIcon class=" h-12 lg:h-24 w-full object-cover object-center" />
+                                    <DocumentArrowUpIcon class="mt-5 h-12 lg:h-24 w-full object-cover object-center" />
 
                                     <div class="p-6">
                                         <h3 class="title-font text-lg font-medium text-gray-900 mb-3">Matricular estudiantes
