@@ -49,16 +49,22 @@ watch(form.objetivo, (newValue, oldValue) => {
 })
 
 const update = () => {
-    form.put(route('materia.update', props.materia?.id), {
-        preserveScroll: true,
-        onSuccess: () => {
-            emit("close")
-            form.reset()
-            data.multipleSelect = false
-        },
-        onError: () => null,
-        onFinish: () => null,
-    })
+
+    // if(form.objetivo.length == form.cuantosObj){
+        form.put(route('materia.update', props.materia?.id), {
+            preserveScroll: true,
+            onSuccess: () => {
+                emit("close")
+                form.reset()
+                data.multipleSelect = false
+            },
+            onError: () => null,
+            onFinish: () => null,
+        })
+    // }else{
+    //     alert('Hay objetivos vacios o erroneos');
+    // }
+
 }
 
 watchEffect(() => {
@@ -80,7 +86,6 @@ watchEffect(() => {
         // form.objetivo[2] = props.materia?.objetivo3
     }
 })
-
 
 //not used
 onMounted(()=>{ })

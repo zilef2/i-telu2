@@ -5,6 +5,7 @@ namespace App\helpers;
 use App\Models\MedidaControl;
 use App\Models\Parametro;
 use App\Models\RespuestaEjercicio;
+use Illuminate\Support\Facades\Auth;
 use OpenAI;
 
 // use Illuminate\Support\Facades\Auth;
@@ -20,8 +21,57 @@ class HelpGPT {
     const PreguntaCorta = 'PreguntaCorta';
     const MAX_USAGE_RESPUESTA = 550;
     const MAX_USAGE_TOTAL = 600;
+    const TOKEN_GENERAR_MATERIA = 2000;
 
 
+    //? goes to materiascontroller.index
+    public static function ValoresGenerarMateria($stringCarreraNombre,$listaMaterias,$numero, $debug = false) {
+        if (!$debug) {
+            $numeroRenglones = 2 + $numero['unidades'] + ($numero['temas']* 2 * $numero['unidades']);
+            $renglon = 3;
+            $listMaterias = implode(", ", $listaMaterias->toArray());
+            
+            $elpromp = 
+            "Divide la respuesta en  $numeroRenglones renglones, con el siguiente patron".
+            ". En el renglon 1 Genera el nombre de una asignatura que se encuentre en la carrera universitaria :".$stringCarreraNombre. 
+            ". No puede ser una de las siguientes materias: ".$listMaterias.
+            ". En el renglon 2 genera el objetivo de dicha materia";
+            for ($i=0; $i < $numero['unidades']; $i++) { 
+                $elpromp .= ". En el renglon ".$renglon." genera el nombre de una unidad que pertenesca a dicha asignatura";
+                $renglon++;
+                for ($j=0; $j < $numero['temas']; $j++) { 
+                    $elpromp .= ". En el renglon ".$renglon." genera el nombre de un tema que pertenesca a la ultima unidad";
+                    $renglon++;
+                    $elpromp .= ". En el renglon ".$renglon." genera un resultado aprendizaje de este tema";
+                    $renglon++;
+                }
+            }
+            
+            $client = OpenAI::client(env('GTP_SELECT'));
+            $result = $client->completions()->create([
+                'model' => 'text-davinci-003',
+                'prompt' => $elpromp,
+                'max_tokens' => self::TOKEN_GENERAR_MATERIA
+            ]);
+            $ArrayRespuesta = Help_2GPT::PostRespuestaIA($result);
+            if($ArrayRespuesta['funciono']){
+                $ArrayRespuesta['Cuantas_unidades'] = $numero['unidades'];
+                $ArrayRespuesta['Cuantas_temas'] = $numero['temas'];
+                Help_2GPT::Materias_Unidades_Temas($ArrayRespuesta,$numeroRenglones);
+            }
+
+            return $ArrayRespuesta;
+        }
+        
+        $respuesta =[
+            2 => "Mecánica clásica",
+            3 => "Unidad 1: Movimiento y Leyes de Newton",
+            4 => "Objetivo: Comprender el concepto básico del movimiento lineal y sus leyes ",
+            5 => "Tema: Siguientes Leyes de Newton",
+            6 => "Resultado de aprendizaje: Interpretar los conceptos fundamentales de la Mecánica Clásica para aplicar las Leyes de Newton al movimiento lineal de los cuerpos.",
+        ];
+        return [ 'respuesta' => $respuesta, 'restarAlToken' => 0, 'funciono' => true];
+    }
     //usado para sacar los ejercicios que traer GPT y ponerlos en un vector
     public static function ApartarSujerencias($respuestaGPT, $plantillaPracticar) {
         $vectorEjercicios = explode("\n", $respuestaGPT);
@@ -127,6 +177,9 @@ class HelpGPT {
 
         $contadorC = 0;
         $contadorP = 0;
+        if($nivel === ''){
+            $nivel = 'profesional';
+        }
 
         $remplazarPofavo = [
             'Asignatura' => $materia_nombre,
@@ -452,6 +505,7 @@ class HelpGPT {
         }
         return 1400;
     }
+    
 
     public static function nivelesAplicativo() {
         $niveles = [

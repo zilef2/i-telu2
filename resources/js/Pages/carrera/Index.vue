@@ -5,7 +5,7 @@ import Breadcrumb from '@/Components/Breadcrumb.vue';
 import TextInput from '@/Components/TextInput.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SelectInput from '@/Components/SelectInput.vue';
-import { reactive, watch, onMounted } from 'vue';
+import { reactive, watch, onMounted, ref } from 'vue';
 import DangerButton from '@/Components/DangerButton.vue';
 import pkg from 'lodash';
 import { router, usePage, Link } from '@inertiajs/vue3';
@@ -105,21 +105,24 @@ const select = () => {
 
 onMounted(() => {
     // if (typeof data.params.selectedUniID === 'undefined' || data.params.selectedUniID === null) data.params.selectedUniID = 0
-    console.log("🧈 debu data.params.selectedUniID:", data.params.selectedUniID);
-    console.log("🧈 selectedUniID:", props.selectedUniID);
+    // console.log("🧈 debu data.params.selectedUniID:", data.params.selectedUniID);
+    // console.log("🧈 selectedUniID:", props.selectedUniID);
     data.UniversidadSelect = vectorSelect(data.UniversidadSelect, props.UniversidadSelect, 'una')
 })
 
-const irCarrera = (selectedUni, selectedcarr) => {
-    
-    data.params2.selectedUni = selectedUni
-    data.params2.selectedcarr = selectedcarr
-    let params = pickBy(data.params2)
-    router.get(route("materia.index"), params, {
-        replace: true,
-        preserveState: true,
-        preserveScroll: true,
-    })
+const irCarrera = (selectedUni, selectedcarr,cuantas) => {
+    if (cuantas > 0) {
+        data.params2.selectedUni = selectedUni
+        data.params2.selectedcarr = selectedcarr
+        let params = pickBy(data.params2)
+        router.get(route("materia.index"), params, {
+            replace: true,
+            preserveState: true,
+            preserveScroll: true,
+        })
+    } else {
+        isOpen.value = true
+    }
 }
 
 const PapaSelect = props.PapaSelect?.map(universidad => ({
@@ -199,13 +202,14 @@ const PapaSelect = props.PapaSelect?.map(universidad => ({
                                     <div class="flex justify-start items-center">
                                         <div class="rounded-md overflow-hidden">
                                             <GroupButtonsIndex v-show="can(['isAdmin'])"
-                                                :visualizar="['Editar','Borrar','Matricular','Ver']"
+                                                :visualizar="['Editar','Borrar','Matricular','Ver','Mapa']"
                                                 :ruta="'carrera.AsignarUsers'"
+                                                :rutaMapa="'carrera.Mapa'"
                                                 :id1="clasegenerica.id"
 
                                                 @editar="(data.editOpen = true), (data.generico = clasegenerica)" 
                                                 @justdelete="(data.deleteOpen = true), (data.generico = clasegenerica)"
-                                                @irHijo="irCarrera(clasegenerica.universidad_id, clasegenerica.id, clasegenerica.cuantasCarreras)"
+                                                @irHijo="irCarrera(clasegenerica.universidad_id, clasegenerica.id, clasegenerica.cuantasMaterias)"
                                             />
                                         </div>
                                     </div>
@@ -217,8 +221,7 @@ const PapaSelect = props.PapaSelect?.map(universidad => ({
                                 <td v-if="props.numberPermissions > 3" class="whitespace-nowrap py-4 px-2 sm:py-3">{{
                                     (clasegenerica?.cuantosUs) }} </td>
                                 <!-- <td v-if="props.numberPermissions > 1" class="whitespace-wrap break-words text-sm py-4 px-2 sm:py-3">{{ (clasegenerica?.tresPrimeros) }} </td> -->
-                                <td v-if="props.numberPermissions > 3" class="whitespace-nowrap py-4 px-2 sm:py-3">{{
-                                    (clasegenerica?.descripcion) }} </td>
+                                <!-- <td v-if="props.numberPermissions > 3" class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica?.descripcion) }} </td> -->
                             </tr>
                         </tbody>
                     </table>
@@ -244,11 +247,11 @@ const PapaSelect = props.PapaSelect?.map(universidad => ({
                                 <DialogPanel
                                     class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
                                     <DialogTitle as="h3" class="text-lg font-medium leading-6 text-gray-900">
-                                        Sin carreras
+                                        Sin Asignaturas
                                     </DialogTitle>
                                     <div class="mt-2">
                                         <p class="text-sm text-gray-500">
-                                            Esta universidad no tiene carreras inscritas
+                                            Esta carrera no tiene Asignaturas/materias inscritas
                                         </p>
                                     </div>
 

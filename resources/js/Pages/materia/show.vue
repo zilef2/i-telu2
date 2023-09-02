@@ -2,21 +2,10 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import Breadcrumb from '@/Components/Breadcrumb.vue';
-import TextInput from '@/Components/TextInput.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import SelectInput from '@/Components/SelectInput.vue';
 import { reactive, watch, ref, watchEffect, onMounted } from 'vue';
-
-import DangerButton from '@/Components/DangerButton.vue';
 import pkg from 'lodash';
-import { router, usePage, Link } from '@inertiajs/vue3';
-
-import Pagination from '@/Components/Pagination.vue';
 import { CursorArrowRippleIcon, ChevronUpDownIcon, QuestionMarkCircleIcon, EyeIcon, PencilIcon, TrashIcon, UserCircleIcon } from '@heroicons/vue/24/solid';
-
-import Checkbox from '@/Components/Checkbox.vue';
-import InfoButton from '@/Components/InfoButton.vue';
-import { useForm } from '@inertiajs/vue3';
+import superButton from '@/Components/uiverse/superButton.vue';
 import { vectorSelect, formatDate, CalcularEdad, CalcularSexo } from '@/global.ts';;
 
 const { _, debounce, pickBy } = pkg
@@ -81,6 +70,17 @@ onMounted(() => {
                     objetivo.nombre
                 }} </li>
             </ol>
+
+            <p class="text-center">
+                Si desea iniciar con sus estudios presione click 
+                <div class="rounded-md overflow-hidden">
+                    <superButton type="button" class="rounded-lg"
+                        :ruta="'materia.VistaTema'"
+                        :id1="props.fromController.id"
+                        :texto="'Aqui'">
+                    </superButton>
+                </div> 
+            </p>
 
             <div v-if="props.unidads.length" class="lg:w-4/5 w-full mx-auto overflow-auto">
                 <table class="table-auto w-full text-left whitespace-no-wrap">

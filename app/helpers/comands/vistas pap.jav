@@ -17,6 +17,5 @@ php artisan make:import PersonalUniversidadImport --model=User
 
 
 
-// node
-// laravel
-composer require maatwebsite/excel
+//smalot pdfparser
+php artisan make:controller TemporalPdfReader

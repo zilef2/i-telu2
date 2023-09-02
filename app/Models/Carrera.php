@@ -32,4 +32,24 @@ class Carrera extends Model
     public function universidad_nombre(): string { return $this->universidad->nombre; }
     public function materias(): HasMany { return $this->hasMany(Materia::class, 'carrera_id'); }
     public function users() { return $this->belongsToMany(User::class, 'carrera_user'); }
+    
+    public function materias_enum() { 
+        return $this->materias()->orderBy('enum');
+    }
+
+    public function estudiantesMuchosRoles($carreraid, $inscrito, $roles) {
+        if ($inscrito) {
+            $operacion = '=';
+        } else{
+            $operacion = '<>';
+        }
+
+        $result = $this->belongsToMany(User::class, 'carrera_user')
+        ->wherePivot('carrera_id', $operacion, $carreraid)
+        ->WhereHas('roles',function ($query) use ($roles){
+            $query->whereIn('name', $roles );
+        });
+
+        return $result;
+    }
 }

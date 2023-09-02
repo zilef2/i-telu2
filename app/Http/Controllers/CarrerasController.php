@@ -21,14 +21,15 @@ class CarrerasController extends Controller
 
     private $modelName = 'Carrera';
     //! funciones del index
-    public function MapearClasePP(&$Carreras, $numberPermissions) {
+    public function MapearClasePP(&$Carreras, $numberPermissions)
+    {
         $Carreras = $Carreras->get()->map(function ($carrera) use ($numberPermissions) {
 
             if ($numberPermissions < 5) { //coordinador_academico = 4
                 $universidadUser = Auth::user()->universidades()->pluck('universidad_id')->toArray();
                 if (!in_array($carrera->universidad_id, $universidadUser)) return null;
 
-                if ($numberPermissions < 3) { //estudiante o profesor
+                if ($numberPermissions < 4) { //estudiante o profesor o coordinador_de_programa
                     $carreraUser = Auth::user()->carreras()->pluck('carrera_id')->toArray();
                     if (!in_array($carrera->id, $carreraUser)) return null;
                 }
@@ -40,23 +41,24 @@ class CarrerasController extends Controller
             $CarreraUsers = $carrera->users;
             $carrera->tresPrimeros = Myhelp::ArrayInString($CarreraUsers->pluck('name'));
             $carrera->cuantosUs = $CarreraUsers->count();
+            $carrera->cuantasMaterias = $carrera->materias->count();
             return $carrera;
         })->filter();
     }
 
-    public function fNombresTabla($numberPermissions) {
-        //0: como se ven //1 como es la BD //2orden
+    public function fNombresTabla($numberPermissions)
+    {
         $nombresTabla = [[], [], []];
-        if ($numberPermissions <= 3) { //estudiante
+        if ($numberPermissions <= 3) { //estudiante, prof, coor_prog
 
-            array_push($nombresTabla[0], "#", "nombre", "codigo", "Universidad", "descripcion");
+            array_push($nombresTabla[0], "#", "nombre", "codigo", "Universidad");
             //se puede ordenar?
-            $nombresTabla[2][] = ["enum", "nombre", "codigo", "universidad_id", "descripcion"];
+            $nombresTabla[2][] = ["enum", "nombre", "codigo", "universidad_id"];
         } else {
-            // if($numberPermissions < 3){ //profesor
-            $nombresTabla[0] = array_merge($nombresTabla[0], ["Acciones", "#", "nombre", "codigo", "Universidad", "Inscritos", "descripcion"]);
+            //0: como se ven //1 como es la BD //2orden
+            $nombresTabla[0] = array_merge($nombresTabla[0], ["Acciones", "#", "nombre", "codigo", "Universidad", "Inscritos"]);
             //campos ordenables
-            $nombresTabla[2] = array_merge($nombresTabla[2], [null, "enum", "nombre", "codigo", "universidad_id", null, "descripcion"]);
+            $nombresTabla[2] = array_merge($nombresTabla[2], [null, "enum", "nombre", "codigo", "universidad_id", null]);
         }
         //coordinador_academico
         // coordinador_de_programa
@@ -64,7 +66,8 @@ class CarrerasController extends Controller
     }
 
 
-    public function Filtros($request, &$Carreras) {
+    public function Filtros($request, &$Carreras)
+    {
         if ($request->has('selectedUniID') && $request->selectedUniID != 0) {
             $universidadid = Universidad::has('carreras')->where('id', $request->selectedUniID)->pluck('id')->toArray();
             $Carreras->whereIn('universidad_id', $universidadid);
@@ -84,7 +87,8 @@ class CarrerasController extends Controller
             $Carreras->orderBy('nombre');
         }
     }
-    public function losSelect($numberPermissions) {
+    public function losSelect($numberPermissions)
+    {
         if ($numberPermissions < intval(env('PERMISS_VER_FILTROS_SELEC'))) { //coordinador academico, coorPrograma,profe,estudiante
             $UniversidadSelect = Auth::user()->universidades;
         } else {
@@ -150,7 +154,9 @@ class CarrerasController extends Controller
         $titulo = 'Seleccione los estudiantes a matricular';
         $permissions = Myhelp::EscribirEnLog($this, 'carrera');
         $carrera = Carrera::find($carreraid);
-        if ($permissions === "estudiante") {
+        $numberPermissions = Myhelp::getPermissionToNumber($permissions);
+
+        if ($numberPermissions < 3) { //profesor o estudiante
             return back()->with('error', __('app.label.no_permission'));
         } else { // not estudiante
             // $nombresTabla = $this->laTabla(0);
@@ -159,21 +165,8 @@ class CarrerasController extends Controller
         $universidad = Universidad::find($carrera->universidad_id);
         $users = User::query();
 
-        $filtroUser = $this->UsuariosSinLosInscritos($carrera, $universidad);
+        $filtroUser = $this->UsuariosSinLosInscritos($carrera, $universidad, $request);
 
-        if (count($filtroUser->si) > 0) {
-            $users->whereNotIn('users.id', $filtroUser->no)
-                ->whereIn('users.id', $filtroUser->si);
-
-            if ($request->has('search')) {
-                $users->Where(function ($query) use ($request) {
-                    $query->where('name', 'LIKE', "%" . $request->search . "%");
-                    $query->orWhere('email', 'LIKE', "%" . $request->search . "%");
-                });
-            }
-        } else {
-            $users->where('id', 0);
-        }
 
         // dd($carrera->users);
         return Inertia::render('carrera/AsignarUsers', [ //carpeta
@@ -181,21 +174,66 @@ class CarrerasController extends Controller
             'breadcrumbs'    =>  [['label' => __('app.label.carreras'), 'href' => route('carrera.index')]],
             'filters'       => $request->all(['search']),
 
-            'usuariosPorInscribir' =>  $users->get(),
+            // 'usuariosPorInscribir' =>  $users->get(),
+            'usuariosPorInscribir' =>  $filtroUser->no->get(),
+            'inscritos' => $filtroUser->si->get(),
+            'profesinscritos' =>  $filtroUser->profesors->get(),
+            'profesPorInscribir' => $filtroUser->noprofesors->get(),
+
+
             'carrera' =>  $carrera,
             'universidad' =>  $universidad,
-            'inscritos' => $carrera->users,
         ]);
     }
 
-    public function UsuariosSinLosInscritos($modelo, $universidad)
+    public function UsuariosSinLosInscritos($modelo, $universidad, $request)
     {
-        $usuariosU = $universidad->users->pluck('id');
-        $usuariosDeLaCarrera = $modelo->users->pluck('id');
 
+        $usuariosU = $universidad->users->pluck('id');
+        // $usuariosDeLaCarrera = $modelo->users->pluck('id');
+
+        $estudiantesDeLaC = $modelo->estudiantesMuchosRoles($modelo->id, true, ['estudiante']); //->pluck('users.id');
+        $estudiantesDeOtraC  = User::WhereIn('id', $usuariosU)
+            ->WhereHas('roles', function ($query) {
+                $query->where('name', 'estudiante');
+            })->whereNotIn('id', $estudiantesDeLaC->pluck('users.id'));
+
+        $profDeLaC = $modelo->estudiantesMuchosRoles($modelo->id, true, ['profesor', 'coordinador_de_programa', 'coordinador_academico']);
+
+        $profDeOtraC = User::WhereIn('id', $usuariosU)
+            ->WhereHas('roles', function ($query) {
+                $query->whereNotIn('name', ['estudiante'])
+                    ->WhereNotIn('name', ['superadmin', 'admin']);
+            })->whereNotIn('id', $profDeLaC->pluck('users.id'));
+
+
+        if ($request->has('search')) {
+            $estudiantesDeLaC->Where(function ($query) use ($request) {
+                $query->where('name', 'LIKE', "%" . $request->search . "%");
+                // $query->orWhere('email', 'LIKE', "%" . $request->search . "%");
+                $query->orWhere('identificacion', 'LIKE', "%" . $request->search . "%");
+            });
+            $estudiantesDeOtraC->Where(function ($query) use ($request) {
+                $query->where('name', 'LIKE', "%" . $request->search . "%");
+                // $query->orWhere('email', 'LIKE', "%" . $request->search . "%");
+                $query->orWhere('identificacion', 'LIKE', "%" . $request->search . "%");
+            });
+            $profDeLaC->Where(function ($query) use ($request) {
+                $query->where('name', 'LIKE', "%" . $request->search . "%");
+                // $query->orWhere('email', 'LIKE', "%" . $request->search . "%");
+                $query->orWhere('identificacion', 'LIKE', "%" . $request->search . "%");
+            });
+            $profDeOtraC->Where(function ($query) use ($request) {
+                $query->where('name', 'LIKE', "%" . $request->search . "%");
+                // $query->orWhere('email', 'LIKE', "%" . $request->search . "%");
+                $query->orWhere('identificacion', 'LIKE', "%" . $request->search . "%");
+            });
+        }
         return (object) [
-            'si' => $usuariosU,
-            'no' => $usuariosDeLaCarrera
+            'si' => $estudiantesDeLaC,
+            'no' => $estudiantesDeOtraC,
+            'profesors' => $profDeLaC,
+            'noprofesors' => $profDeOtraC,
         ];
     }
 
@@ -232,9 +270,9 @@ class CarrerasController extends Controller
             return back()->with('success', __('app.label.created_successfully2', ['nombre' => $Carrera->nombre]));
         } catch (\Throwable $th) {
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en Guardar Carrera " . $request->nombre . " - " . $th->getMessage() . ' L:' . $th->getLine());
+            Log::alert("U -> " . Auth::user()->name . " fallo en Guardar Carrera " . $request->nombre . " - " . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
 
-            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.Carrera')]) . $th->getMessage() . ' L:' . $th->getLine());
+            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.Carrera')]) . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
         }
     }
 
@@ -256,17 +294,12 @@ class CarrerasController extends Controller
             return redirect()->route('carrera.index')->with('success', __('app.label.created_success'));
         } catch (\Throwable $th) {
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en matricular(carrera) - " . $th->getMessage() . ' L:' . $th->getLine());
-            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.Universidad')]) . $th->getMessage() . ' L:' . $th->getLine());
+            Log::alert("U -> " . Auth::user()->name . " fallo en matricular(carrera) - " . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
+            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.Universidad')]) . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
         }
     }
 
-    public function show(Carrera $Carrera)
-    {
-    }
-    public function edit(Carrera $Carrera)
-    {
-    }
+    public function show(Carrera $Carrera) { } public function edit(Carrera $Carrera) { }
     public function update(CarreraRequest $request, Carrera $Carrera)
     {
         $request->validate([
@@ -290,18 +323,11 @@ class CarrerasController extends Controller
         } catch (\Throwable $th) {
 
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en actualizar Carrera " . $request->nombre . " - " . $th->getMessage() . ' L:' . $th->getLine());
-            return back()->with('error', __('app.label.updated_error', ['nombre' => $Carrera->nombre]) . $th->getMessage() . ' L:' . $th->getLine());
+            Log::alert("U -> " . Auth::user()->name . " fallo en actualizar Carrera " . $request->nombre . " - " . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
+            return back()->with('error', __('app.label.updated_error', ['nombre' => $Carrera->nombre]) . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Carrera  $Carrera
-     * @return \Illuminate\Http\Response
-     */
-    // public function destroy(Carrera $Carrera)
     public function destroy($id)
     {
         Myhelp::EscribirEnLog($this, 'carrera');
@@ -309,14 +335,42 @@ class CarrerasController extends Controller
         DB::beginTransaction();
         try {
             $Carreras = Carrera::findOrFail($id);
-            Log::info("U -> " . Auth::user()->name . "La carrera id:" . $id . " y nombre:" . $Carreras->nombre . " ha sido borrada correctamente");
+            $Carrerasnombre = $Carreras->nombre;
+            $Carrerasid = $Carreras->id;
             $Carreras->delete();
+            Log::info("U -> " . Auth::user()->name . "La carrera id:" . $Carrerasid . " y nombre:" . $Carrerasnombre . " ha sido borrada correctamente");
             DB::commit();
-            return back()->with('success', __('app.label.deleted_successfully2', ['nombre' => $Carreras->nombre]));
+            return back()->with('success', __('app.label.deleted_successfully2', ['nombre' => $Carrerasnombre]));
         } catch (\Throwable $th) {
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en borrar Carrera " . $id . " - " . $th->getMessage() . ' L:' . $th->getLine());
-            return back()->with('error', __('app.label.deleted_error', ['name' => __('app.label.Carreras')]) . $th->getMessage() . ' L:' . $th->getLine());
+            Log::alert("U -> " . Auth::user()->name . " fallo en borrar Carrera " . $id . " - " . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
+            return back()->with('error', __('app.label.deleted_error', ['name' => __('app.label.Carreras')]) . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
         }
+    }
+
+    public function carreraMapa($id)
+    {
+        $permissions = Myhelp::EscribirEnLog($this, 'carrera');
+        $numberPermissions = Myhelp::getPermissionToNumber($permissions);
+        $Carrera = Carrera::findOrFail($id);
+        
+        $Unidades =[];
+        foreach ($Carrera->materias_enum as $key => $value) {
+            $Unidades[] = $value->unidads;
+        }
+        
+        // dd(
+        //     $Carrera->materias_enum,
+        //     $Carrera,
+        //     $Unidades,
+        // );
+
+        DB::beginTransaction();
+        return Inertia::render('carrera/Mapa', [ //carpeta
+            'numberPermissions' => $numberPermissions,
+            'Carrera' => $Carrera ?? null,
+            'Unidades' => $Unidades ?? null,
+
+        ]);
     }
 }

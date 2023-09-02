@@ -35,14 +35,13 @@ const justNames = [
 ]
 const form = useForm({ ...Object.fromEntries(justNames.map(field => [field, ''])) });
 const printForm = [
-    { idd: 'enum', label: 'enum', type: 'number', value: form.enum },
+    { idd: 'enum', label: 'enumUnidad', type: 'number', value: form.enum },
     { idd: 'nombre', label: 'nombre', type: 'text', value: form.nombre },
-    { idd: 'codigo', label: 'codigo', type: 'text', value: form.codigo },
-    { idd: 'descripcion', label: 'descripcion', type: 'text', value: form.descripcion },
+    // { idd: 'codigo', label: 'codigo', type: 'text', value: form.codigo },
+    // { idd: 'descripcion', label: 'descripcion', type: 'text', value: form.descripcion },
 ];
 
-onMounted(() => {
-})
+onMounted(() => { })
 
 const update = () => {
     form.put(route('Unidad.update', props.Unidad?.id), {

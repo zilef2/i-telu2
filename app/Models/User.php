@@ -53,10 +53,13 @@ class User extends Authenticatable
             return [$pr['name'] => true];
         });
     }
+    public function LimiteDePromps() {
+        return $this->hasMany('App\Models\LosPromps');
+    }
+    
     public function reportes() {
         return $this->hasMany('App\Models\Reporte');
     }
-
 
     public function universidades(): BelongsToMany {
         return $this->BelongsToMany(Universidad::class);

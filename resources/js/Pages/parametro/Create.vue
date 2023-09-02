@@ -30,6 +30,7 @@ const justNames = [
     'descripcion',
     'subtopico_id',
 ]
+//very usefull
 const form = useForm({ ...Object.fromEntries(justNames.map(field => [field, ''])) });
 const printForm = [
     { idd: 'nombre', label: 'nombre', type: 'text', value: form.nombre },

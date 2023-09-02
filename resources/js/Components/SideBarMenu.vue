@@ -1,22 +1,24 @@
 <script setup>
 import {
-    HomeIcon,
-    UserIcon,
-    CheckBadgeIcon,
-    KeyIcon,
-    ShieldCheckIcon,
-    ClockIcon,
-    PresentationChartLineIcon,
+        HomeIcon,
+        UserIcon,
+        CheckBadgeIcon,
+        KeyIcon,
+        ShieldCheckIcon,
+        ClockIcon,
+        PresentationChartLineIcon,
 
-    CheckCircleIcon,
-    ClipboardDocumentCheckIcon,
-    ClipboardDocumentListIcon,
-    ClipboardDocumentIcon,
-    ClipboardIcon,
-    CircleStackIcon,
-    CpuChipIcon,
-    BeakerIcon,
-} from "@heroicons/vue/24/solid";
+        CheckCircleIcon,
+        ClipboardDocumentCheckIcon,
+        ClipboardDocumentListIcon,
+        ClipboardDocumentIcon,
+        ClipboardIcon,
+        CircleStackIcon,
+        CpuChipIcon,
+        BeakerIcon,
+        AcademicCapIcon,
+        BuildingLibraryIcon,
+    } from "@heroicons/vue/24/solid";
 
 import { Link } from '@inertiajs/vue3';
 import { reactive, watch } from 'vue';
@@ -33,8 +35,8 @@ const toggleContent = () => {
 const toggleContent2 = () => {
     data.showContent2 = !data.showContent2
 }
-
 </script>
+
 <template>
     <div class="text-gray-300 pt-5 pb-20">
         <div class="flex justify-center">
@@ -57,11 +59,11 @@ const toggleContent2 = () => {
 
 
         <ul class="space-y-2 my-4">
-            <li class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
+            <li v-show="can(['read user'])" class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
                 :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('dashboard') }">
                 <Link :href="route('dashboard')" class="flex items-center py-2 px-4">
-                <HomeIcon class="w-6 h-5" />
-                <span class="ml-3">Tablero principal</span>
+                    <HomeIcon class="w-6 h-5" />
+                    <span class="ml-3">Tablero principal</span>
                 </Link>
             </li>
             <!-- <li v-show="can(['read user'])" class="py-2"> <p>{{ lang().label.data }}</p> </li> -->
@@ -126,7 +128,7 @@ const toggleContent2 = () => {
                 class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
                 :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('universidad.index') }">
                 <Link :href="route('universidad.index')" class="flex items-center py-1 px-4">
-                <CircleStackIcon class="w-6 h-5" />
+                <BuildingLibraryIcon class="w-6 h-5" />
                 <span class="ml-3">{{ lang().label.universidad }}</span>
                 </Link>
             </li>
@@ -135,7 +137,7 @@ const toggleContent2 = () => {
                 class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
                 :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('carrera.index') }">
                 <Link :href="route('carrera.index')" class="flex items-center py-1 px-4">
-                <ClipboardIcon class="w-6 h-5" />
+                <AcademicCapIcon class="w-6 h-5" />
                 <span class="ml-3">{{ lang().label.carrera }}</span>
                 </Link>
             </li>
@@ -165,23 +167,23 @@ const toggleContent2 = () => {
             </li>
 
 
-            <button v-show="can(['isAdmin'])" class="text-blue-500">
+            <button v-show="can(['read ejercicio'])" class="text-white">
                 Promps
             </button>
-            <li v-show="can(['isAdmin']) || can(['profesor']) || can(['coordinador_de_programa']) || can(['coordinador_academico'])"
+            <li v-show="can(['read ejercicio'])"
                 class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
                 :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('LosPromp.index') }">
                 <Link :href="route('LosPromp.index')" class="flex items-center py-2 px-4">
-                <BeakerIcon class="w-6 h-5" />
-                <span class="ml-3">{{ lang().label.losPromps }}</span>
+                    <BeakerIcon class="w-6 h-5" />
+                    <span class="ml-3">{{ lang().label.losPromps }}</span>
                 </Link>
             </li>
             <li v-show="can(['read ejercicio'])"
                 class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
                 :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('ejercicio.index') }">
                 <Link :href="route('ejercicio.index')" class="flex items-center py-1 px-4">
-                <CheckCircleIcon class="w-6 h-5" />
-                <span class="ml-3">{{ lang().label.ejercicio }}</span>
+                    <CheckCircleIcon class="w-6 h-5" />
+                    <span class="ml-3">{{ lang().label.ejercicio }}</span>
                 </Link>
             </li>
         </ul>

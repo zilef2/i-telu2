@@ -17,6 +17,7 @@ import { CursorArrowRippleIcon, ChevronUpDownIcon, QuestionMarkCircleIcon, EyeIc
 import Create from '@/Pages/materia/Create.vue';
 import Edit from '@/Pages/materia/Edit.vue';
 import Delete from '@/Pages/materia/Delete.vue';
+import generarTodo from '@/Pages/materia/generarTodo.vue';
 
 import Checkbox from '@/Components/Checkbox.vue';
 import InfoButton from '@/Components/InfoButton.vue';
@@ -39,6 +40,7 @@ const props = defineProps({
     MateriasRequisitoSelect: Object,
     UniversidadSelect: Object,
     numberPermissions: Number,
+    ValoresGenerarMateria: Object,
 })
 
 
@@ -54,6 +56,7 @@ const data = reactive({
     },
     selectedId: [],
     multipleSelect: false,
+    generarOpen: false,
     createOpen: false,
     editOpen: false,
     deleteOpen: false,
@@ -66,6 +69,7 @@ const data = reactive({
     MateriasRequisitoSelect: [],
     numeroCarreras: 0,
 })
+
 const order = (field) => {
     data.params.field = field.replace(/ /g, "_")
 
@@ -81,9 +85,6 @@ watch(() => _.cloneDeep(data.params), debounce(() => {
 }, 100))
 
 watchEffect(() => {
-    // data.numeroCarreras = ((Object.keys(props.carrerasSelect)).length)
-    // console.log(data.numeroCarreras)
-    // if(data.numeroCarreras > 0){
     data.carrerasDeUSel = props.carrerasSelect?.map(
         carrera => (
             { label: carrera.nombre, value: carrera.id }
@@ -92,7 +93,6 @@ watchEffect(() => {
     data.carrerasDeUSel.unshift({ label: 'Seleccione carrera', value: 0 })
     // }
 })
-// console.log(data.params.carrerasDeUSel)
 const selectAll = (event) => {
     if (event.target.checked === false) {
         data.selectedId = []
@@ -118,10 +118,6 @@ onMounted(() => {
     // data.MateriasRequisitoSelect = vectorSelect(data.MateriasRequisitoSelect,props.MateriasRequisitoSelect,'una')
 })
 
-const vistaIA = (elid) => {
-    const vista = route(route('materia.VistaTema', elid).url());
-    page.visit(vista)
-}
 </script>
 
 <template>
@@ -138,6 +134,15 @@ const vistaIA = (elid) => {
                     <PrimaryButton class="rounded-none" @click="data.createOpen = true" v-if="can(['create materia'])">
                         {{ lang().button.add }}
                     </PrimaryButton>
+
+                    <PrimaryButton class="rounded-none" @click="data.generarOpen = true" v-if="can(['create materia'])">
+                        Generar Materia
+                    </PrimaryButton>
+                    <generarTodo :show="data.generarOpen" @close="data.generarOpen = false" :title="props.title"
+                        v-if="can(['create materia'])" :carrerasSelect="data.carrerasDeUSel" :ValoresGenerarMateria="props.ValoresGenerarMateria"
+                        :MateriasRequisitoSelect="props.MateriasRequisitoSelect" />
+
+
                     <Create :show="data.createOpen" @close="data.createOpen = false" :title="props.title"
                         v-if="can(['create materia'])" :carrerasSelect="data.carrerasDeUSel"
                         :MateriasRequisitoSelect="props.MateriasRequisitoSelect" />
@@ -227,19 +232,11 @@ const vistaIA = (elid) => {
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">
                                     <div v-if="clasegenerica.cuantoshijos != 0" class="flex justify-start items-center">
                                         <div class="rounded-md overflow-hidden">
-                                            <!-- <Link :href="route('materia.VistaTema', clasegenerica.id)">
-                                                <InfoButton type="button" class="rounded-lg"
-                                                    v-tooltip="lang().tooltip.preguntaria">
-                                                    <QuestionMarkCircleIcon class="w-8 h-8 -p-1" />
-                                                </InfoButton>
-                                            </Link> -->
                                             <superButton type="button" class="rounded-lg"
                                                 :ruta="'materia.VistaTema'"
                                                 :id1="clasegenerica.id"
                                                 :texto="'Estudiar'">
                                             </superButton>
-                                            
-
                                         </div>
                                     </div>
                                     <div v-else class="flex justify-start items-center">
@@ -248,8 +245,7 @@ const vistaIA = (elid) => {
                                         </div>
                                     </div>
                                 </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-sm text-gay-600">{{ (clasegenerica.enum)
-                                }} </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-sm text-gay-600">{{ (clasegenerica.enum) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3 underline text-sky-700">
                                     <Link :href="route('materia.show', clasegenerica.id)">
                                     {{ (clasegenerica.nombre) }}
@@ -257,8 +253,7 @@ const vistaIA = (elid) => {
                                 </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-sm text-gay-600">{{
                                     (clasegenerica.codigo) }} </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-sm text-gay-600">{{ (clasegenerica.papa)
-                                }} </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-sm text-gay-600">{{ (clasegenerica.papa) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-sm text-gay-600">{{
                                     (clasegenerica.cuantoshijos) }} </td>
                                 <td v-if="props.numberPermissions > 2" class="whitespace-nowrap py-4 px-2 sm:py-3">{{

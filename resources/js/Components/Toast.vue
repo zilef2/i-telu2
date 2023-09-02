@@ -48,7 +48,7 @@
         </div>
     </transition>
     <transition name="slide-fade">
-        <div v-if="flash.error && isErrorVisible" class="absolute top-4 right-4 w-8/12 md:w-6/12 lg:w-3/12 z-[100]">
+        <div v-if="flash.error && isErrorVisible" class="absolute top-4 right-4 w-8/12 md:w-6/12 lg:w-5/12 xl:w-5/12 z-[100]">
             <div class="flex p-4 justify-between items-center bg-red-600 rounded-lg">
                 <div>
                     <ExclamationCircleIcon class="h-8 w-8 text-white" fill="currentColor" />
@@ -56,7 +56,7 @@
                 <div class="mx-3 text-sm font-medium text-white" v-html="flash.error">
                 </div>
                 <button @click="toggle" type="button"
-                    class="ml-auto bg-white/20 text-white rounded-lg focus:ring-2 focus:ring-white/50 p-1.5 hover:bg-white/30 h-8 w-8">
+                    class="ml-auto bg-red-300 text-gray-100 rounded-lg focus:ring-2 focus:ring-white/50 p-1.5 hover:bg-red-300 h-8 w-8">
                     <XMarkIcon class="w-5 h-5" />
                 </button>
             </div>

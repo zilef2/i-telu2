@@ -41,10 +41,7 @@ const create = () => {
             form.reset()
             data.multipleSelect = false
         },
-        // onError: () => alert(form.errors),
-        // onError: () => null,
         onError: () => alert(JSON.stringify(form.errors, null, 4)),
-
         onFinish: () => null,
     })
 }
@@ -66,7 +63,7 @@ watchEffect(() => {
                 </h2>
                 <div class="my-6 grid xs:grid-cols-1 sm:grid-cols-2 gap-6">
                     <div>
-                        <InputLabel for="enum" :value="lang().label.enum" />
+                        <InputLabel for="enum" :value="lang().label.enumTema" />
                         <TextInput id="enum" type="number" class="mt-1 block w-full" v-model="form.enum" required
                             :placeholder="lang().placeholder.enum" :error="form.errors.enum" />
                         <InputError class="mt-2" :message="form.errors.enum" />

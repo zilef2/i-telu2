@@ -90,7 +90,7 @@ class PersonalImport implements ToModel
 
             return $user;
         } catch (\Throwable $th) {
-            Myhelp::EscribirEnLog($this, 'IMPORT:users', ' Fallo dentro de la importacion: ' . $th->getMessage() . ' L:' . $th->getLine(), false);
+            Myhelp::EscribirEnLog($this, 'IMPORT:users', ' Fallo dentro de la importacion: ' . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile(), false);
         }
     }
 

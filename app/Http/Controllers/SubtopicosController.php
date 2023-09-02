@@ -22,27 +22,29 @@ class subtopicosController extends Controller
 
     // - MapearClasePP, Filtros, losSelect
 
-    public function MapearClasePP(&$subtopicos, $numberPermissions) {
+    public function MapearClasePP(&$subtopicos, $numberPermissions)
+    {
         if ($numberPermissions < 4) {
             $subtopicos = Auth::user()->materias->flatMap(function ($materia) {
                 return collect($materia->Tsubtemas);
             });
             // dd($subtemasUser);
             // if(!in_array($subtopico->id,$subtemasUser)) return null;
-        }
-         else {
+        } else {
             $subtopicos = $subtopicos->get();
-         }
+        }
         // dd($subtopicos);
 
-            $subtopicos = $subtopicos->map(function ($subtopico) {
-                $subtopico->hijo = $subtopico->tema_nombre();
-                return $subtopico;
-            })->filter();
+        $subtopicos = $subtopicos->map(function ($subtopico) {
+            $subtopico->hijo = $subtopico->tema_nombre();
+            $subtopico->nieto = $subtopico->Unidad()->first()->materia_nombre();
+            return $subtopico;
+        })->filter();
         // }
         // dd($subtopicos);
     }
-    public function Filtros($request, &$subtopicos, &$showMateria) {
+    public function Filtros($request, &$subtopicos, &$showMateria)
+    {
         if ($request->has('selectedUnidadID') && $request->selectedUnidadID != 0) {
             $showMateria = Materia::find(Unidad::find($request->selectedUnidadID)->materia_id);
             // dd($request->selectedUni);
@@ -60,15 +62,25 @@ class subtopicosController extends Controller
         if ($request->has(['field', 'order'])) {
             $subtopicos->orderBy($request->field, $request->order);
         } else {
-            $subtopicos->orderBy('nombre');
+            $subtopicos
+                ->orderBy('unidad_id')
+                ->orderBy('enum');
         }
     }
-    public function losSelect($numberPermissions) {
+    public function losSelect($numberPermissions)
+    {
         if ($numberPermissions < intval(env('PERMISS_VER_FILTROS_SELEC'))) { //coorPrograma,profe,estudiante
             $UnidadsSelect = Auth::user()->unidads();
         } else {
             $UnidadsSelect = Unidad::all();
         }
+
+        $UnidadsSelect = $UnidadsSelect->map(function ($unidad) {
+            if ($unidad)
+                $unidad->hijo = $unidad->materia_nombre();
+            return $unidad;
+        });
+
         return [
             'UnidadsSelect' => $UnidadsSelect
         ];
@@ -76,7 +88,8 @@ class subtopicosController extends Controller
 
     // -fin : MapearClasePP, Filtros
 
-    public function index(Request $request) {
+    public function index(Request $request)
+    {
         $permissions = Myhelp::EscribirEnLog($this, 'subtopico');
         $numberPermissions = Myhelp::getPermissionToNumber($permissions);
 
@@ -107,7 +120,7 @@ class subtopicosController extends Controller
         return Inertia::render('subtopico/Index', [ //carpeta
             'breadcrumbs'       =>  [['label' => __('app.label.subtopicos'), 'href' => route('subtopico.index')]],
             'title'             =>  $titulo,
-            'filters'           =>  $request->all(['search', 'field', 'order']),
+            'filters'           =>  $request->all(['search', 'field', 'order', 'selectedUnidadID']),
             'perPage'           =>  (int) $perPage,
             'fromController'    =>  $paginated,
             'UnidadsSelect'     =>  $Select['UnidadsSelect'],
@@ -127,7 +140,7 @@ class subtopicosController extends Controller
         $nombreC = end($ListaControladoresYnombreClase);
         log::info('Vista: ' . $nombreC . 'U:' . Auth::user()->name . ' ||subtopico|| ');
 
-        $enum = Myhelp::getPropertieAutoIncrement($this->modelName,$request->enum,'enum');
+        $enum = Myhelp::getPropertieAutoIncrement($this->modelName, $request->enum, 'enum', 'unidad_id', $request->unidad_id);
         try {
             $subtopico = Subtopico::create([
                 'codigo' => $request->codigo,
@@ -143,14 +156,18 @@ class subtopicosController extends Controller
             return back()->with('success', __('app.label.created_successfully2', ['nombre' => $subtopico->nombre]));
         } catch (\Throwable $th) {
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en Guardar subtopico " . $request->nombre . " - " . $th->getMessage() . ' L:' . $th->getLine());
+            Log::alert("U -> " . Auth::user()->name . " fallo en Guardar subtopico " . $request->nombre . " - " . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
 
-            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.subtopico')]) . $th->getMessage() . ' L:' . $th->getLine());
+            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.subtopico')]) . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
         }
     }
 
-    public function show(subtopico $subtopico) { }
-    public function edit(subtopico $subtopico) { }
+    public function show(subtopico $subtopico)
+    {
+    }
+    public function edit(subtopico $subtopico)
+    {
+    }
     public function update(Request $request, $id)
     {
         $subtopico = Subtopico::find($id);
@@ -174,8 +191,8 @@ class subtopicosController extends Controller
         } catch (\Throwable $th) {
 
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en actualizar subtopico " . $request->nombre . " - " . $th->getMessage() . ' L:' . $th->getLine());
-            return back()->with('error', __('app.label.updated_error', ['nombre' => $subtopico->nombre]) . $th->getMessage() . ' L:' . $th->getLine());
+            Log::alert("U -> " . Auth::user()->name . " fallo en actualizar subtopico " . $request->nombre . " - " . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
+            return back()->with('error', __('app.label.updated_error', ['nombre' => $subtopico->nombre]) . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
         }
     }
 
@@ -187,14 +204,38 @@ class subtopicosController extends Controller
         DB::beginTransaction();
         try {
             $subtopicos = Subtopico::findOrFail($id);
+
             $subtopicos->delete();
             Myhelp::EscribirEnLog($this, get_called_class(), "La subtopico id:" . $id . " y nombre:" . $subtopicos->nombre . " ha sido borrada correctamente", false);
             DB::commit();
             return back()->with('success', __('app.label.deleted_successfully2', ['nombre' => $subtopicos->nombre]));
         } catch (\Throwable $th) {
-            DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en borrar subtopico " . $id . " - " . $th->getMessage() . ' L:' . $th->getLine());
-            return back()->with('error', __('app.label.deleted_error', ['name' => __('app.label.subtopicos')]) . $th->getMessage() . ' L:' . $th->getLine());
+            // 23000]: Integrity constraint violation: 1451 Cannot delete or update a parent row
+            if ($th->getCode() == 23000) {
+                Log::info("U -> " . Auth::user()->name . " fallo en borrar tema " . $id . " - " . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
+                DB::rollback();
+                return back()->with('warning', 'Debe borrar los promps asociados a este tema antes de proceder. ');
+            } else {
+                DB::rollback();
+                Log::alert("U -> " . Auth::user()->name . " fallo en borrar subtopico " . $id . " - " . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
+                return back()->with('error', __('app.label.deleted_error', ['name' => __('app.label.subtopicos')]) . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
+            }
         }
+    }
+    public function destroyBulk(Request $request)
+    {
+        try {
+            $user = Subtopico::whereIn('id', $request->id);
+            $user->delete();
+            return back()->with('success', __('app.label.deleted_successfully', ['name' => count($request->id) . ' '. $this->modelName]));
+        } catch (\Throwable $th) {
+            return back()->with('error', __('app.label.deleted_error', ['name' => count($request->id) . ' ' . __('app.label.user')]) . $th->getMessage());
+        }
+    }
+    
+    public function respuestaSub()
+    {
+        // Código para obtener el string que necesitas
+        return "Hola desde PHP";
     }
 }

@@ -11,6 +11,7 @@ use App\Http\Controllers\UnidadsController;
 use App\Http\Controllers\UniversidadsController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ParametrosController;
+use App\Http\Controllers\TemporalPdfReader;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
@@ -20,6 +21,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
 use Inertia\Inertia;
+require __DIR__ . '/auth.php';
 
 
 // Route::get('/', function () {
@@ -82,6 +84,7 @@ Route::middleware('auth', 'verified')->group(function () {
     Route::get('/subirexceles', [UserController::class, 'subirexceles'])->name('subirexceles');
     Route::post('/uploadEstudiantes', [UserController::class, 'uploadEstudiantes'])->name('user.uploadEstudiantes');
     Route::post('/uploadUniversidad', [UserController::class, 'uploadUniversidad'])->name('user.uploadUniversidad');
+    Route::post('/uploadCarreras', [UserController::class, 'uploadCarreras'])->name('user.uploadCarreras');
 
 
     Route::resource('/role', RoleController::class)->except('create', 'show', 'edit');
@@ -102,6 +105,10 @@ Route::middleware('auth', 'verified')->group(function () {
     Route::get('/masPreguntas', [MateriasController::class, 'masPreguntas'])->name('materia.masPreguntas');
     // Route::match(['post', 'get'],'/Estudiando', [MateriasController::class, 'actionEQH'])->name('materia.actionEQH');
     Route::post('/Estudiando', [MateriasController::class, 'actionEQH'])->name('materia.actionEQH');
+    
+    Route::post('/materiaGenerar', [MateriasController::class, 'materiaGenerar'])->name('materia.Generar');
+    Route::post('/materiaguardarGenerado', [MateriasController::class, 'materiaguardarGenerado'])->name('materia.guardarGenerado');
+
     Route::get('/Estudiando', function(){
         return redirect('/materia');
     });
@@ -113,55 +120,61 @@ Route::middleware('auth', 'verified')->group(function () {
 
     // #carrera
     Route::get('/AsignaruserCarrera/{carreraid}', [CarrerasController::class, 'AsignarUsers'])->name('carrera.AsignarUsers');
+    Route::get('/carreraMapa/{carreraid}', [CarrerasController::class, 'carreraMapa'])->name('carrera.Mapa');
     Route::post('/AsignaruserCar', [CarrerasController::class, 'SubmitAsignarUsers'])->name('carrera.SubmitAsignarUsers');
 
     // #unidads
     Route::resource('/Unidad', UnidadsController::class);
     Route::post('/gpt/temasCreate', [UnidadsController::class, 'temasCreate']); //->name('unidads.temasCreate');
-    //otros
+    
+    //# otros
     Route::resource('/subtopico', SubtopicosController::class);
+    Route::post('/subtopico/destroy-bulk', [SubtopicosController::class, 'destroyBulk'])->name('subtopico.destroy-bulk');
+
     Route::resource('/ejercicio', EjerciciosController::class);
+    Route::post('/ejercicio/destroy-bulk', [EjerciciosController::class, 'destroyBulk'])->name('ejercicio.destroy-bulk');
+
     Route::resource('/parametro', ParametrosController::class);
+
 
     // #promps
     Route::resource('/LosPromp', LosPrompsController::class)->except('create', 'show', 'edit');
 
+    // #leyendopdf
+    Route::get('/leyendopdf', [TemporalPdfReader::class , 'Index'])->name('leyendopdf');
+    Route::post('/leyendopdf', [TemporalPdfReader::class , 'Read'])->name('leyendopdf.read');
+    
+    // Route::get('/respuestaSub', [SubtopicosController::class , 'respuestaSub'])->name('respuestaSub');
 });
 
 
 
-require __DIR__ . '/auth.php';
 
 // <editor-fold desc="Artisan">
-Route::get('/exception', function () {
-    throw new Exception('Probando excepciones y enrutamiento. La prueba ha concluido exitosamente.');
-});
+    Route::get('/exception', function () {
+        throw new Exception('Probando excepciones y enrutamiento. La prueba ha concluido exitosamente.');
+    });
 
-Route::get('/foo', function () {
-    if (file_exists(public_path('storage'))) {
-        return 'Ya existe';
-    }
-    App('files')->link(
-        storage_path('App/public'),
-        public_path('storage')
-    );
-    return 'Listo';
-});
+    Route::get('/foo', function () {
+        if (file_exists(public_path('storage'))) { return 'Ya existe'; }
+        App('files')->link( storage_path('App/public'), public_path('storage') ); 
+        return 'Listo';
+    });
 
-Route::get('/clear-c', function () {
-    Artisan::call('optimize');
-    Artisan::call('optimize:clear');
-    return "Optimizacion finalizada";
-    // throw new Exception('Optimizacion finalizada!');
-});
+    Route::get('/clear-c', function () {
+        Artisan::call('optimize');
+        Artisan::call('optimize:clear');
+        return "Optimizacion finalizada";
+        // throw new Exception('Optimizacion finalizada!');
+    });
 
-Route::get('/tmantenimiento', function () {
-    echo Artisan::call('down --secret="token-it"');
-    return "Aplicación abajo: token-it";
-});
-Route::get('/Arriba', function () {
-    echo Artisan::call('up');
-    return "Aplicación funcionando";
-});
+    Route::get('/tmantenimiento', function () {
+        echo Artisan::call('down --secret="token-it"');
+        return "Aplicación abajo: token-it";
+    });
+    Route::get('/Arriba', function () {
+        echo Artisan::call('up');
+        return "Aplicación funcionando";
+    });
 
 ?>

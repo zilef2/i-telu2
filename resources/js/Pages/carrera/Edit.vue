@@ -35,10 +35,10 @@ const form = useForm({
 });
 
 const printForm = [
-    {idd: 'enum',label: 'enum', type:'number', value:form.enum},
-    {idd: 'nombre',label: 'nombre', type:'text', value:form.nombre},
-    {idd: 'codigo',label: 'codigo', type:'text', value:form.codigo},
-    {idd: 'descripcion',label: 'descripcion', type:'text', value:form.descripcion},
+    { idd: 'enum', label: 'Numeración', type: 'number', value: form.enum },
+    { idd: 'nombre', label: 'nombre', type: 'text', value: form.nombre },
+    { idd: 'codigo', label: 'codigo', type: 'text', value: form.codigo },
+    // {idd: 'descripcion',label: 'descripcion', type:'text', value:form.descripcion},
 ];
 
 const update = () => {
@@ -74,19 +74,21 @@ watchEffect(() => {
                     {{ lang().label.edit }} {{ props.title }}
                 </h2>
                 <div class="my-6 grid grid-cols-2 gap-6">
+                    <div>
+                        <InputLabel for="universidad_id" :value="lang().label.universidad" />
+                        <SelectInput id="universidad_id" class="mt-1 block w-full" v-model="form.universidad_id" required
+                            :dataSet="PapaSelect"> </SelectInput>
+                        <InputError class="mt-2" :message="form.errors.universidad_id" />
+                    </div>
+
                     <div v-for="(atributosform, indice) in printForm" :key="indice">
                         <InputLabel :value="atributosform.label" />
                         <TextInput :id="atributosform.idd" :type="atributosform.type" class="mt-1 block w-full"
-                            v-model="form[atributosform.idd]" required
-                            :placeholder="atributosform.label" :error="form.errors[atributosform.idd]" />
+                            v-model="form[atributosform.idd]" required :placeholder="atributosform.label"
+                            :error="form.errors[atributosform.idd]" />
                         <InputError class="mt-2" :message="form.errors[atributosform.idd]" />
                     </div>
 
-                    <div>
-                        <InputLabel for="universidad_id" :value="lang().label.universidad" />
-                        <SelectInput id="universidad_id" class="mt-1 block w-full" v-model="form.universidad_id" required :dataSet="PapaSelect"> </SelectInput>
-                        <InputError class="mt-2" :message="form.errors.universidad_id" />
-                    </div>
                 </div>
                 <div class="flex justify-end">
                     <SecondaryButton :disabled="form.processing" @click="emit('close')"> {{ lang().button.close }}
@@ -97,6 +99,8 @@ watchEffect(() => {
                     </PrimaryButton>
                 </div>
             </form>
+
+            
         </Modal>
     </section>
 </template>

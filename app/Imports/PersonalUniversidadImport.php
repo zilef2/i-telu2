@@ -111,7 +111,7 @@ class PersonalUniversidadImport implements
             }
         } catch (\Throwable $th) {
             Myhelp::EscribirEnLog($this, 'IMPORT:users', " Fallo dentro de la importacion a universidad id: " .
-                $this->Universidad->id . " => " . $this->Universidad->nombre . " : " . $th->getMessage() . ' L:' . $th->getLine(), false);
+                $this->Universidad->id . " => " . $this->Universidad->nombre . " : " . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile(), false);
         }
     }
 

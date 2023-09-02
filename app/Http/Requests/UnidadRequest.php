@@ -27,8 +27,8 @@ class UnidadRequest extends FormRequest
             [
                 'nombre' => 'required|max:255|min:1',
                 'enum' => 'required',
-                'codigo' => 'required',
-                'descripcion' => 'nullable|max:255',
+                // 'codigo' => 'required',
+                // 'descripcion' => 'nullable|max:255',
                 'materia_id' => 'required|integer|min:1',
                 'nsubtemas' => 'nullable|max:4|min:0',
                 'subtema' => 'nullable',

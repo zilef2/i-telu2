@@ -43,13 +43,13 @@ class HelpExcel{
         }else return $fechaReturn;
     }
 
-    public function validarArchivoExcel($request){
-        $exten = $request->archivo1->getClientOriginalExtension();
+    public function validarArchivoExcel($elArchivo){
+        $exten = $elArchivo->getClientOriginalExtension();
         // Validar que el archivo es de Excel
         if ($exten != 'xlsx' && $exten != 'xls') {
             return 'El archivo debe ser de Excel';
         }
-        $pesoKilobyte = ((int)($request->archivo1->getSize())) / (1024);
+        $pesoKilobyte = ((int)($elArchivo->getSize())) / (1024);
         if ($pesoKilobyte > (12*1024)) { //debe pesar menos de 12MB
             return 'El archivo debe pesar menos de 12MB';
         }

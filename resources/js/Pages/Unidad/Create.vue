@@ -110,20 +110,26 @@ watchEffect(() => {
                     <li v-for="error in errors" class="text-red-400 bg-red-50">{{ error }}</li>
                 </ul>
                 </p>
-                <div class="my-6 grid sm:grid-cols-2 xs:grid-cols-1 gap-6">
+                <div class="my-6 grid sm:grid-cols-5 xs:grid-cols-1 gap-6">
+                    <div class="col-span-2">
+                        <InputLabel for="materia_id" :value="lang().label.materia" />
+                        <SelectInput name="materia_id" class="mt-1 block w-full" v-model="form.materia_id" required
+                            :dataSet="MateriasSelect"> </SelectInput>
+                        <InputError class="mt-2" :message="form.errors.materia_id" />
+                    </div>
                     <div>
-                        <InputLabel for="enum" :value="lang().label.enum" />
+                        <InputLabel for="enum" :value="lang().label.enumUnidad" />
                         <TextInput id="enum" type="number" class="mt-1 block w-full" v-model="form.enum" required
                             :placeholder="lang().placeholder.enum" :error="form.errors.enum" />
                         <InputError class="mt-2" :message="form.errors.enum" />
                     </div>
-                    <div>
+                    <div class="col-span-2">
                         <InputLabel for="nombre" :value="lang().label.name" />
                         <TextInput id="nombre" type="text" class="mt-1 block w-full" v-model="form.nombre" required
                             :placeholder="lang().placeholder.nombre" :error="form.errors.nombre" />
                         <InputError class="mt-2" :message="form.errors.nombre" />
                     </div>
-                    <div>
+                    <!-- <div>
                         <InputLabel for="codigo" :value="lang().label.codigo" />
                         <TextInput id="codigo" type="text" class="mt-1 block w-full" v-model="form.codigo" required
                             :placeholder="lang().placeholder.codigo" :error="form.errors.codigo" />
@@ -134,28 +140,16 @@ watchEffect(() => {
                         <TextInput id="descripcion" type="text" class="mt-1 block w-full" v-model="form.descripcion"
                             required :placeholder="lang().placeholder.descripcion" :error="form.errors.descripcion" />
                         <InputError class="mt-2" :message="form.errors.descripcion" />
-                    </div>
-                    <div>
-                        <InputLabel for="materia_id" :value="lang().label.materia" />
-                        <SelectInput name="materia_id" class="mt-1 block w-full" v-model="form.materia_id" required
-                            :dataSet="MateriasSelect"> </SelectInput>
-                        <InputError class="mt-2" :message="form.errors.materia_id" />
-                    </div>
+                    </div> -->
 
 
-
-
-
-
-                    <div>
+                    <div class="col-span-5">
                         <InputLabel for="materia_id" value="numero de subtopicos" />
-                        <PrimaryButton @click="incrementCounter(1)" name="subir" class="px-auto m-1 w-10" type="button"> +
-                        </PrimaryButton>
-                        <PrimaryButton @click="incrementCounter(-1)" name="subir" class="px-auto m-1 w-10" type="button"> -
-                        </PrimaryButton>
-                        <TextInput disabled id="descripcion" type="number" class="mt-1 w-1/2 ml-3" v-model="form.nsubtemas"
+                        <PrimaryButton @click="incrementCounter(1)" name="subir" class="px-auto m-1 w-10" type="button"> + </PrimaryButton>
+                        <PrimaryButton @click="incrementCounter(-1)" name="subir" class="px-auto m-1 w-10" type="button"> - </PrimaryButton>
+
+                        <TextInput disabled id="descripcion" type="number" class="mt-1 w-24 ml-3" v-model="form.nsubtemas"
                             required :placeholder="lang().placeholder.descripcion" :error="form.errors.descripcion" />
-                        <!-- todo: invalidar los cambios por el usuarios, mas que solo el disabled -->
                     </div>
 
                     <!-- <div>
@@ -163,7 +157,7 @@ watchEffect(() => {
                             @click="generateTemas">{{ data.mensajeGeenrar }}</PrimaryButton>
                     </div> -->
 
-                    <div v-for="(subte, index) in form.nsubtemas" :key="index" class="flex gap-8 col-span-2">
+                    <div v-for="(subte, index) in form.nsubtemas" :key="index" class="flex gap-8 col-span-5">
                         <div class="w-full">
                             <InputLabel for="stema" :value="lang().label.stema + ' ' + (index + 1)" />
                             <TextInput id="stema" type="text" class="mt-1 block w-full" v-model="form.subtema[index]"

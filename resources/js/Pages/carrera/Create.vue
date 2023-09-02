@@ -65,34 +65,36 @@ watchEffect(() => {
                 </h2>
                 <div class="my-6 grid grid-cols-2 gap-6">
                     <div>
-                        <InputLabel for="enum" :value="lang().label.enum" />
-                        <TextInput id="enum" type="number" class="mt-1 block w-full" v-model="form.enum" required
-                            :placeholder="lang().placeholder.enum" :error="form.errors.enum" />
-                        <InputError class="mt-2" :message="form.errors.enum" />
+                        <InputLabel for="universidad_id" :value="lang().label.universidad" />
+                        <SelectInput id="universidad_id" class="mt-1 block w-full" v-model="form.universidad_id" required :dataSet="PapaSelect"> </SelectInput>
+                        <InputError class="mt-2" :message="form.errors.universidad_id" />
                     </div>
-                    <div>
+                    <div class="">
                         <InputLabel for="nombre" :value="lang().label.name" />
                         <TextInput id="nombre" type="text" class="mt-1 block w-full" v-model="form.nombre" required
                             :placeholder="lang().placeholder.nombre" :error="form.errors.nombre" />
                         <InputError class="mt-2" :message="form.errors.nombre" />
                     </div>
                     <div>
+                        <InputLabel for="enum" :value="lang().label.enum2" />
+                        <TextInput id="enum" type="number" class="mt-1 block w-full" v-model="form.enum" required
+                            :placeholder="lang().placeholder.enum" :error="form.errors.enum" />
+                        <InputError class="mt-2" :message="form.errors.enum" />
+                    </div>
+                    
+                    <div>
                         <InputLabel for="codigo" :value="lang().label.codigo" />
                         <TextInput id="codigo" type="text" class="mt-1 block w-full" v-model="form.codigo" required
                             :placeholder="lang().placeholder.codigo" :error="form.errors.codigo" />
                         <InputError class="mt-2" :message="form.errors.codigo" />
                     </div>
-                    <div>
+                    <!-- <div>
                         <InputLabel for="descripcion" :value="lang().label.descripcion" />
                         <TextInput id="descripcion" type="text" class="mt-1 block w-full" v-model="form.descripcion" required
                             :placeholder="lang().placeholder.descripcion" :error="form.errors.descripcion" />
                         <InputError class="mt-2" :message="form.errors.descripcion" />
-                    </div>
-                    <div>
-                        <InputLabel for="universidad_id" :value="lang().label.carrera" />
-                        <SelectInput id="universidad_id" class="mt-1 block w-full" v-model="form.universidad_id" required :dataSet="PapaSelect"> </SelectInput>
-                        <InputError class="mt-2" :message="form.errors.universidad_id" />
-                    </div>
+                    </div> -->
+                   
                 </div>
                 
                 <div class="flex justify-end">

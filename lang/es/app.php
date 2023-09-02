@@ -2,7 +2,21 @@
 
 return [
     'label' => [
+        //generando mat
+        'Array_nombre_unidad' => 'Unidad',
+        'Array_nombre_tema' => 'Tema',
+        'nombre_unidad' => 'Unidad',
+        'nombre_mat' => 'Materia',
+        'Array_RA' => 'Resultado de aprendizaje',
+        'Cuantas_unidades' => 'Cuantas unidades',
+        'Cuantas_temas' => 'Cuantos temas',
+        'codigoCar' => 'Código de la Carrera',
+
+
+        'AreYouSureDelete' => 'Esta seguro de borrar a: ',
         'enum' => 'Semestre',
+        'enumTema' => 'Numeración',
+        'enum2' => 'Numeración',
         //losPromps
         'LosPromp' => 'Instrucción',
         'losPromps' => 'Instrucciones',
@@ -17,6 +31,8 @@ return [
         'no_permission' => 'Accion no autorizada',
         //ejercicios
         'ejercicios' => 'Ejercicios',
+        'descripcionop' => 'Descripcion (opcional)',
+        'ElaboreE' => 'Elabore el enunciado del problema o ejercicio',
         //subtema
         'resultado_aprendizaje' => 'Resultado de aprendizaje',
         'stema' => 'Tema',
@@ -25,6 +41,7 @@ return [
         'parametros' => 'Parametros',
         //unidad (tema)
         'unidads' => 'Unidades',
+        'enumUnidad' => 'Consecutivo de la unidad',
         'resultAprendizaje' => 'Resultado de Aprendizaje',
         //materia
         'preguntaria' => 'Preguntar a la IA',
@@ -162,7 +179,7 @@ return [
     ],
     'button' => [
 
-        'subir' => 'subir',
+        'subir' => 'Subir',
         'login' => 'Ingresar',
         'loading' => 'Cargando...',
         'register' => 'Registrar',

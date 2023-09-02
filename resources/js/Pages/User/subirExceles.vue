@@ -6,7 +6,7 @@ import Breadcrumb from '@/Components/Breadcrumb.vue';
 import TextInput from '@/Components/TextInput.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SelectInput from '@/Components/SelectInput.vue';
-import { reactive, watch, onMounted } from 'vue';
+import { reactive, watch, onMounted, watchEffect } from 'vue';
 import DangerButton from '@/Components/DangerButton.vue';
 import pkg from 'lodash';
 import { useForm } from '@inertiajs/vue3';
@@ -16,7 +16,11 @@ import { DocumentArrowUpIcon, ArrowUpCircleIcon, ArrowDownCircleIcon } from '@he
 
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css'
-import { PrimerasPalabras, vectorSelect, formatDate, CalcularEdad, CalcularSexo}from '@/global.ts';;
+
+import SubirCarreras from '@/Pages/User/subir/SubirCarreras.vue';
+
+
+import { PrimerasPalabras, vectorSelect, formatDate, CalcularEdad, CalcularSexo } from '@/global.ts';
 
 
 const { _, debounce, pickBy } = pkg
@@ -26,7 +30,7 @@ const props = defineProps({
     breadcrumbs: Object,
     numUsuarios: Number,
     UniversidadSelect: Object,
-    flash: String,
+    flash: Object,
 
 })
 
@@ -36,61 +40,73 @@ onMounted(() => {
     }
 });
 
+
+
 const data = reactive({
-    UniversidadSelect: null
+    UniversidadSelect: null,
+    isOpen: false,
+    tooltipSettings: {
+        content: '',
+        shown: false, // Always show the tooltip
+        triggers: [], // No triggers to hide the tooltip
+    },
+    tooltipSettings2: {
+        content: '',
+        shown: false, // Always show the tooltip
+        triggers: [], // No triggers to hide the tooltip
+    },
 })
+const showTooltip = () => {
+    data.isOpen = true; // Function to show the tooltip
+    console.log("🧈 debu data.isOpen:", data.isOpen);
+}
 
 
 const form = useForm({
     archivo1: null,
+    archivo2_matricular: null,
     universidadID: 0,
-    // fecha_fin: '2023-04-03T'+horas[1]+':00', //toerase
 });
 
-// const QuincenaArray = [
-//     { 'value': null, 'label': 'seleccione una quincena' },
-//     { 'value': 1, 'label': 1 },
-//     { 'value': 2, 'label': 2 }
-// ]
+watchEffect(() => {
+    // form_carreras.archivo_componente_carreras
+})
 
 function uploadFileestudiantes() {
-    form.post(route('user.uploadestudiantes'), {
+    form.post(route('user.uploadEstudiantes'), {
         preserveScroll: true,
         onSuccess: () => {
             // emit("close")
-            // form.reset()
+            form.reset()
             // data.respuesta = $page.props.flash.success
         },
         onError: () => null,
         onFinish: () => null,
     });
 }
+
 function uploadestudiantesUniversidad() {
-    if(form.universidadID === null || form.universidadID === 0){
-        console.log("🧈 debu form.universidadID:", form.universidadID);
-        // form.setErrors({
-        //     universidadID: 'Your error message.',
-        // })
-        alert('Seleccione la universidad')
-
-    }else{
-
+    console.log("🧈 debu form.universidadID:", form.universidadID);
+    if (form.universidadID === null || form.universidadID == 0) {
+        data.tooltipSettings2.content = 'Seleccione universidad'
+    } else {
         form.post(route('user.uploadUniversidad'), {
             preserveScroll: true,
             onSuccess: () => {
                 // emit("close")
-                // form.reset()
+                form.reset()
                 // data.respuesta = $page.props.flash.success
             },
             onError: () => null,
-            onFinish: () => null,
+            onFinish: () => {
+                data.tooltipSettings2.shown = false
+
+            },
         });
     }
-
 }
 
-data.UniversidadSelect = vectorSelect(data.UniversidadSelect,props.UniversidadSelect,'una')
-
+data.UniversidadSelect = vectorSelect(data.UniversidadSelect, props.UniversidadSelect, 'una')
 // const downloadExcel = () => { window.open('users/export/' + form.quincena + '/' + (form.fecha_ini.month) + '/' + form.fecha_ini.year, '_blank') }
 </script>
 
@@ -100,10 +116,10 @@ data.UniversidadSelect = vectorSelect(data.UniversidadSelect,props.UniversidadSe
         <Breadcrumb :title="title" :breadcrumbs="breadcrumbs" />
         <div class="space-y-4">
 
-            <div v-if="$page.props.flash.warning" class="px-4 sm:px-0">
+            <div v-if="$page.props.flash.warning" class="px-2 sm:px-0">
                 <div class="rounded-lg overflow-hidden w-fit">
                     <div class="flex max-w-screen-xl shadow-lg rounded-lg">
-                        <div class="bg-yellow-600 py-4 px-6 rounded-l-lg flex items-center">
+                        <div class="bg-yellow-600 py-4 px-2 rounded-l-lg flex items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="fill-current text-white"
                                 width="20" height="20">
                                 <path fill-rule="evenodd"
@@ -116,39 +132,59 @@ data.UniversidadSelect = vectorSelect(data.UniversidadSelect,props.UniversidadSe
                             <div>
                                 {{ $page.props.flash.warning ? $page.props.flash.warning : '' }}
                             </div>
-                            <!-- <button>
-                                <svg xmlns="http://www.w3.org/2000/svg" class="fill-current text-gray-700" viewBox="0 0 16 16" width="20" height="20"> <path fill-rule="evenodd" d="M3.72 3.72a.75.75 0 011.06 0L8 6.94l3.22-3.22a.75.75 0 111.06 1.06L9.06 8l3.22 3.22a.75.75 0 11-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 01-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 010-1.06z"> </path> </svg>
-                            </button> -->
                         </div>
                     </div>
                 </div>
             </div>
             <div class="relative bg-white dark:bg-gray-800 shadow sm:rounded-lg">
                 <section class="text-gray-600 body-font">
-                    <div class="container px-5 py-24 mx-auto">
+                    <div class="container px-1 py-12 mx-auto">
                         <div v-if="can(['create user'])" class="flex flex-wrap -m-4">
                             <!-- user estudiantes -->
-                            <div class="p-4 md:w-1/2">
+                            <div class="p-2 lg:w-1/2 w-full xl:w-1/3">
                                 <div class="h-full border-2 border-gray-200 border-opacity-60 rounded-lg overflow-hidden">
-                                    <DocumentArrowUpIcon class="mt-5 h-12 lg:h-24  w-full object-cover object-center" />
+                                    <DocumentArrowUpIcon class="mt-5 h-12 lg:h-24 w-full object-cover object-center" />
 
-                                    <div class="p-6">
+                                    <div class="p-3">
                                         <h3 class="title-font text-lg font-medium text-gray-900 mb-3">Subir estudiantes</h3>
                                         <p class="leading-relaxed mb-3"> Este formulario solo permite cargar estudiantes</p>
 
-                                        <form @submit.prevent="uploadFileestudiantes" id="upload">
-                                            <input type="file" @input="form.archivo1 = $event.target.files[0]"
-                                                accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
-                                            <progress v-if="form.progress" :value="form.progress.percentage" max="100"
-                                                class="bg-sky-200">
-                                                {{ form.progress.percentage }}%
-                                            </progress>
+                                        <form @submit.prevent="uploadFileestudiantes" id="upload"
+                                            class="flex flex-col text-center">
+                                            <div class="w-full">
+                                                <div class="mt-6">
+                                                    <label v-if="form.archivo1" for="fileInput"
+                                                        class="bg-sky-300 text-white font-bold py-2 px-4 rounded">
+                                                        Seleccionar Archivo
+                                                    </label>
+                                                    <label v-else for="fileInput"
+                                                        class="bg-sky-500 text-white font-bold py-2 px-4 rounded">
+                                                        Seleccionar archivo
+                                                    </label>
+                                                    <input id="fileInput" type="file"
+                                                        @input="form.archivo1 = $event.target.files[0]"
+                                                        accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                                        class="opacity-0 relative inset-0 w-full my-1 cursor-pointer" />
+                                                    <p v-if="form.archivo1" class="w-full my-2 text-green-600">
+                                                        {{ form.archivo1.name }}</p>
+                                                </div>
+                                                <progress v-if="form.progress" :value="form.progress.percentage" max="100"
+                                                    class="bg-sky-200">
+                                                    {{ form.progress.percentage }}%
+                                                </progress>
+                                            </div>
 
-                                            <PrimaryButton v-show="can(['create user'])" :disabled="form.archivo1 == null"
-                                                class="rounded-none my-4" :class="{ 'bg-gray-200' : form.archivo1 == null}">
-                                                {{ lang().button.subir }}
-                                            </PrimaryButton>
+                                            <div class="w-auto">
+                                                <!-- <VDropdown :triggers="['none']" v-tooltip="data.tooltipSettings"></VDropdown> -->
+                                                <Button v-show="can(['create user'])" :disabled="form.archivo1 == null"
+                                                    :class="{ 'bg-sky-500': form.archivo1 !== null }"
+                                                    class="w-32 rounded-none my-4 px-4 py-2 text-white">
+                                                    {{ lang().button.subir }}
+                                                </Button>
+                                            </div>
                                         </form>
+
+
 
                                         <h2 class="text-xl text-gray-900 dark:text-white">El formato necesita las siguientes
                                             columnas</h2>
@@ -185,17 +221,15 @@ data.UniversidadSelect = vectorSelect(data.UniversidadSelect,props.UniversidadSe
                                 </div>
                             </div>
                             <!-- user_universidad -->
-                            <div class="p-4 md:w-1/2">
+                            <div class="p-4 lg:w-1/2 w-full xl:w-1/3">
                                 <div class="h-full border-2 border-gray-200 border-opacity-60 rounded-lg overflow-hidden">
-                                    <DocumentArrowUpIcon class="mt-5 h-12 lg:h-24 w-full object-cover object-center" />
+                                    <DocumentArrowUpIcon class="mt-5 h-12 lg:h-20 w-full object-cover object-center" />
 
                                     <div class="p-6">
-                                        <h3 class="title-font text-lg font-medium text-gray-900 mb-3">Matricular estudiantes
-                                        </h3>
-                                        <p class="leading-relaxed mb-3"> Seleccione la universidad donde va a matricular los
-                                            estudiantes</p>
+                                        <h3 class="title-font text-lg font-medium text-gray-900 mb-3">Matricular estudiantes </h3>
+                                        <p class="leading-relaxed mb-3">Seleccione la universidad de los estudiantes</p>
 
-                                        <form @submit.prevent="uploadestudiantesUniversidad" id="upload">
+                                        <form @submit.prevent="uploadestudiantesUniversidad" id="upload2">
                                             <div>
                                                 <InputLabel for="universidadID" :value="lang().label.carrera" />
                                                 <SelectInput id="universidadID" class="mt-1 block w-full"
@@ -203,55 +237,72 @@ data.UniversidadSelect = vectorSelect(data.UniversidadSelect,props.UniversidadSe
                                                 </SelectInput>
                                                 <InputError class="mt-2" :message="form.errors.universidadID" />
                                             </div>
-                                            <input type="file" @input="form.archivo1 = $event.target.files[0]"
-                                                accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+                                            <div class="mt-6">
+                                                <label v-if="form.archivo2_matricular" for="file_matricular_user"
+                                                    class="bg-sky-300 text-white font-bold py-2 px-4 rounded">
+                                                    Seleccionar Archivo
+                                                </label>
+                                                <label v-else for="file_matricular_user"
+                                                    class="bg-sky-500 text-white font-bold py-2 px-4 rounded">
+                                                    Seleccionar archivo
+                                                </label>
+                                                <input id="file_matricular_user" type="file"
+                                                    @input="form.archivo2_matricular = $event.target.files[0]"
+                                                    accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                                    class="opacity-0 relative inset-0 w-full my-1 cursor-pointer" />
+                                                <p v-if="form.archivo2_matricular" class="w-full my-2 text-green-600">
+                                                    {{ form.archivo2_matricular.name }}</p>
+                                            </div>
+
                                             <progress v-if="form.progress" :value="form.progress.percentage" max="100"
-                                                class="bg-sky-200">
+                                                class="bg-sky-200 my-2">
                                                 {{ form.progress.percentage }}%
                                             </progress>
 
-                                            <PrimaryButton v-show="can(['create user'])" :disabled="form.archivo1 == null"
-                                                class="rounded-none my-4 mx-4"
-                                                :class="{ 'bg-gray-200' : form.archivo1 == null}">
-                                                {{ lang().button.subir }}
-                                            </PrimaryButton>
+                                            <div v-if="form.archivo2_matricular" class="w-auto">
+                                                <Button v-show="can(['create user'])"
+                                                    :disabled="form.archivo2_matricular == null"
+                                                    :class="{ 'bg-sky-500': form.archivo2_matricular !== null }"
+                                                    class="w-32 rounded-none my-4 px-4 py-2 text-white">
+                                                    {{ lang().button.subir }} archivo
+                                                </Button>
+                                            </div>
+                                            <div class="w-auto text-red-600 text-lg my-4">
+                                                {{ data.tooltipSettings2.content }}
+                                            </div>
                                         </form>
 
-                                        <h2 class="text-xl text-gray-900 dark:text-white">El formato necesita las siguientes
+                                        <h2 class="text-xl text-gray-900 dark:text-white">El formato requiere las siguientes
                                             columnas</h2>
-                                        <ul class="list-decimal my-6 mx-5">
+                                        <ul class="list-decimal my-4 mx-5">
                                             <li class="text-lg">usuario: del estudiante a inscribir</li>
                                             <li class="text-lg">codigo de la carrera</li>
                                             <li class="text-lg">codigo de la materia</li>
                                         </ul>
 
                                         <div class="p-4 max-w-md mx-auto">
+                                            <p class="">Ejemplo:</p>
                                             <div class="relative overflow-hidden">
-                                                <img src="/EXCELmatricularEstudiantes.png" alt="imagen excel matriculas" class="rounded-lg transition-transform duration-500 transform hover:scale-110">
-                                                <!-- <div class="absolute inset-0 bg-gradient-to-tr from-purple-600 to-pink-500 opacity-70"></div>
-                                                <div class="absolute inset-0 flex items-center justify-center">
-                                                <h2 class="text-white font-bold text-2xl">¡Efecto Llamativo!</h2> -->
-                                                <!-- </div> -->
+                                                <img src="/EXCELmatricularEstudiantes.png" alt="imagen excel matriculas"
+                                                    class="rounded-lg transition-transform duration-500 transform hover:scale-110">
                                             </div>
                                         </div>
 
-                                        <!-- <div class="flex items-center flex-wrap my-6">
-                                            <a class="text-gray-500 inline-flex items-center md:mb-2 lg:mb-0">Numero de Usuarios: </a>
-                                            <span
-                                                class="text-gray-400 mr-3 inline-flex items-center lg:ml-auto md:ml-0 ml-auto leading-none text-sm pr-3 py-1 border-r-2 border-gray-200">
-                                                <svg class="w-1 h-4 mr-1" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"> <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path> <circle cx="12" cy="12" r="3"></circle> </svg>
-                                                {{  props.numUsuarios }}
-                                            </span>
-                                        </div> -->
                                     </div>
                                 </div>
                             </div>
-                            <!-- user matriculas : multiple -->
 
+
+                            <div class="p-4 lg:w-1/2 w-full xl:w-1/3">
+                                <SubirCarreras
+                                 :UniversidadSelect="data.UniversidadSelect"
+                                 :flash="props.flash"
+                                  />
+                            </div>
+                            <!-- materias masivo -->
                         </div>
                     </div>
-                </section>
-            </div>
+            </section>
         </div>
-    </AuthenticatedLayout>
-</template>
+    </div>
+</AuthenticatedLayout></template>

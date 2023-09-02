@@ -24,11 +24,13 @@ const props = defineProps({
     restarAlToken: Number,
 
 
+    //quiz
     quiz: Boolean,
     quizPregunta: String,
     quizCorrecta: Number,
     quizRespuestas: Array,
 
+    //pregunte cualquier cosa
     hagapregunta: Boolean,
     HacerlaPregunta: String,
     RespuestaPregunta: String,
@@ -86,7 +88,7 @@ const PreguntarGPT = (actionEQH) => {
     router.post(route("materia.actionEQH"), params, {
         replace: true,
         preserveState: true,
-        preserveScroll: true,
+        preserveScroll: false,
     })
 }
 

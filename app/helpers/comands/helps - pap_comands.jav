@@ -48,5 +48,9 @@ mkdir /home/aplicativoswebco/public_html/modulonom/storage/framework/cache/data
 
 # DEPENDENCIAS
 
+// node
 //composer
+    composer require maatwebsite/excel
     composer require mrdebug/crudgen --dev
+    composer require smalot/pdfparser
+

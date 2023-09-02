@@ -234,12 +234,19 @@ export function LookForValueInArray(arrayOfObjects:Object[] , searchValue): Stri
 
 
 //array functions
-    export function vectorSelect(vectorSelect, propsVector, genero = 'uno'){
-        vectorSelect = propsVector.map(
-            generico => (
-                { label: generico.nombre, value: generico.id }
-            )
-        )
+    export function vectorSelect(vectorSelect, propsVector, genero = 'uno', mostrarSuperior = null){
+        if(mostrarSuperior)
+            vectorSelect = propsVector.map(
+                generico => (
+                    { label: generico.nombre + ' - ' + generico.hijo, value: generico.id }
+                )
+            );
+        else
+            vectorSelect = propsVector.map(
+                generico => (
+                    { label: generico.nombre, value: generico.id }
+                )
+            );
         vectorSelect.unshift({label: 'Seleccione '+ genero, value:0})
         return vectorSelect;
     }

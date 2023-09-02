@@ -30,6 +30,7 @@ const props = defineProps({
     perPage: Number,
 
     fromController: Object,
+    // limitePromps: Boolean, //si es falso, no puede crear nuevo promp
 })
 
 const data = reactive({
@@ -90,7 +91,9 @@ const select = () => {
         <div class="space-y-4">
             <div class="px-4 sm:px-0">
                 <div class="rounded-lg overflow-hidden w-fit">
-                    <PrimaryButton class="rounded-none" @click="data.createOpen = true" v-show="can(['create LosPromp'])">
+                    <!-- v-if="limitePromps" -->
+                    <PrimaryButton 
+                        class="rounded-none" @click="data.createOpen = true" v-show="can(['create LosPromp'])">
                         {{ lang().button.add }}
                     </PrimaryButton>
                     <Create :show="data.createOpen" @close="data.createOpen = false" :title="props.title"

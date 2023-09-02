@@ -101,8 +101,6 @@ const select = () => {
 }
 
 const irCarrera = (carreraid, cuantas) => {
-    console.log("🧈 debu cuantas:", cuantas);
-
     if (cuantas > 0) {
 
         data.params2.selectedUniID = carreraid

@@ -107,6 +107,12 @@ const form = useForm({
     pregunta: '', //para la zona libre
     respuestagpt: props.respuesta,
     tipoRes: 'teorica',
+    materiaid: 0,
+    temaSelec: 0,
+    subtopicoSelec: 0,
+    respuesta1: '',
+    actionEQH: 0,
+    
 });
 
 watchEffect(() => {
@@ -125,8 +131,7 @@ watch(() => form.tipoRes, (newX) => {
 
 const paAbajo = () => { window.scrollTo(0, document.body.scrollHeight); }
 
-//todo: examples, quiz, ask a question
-const submitToGPT = (ejercicioID) => {
+const submitToGPT = (ejercicioID) => { //not in leccion estudiante
     form.get(route('materia.VistaTema', [props.elid, ejercicioID, form.nivel, null, null]), {
         preserveScroll: true,
         onSuccess: () => paAbajo(),
@@ -136,7 +141,8 @@ const submitToGPT = (ejercicioID) => {
 }
 
 
-//just for the student, to begin lesson
+//just for the student, to begin lesson JUST STUDENT!!!
+//here can be simplificar, ejemplos, quiz
 const CallStudent = (subtopicoid) => {
     form.get(route('materia.VistaTema', [props.elid, 0, 1, subtopicoid, null]), {
         preserveScroll: true,
@@ -144,26 +150,27 @@ const CallStudent = (subtopicoid) => {
         onError: () => alert(JSON.stringify(form.errors, null, 4)),
         onFinish: () => null
     })
-    // console.log("🧈 subtopicoid:", subtopicoid);
 }
 
-const Paso1PreguntarTema = (subtemaid) => { //y traer su introduccion
+
+const Paso1PreguntarTema = (subtemaid) => { //boton comenzar leccion
     let TempselectedPrompID = data.selectedPrompID['value']
-    if (TempselectedPrompID != 0 && form.nivel && form.tipoRes && subtemaid) {
-        form.get(route('materia.VistaTema', [props.elid, 'explicar', form.nivel, subtemaid, TempselectedPrompID]), {
+    if (data.nivel && form.tipoRes && subtemaid) {
+
+        form.get(route('materia.VistaTema', [props.elid, 'explicar', data.nivel, subtemaid, TempselectedPrompID]), {
             preserveScroll: true,
             onSuccess: () => paAbajo(),
             onError: () => null,
             onFinish: () => null
         })
-    } else {
-        alert('Falta informacion')
     }
 }
-const Paso2Ejercicio = (subtemaid) => {
+const Paso2Ejercicio = (subtemaid) => { //todo2: where is it used???
     let TempselectedPrompID = data.selectedPrompID['value']
-
     if (TempselectedPrompID != 0 && form.nivel && form.tipoRes && subtemaid) {
+    // if ( form.nivel && form.tipoRes && subtemaid) {
+        alert('Falta info')
+    }
         form.get(route('materia.VistaTema', [props.elid, 'practicar', form.nivel, subtemaid, TempselectedPrompID]), {
             preserveScroll: true,
             onSuccess: () => {
@@ -172,22 +179,7 @@ const Paso2Ejercicio = (subtemaid) => {
             onError: () => null,
             onFinish: () => null
         })
-    } else {
-        alert('Falta información')
-    }
-}
-
-const IrPreguntas = (pregunta) => {
-    pregunta = sinTildes(ReemplazarTildes(pregunta))
-    data.params.pregunta = pregunta
-
-    let params = pickBy(data.params)
-
-    router.get(route('materia.masPreguntas', params, {
-        onSuccess: () => null,
-        onError: () => alert(JSON.stringify(form.errors, null, 4)),
-        onFinish: () => null,
-    }))
+    // } 
 }
 
 const respuestaChuleta = (opcionRespuesta, correcta, NumPregunta) => {
@@ -200,7 +192,26 @@ const respuestaChuleta = (opcionRespuesta, correcta, NumPregunta) => {
         data.RespondioBien[NumPregunta] = opcionRespuesta == correcta ? 2 : 1
 }
 
-// fin chatgpt form
+const submitGPTEQH = (action) => {
+    form.actionEQH = action
+
+    form.materiaid = props.elid;
+    form.temaSelec = props.temaSelec;
+    form.subtopicoSelec = props.subtopicoSelec;
+    form.respuesta1 = props.respuesta;
+
+    // if(data.selectedPrompID){
+    //     if(data.selectedPrompID.value == 0)
+        // form.fakepermission = 'estudiante'
+    // }
+
+    form.post(route('materia.actionEQH'), {
+        preserveScroll: true,
+        onSuccess: () => null,
+        onError: () => alert(JSON.stringify(form.errors, null, 4)),
+        onFinish: () => null
+    })
+}
 
 </script>
 
@@ -257,7 +268,7 @@ const respuestaChuleta = (opcionRespuesta, correcta, NumPregunta) => {
                         <section class="text-gray-600 body-font">
                             <div class="container px-5 py-8 mx-auto">
                                 <div class="flex flex-wrap -m-4">
-                                    <div v-for="(clasegenerica, index) in fromController" :key="index" class="p-4 md:w-1/3"
+                                    <div v-for="(clasegenerica, index) in fromController" :key="index" class="p-4 w-full sm:w-1/2 lg:w-1/3"
                                         :class="clasegenerica.id == data.temaIDSelected ? 'bg-blue-100 dark:bg-gray-200' : ''">
                                         <div
                                             class="h-full border-2 border-gray-200 border-opacity-60 rounded-lg overflow-hidden">
@@ -312,6 +323,12 @@ const respuestaChuleta = (opcionRespuesta, correcta, NumPregunta) => {
                                             </div>
                                         </div>
                                     </div>
+                                </div>
+                                <div class="text-center mt-8">
+                                    <Link :href="route('materia.index')"
+                                        class="text-center my-4 border border-sky-700  bg-black text-white rounded-md px-4 py-2 m-2 transition duration-500 ease select-none hover:bg-sky-600 focus:outline-none focus:shadow-outline">
+                                        Regresar
+                                    </Link>
                                 </div>
                             </div>
                         </section>
@@ -420,22 +437,42 @@ const respuestaChuleta = (opcionRespuesta, correcta, NumPregunta) => {
                                                             text-base outline-none text-gray-700 py-1 px-3 leading-6 transition-colors duration-200 ease-in-out"></textarea>
                                                     </div>
                                                 </div>
-                                                <div v-if="props.soloEjercicios != []" class="p-2 w-full h-full">
-                                                    <label for="message"
-                                                        class="leading-7 text-sm text-gray-600">Sugerencias:
-                                                    </label>
-                                                    <div v-for="(ejercicioExtra, Jindex) in props.soloEjercicios"
-                                                        :key="Jindex" class="relative w-full">
+                                            </div>
 
-                                                        <!-- :href="route('materia.masPreguntas', [id=>props.elid, pregunta=> sinTildes(ReemplazarTildes(ejercicioExtra))])" -->
-                                                        <Link @click="IrPreguntas(ejercicioExtra)" type="button"
-                                                            class="w-full bg-gray-100 cursor-pointer bg-opacity-50 rounded-md border-b-2 border-indigo-400 focus:border-indigo-600 focus:bg-white focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out">
-                                                        <CursorArrowRippleIcon class="w-4 h-4" />
-                                                        {{ textoSinEspaciosLargos(ejercicioExtra) }}
-                                                        </Link>
+                                            <div class="w-full flex mt-6 mx-auto">
+                                                <div class="w-full mt-1 mx-auto">
+
+                                                    <div class="w-full flex items-center justify-center dark:bg-gray-800 bg-gray-100">
+                                                        <div class="w-full mx-auto py-6">
+                                                            <h1 class="text-xl text-center font-bold mb-6"> Aprender más </h1>
+                                                            <div
+                                                                class="bg-white dark:bg-gray-600 px-6 py-4 my-3 w-3/4 mx-auto shadow rounded-md flex items-center">
+                                                                <div class="w-full text-center mx-auto">
+                                                                    <button type="button" @click="submitGPTEQH(4)"
+                                                                        class="border border-sky-500 bg-sky-500 text-white rounded-md px-4 py-2 m-2 transition duration-500 ease select-none hover:bg-blue-300 focus:outline-none focus:shadow-outline">
+                                                                        Simplificar
+                                                                    </button>
+                                                                    <button type="button" @click="submitGPTEQH(1)"
+                                                                        class="border border-green-500 bg-green-500 text-white rounded-md px-4 py-2 m-2 transition duration-500 ease select-none hover:bg-green-600 focus:outline-none focus:shadow-outline">
+                                                                        Ejemplos
+                                                                    </button>
+                                                                    <button type="button" @click="submitGPTEQH(2)"
+                                                                        class="border border-yellow-500 bg-yellow-500 text-white rounded-md px-4 py-2 m-2 transition duration-500 ease select-none hover:bg-yellow-600 focus:outline-none focus:shadow-outline">
+                                                                        Quiz
+                                                                    </button>
+                                                                    <!-- <button type="button" @click="submitGPTEQH(3)"
+                                                                        class="border border-teal-500 bg-teal-500 text-white rounded-md px-4 py-2 m-2 transition duration-500 ease select-none hover:bg-teal-600 focus:outline-none focus:shadow-outline">
+                                                                        Hacer una pregunta
+                                                                    </button> -->
+                                                                    <Link :href="route('materia.index')"
+                                                                        class="my-4 border text-left border-sky-700  bg-black text-white rounded-md px-4 py-2 m-2 transition duration-500 ease select-none hover:bg-sky-600 focus:outline-none focus:shadow-outline">
+                                                                        Regresar
+                                                                    </Link>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
-
                                             </div>
                                         </form>
                                     </div>
@@ -498,6 +535,9 @@ const respuestaChuleta = (opcionRespuesta, correcta, NumPregunta) => {
                 </section>
             </div>
         </div>
+
+
+
         <div v-if="props.numberPermissions == 1" class="">
 
             <VersionEstudiante :fromController="props.fromController" :respuesta="props.respuesta"

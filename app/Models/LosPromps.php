@@ -14,6 +14,7 @@ class LosPromps extends Model
         'teoricaOpractica',
         'clasificacion',
         'tokensAproximados', //todo: hay que usarlos. pero donde
+        'user_id'
     ];
 
 

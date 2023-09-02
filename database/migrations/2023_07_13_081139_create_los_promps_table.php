@@ -23,6 +23,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        //! tablas pivote
         Schema::create('los_promps_subtopico', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
@@ -31,12 +32,13 @@ return new class extends Migration
             $table->foreign('subtopico_id')
                     ->references('id')
                     ->on('subtopicos')
-                    ->onDelete('restrict');//cascade
+                    ->onDelete('cascade');//cascade or restrict
             $table->foreign('los_promps_id')
                     ->references('id')
                     ->on('los_promps')
-                    ->onDelete('restrict');
+                    ->onDelete('cascade'); //cascade or restrict
         });
+
         Schema::create('los_promps_user', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
@@ -45,12 +47,12 @@ return new class extends Migration
             $table->foreign('user_id')
                     ->references('id')
                     ->on('users')
-                    ->onDelete('restrict');
+                    ->onDelete('restrict'); //cascade or restrict
 
             $table->foreign('los_promps_id')
                     ->references('id')
                     ->on('los_promps')
-                    ->onDelete('restrict');
+                    ->onDelete('restrict'); //cascade or restrict
         });
     }
 

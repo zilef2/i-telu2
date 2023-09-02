@@ -137,7 +137,7 @@ class Myhelp {
                     $ElMensaje = $mensaje != '' ? ' Mensaje: ' . $mensaje : '';
                     Log::channel('soloadmin')->info('Vista:' . $nombreC . ' Padre: ' . $nombreP . '|  U:' . Auth::user()->name .' clase: '. $clase . $ElMensaje);
                 } else {
-                    Log::info('Vista: ' . $nombreC . ' Padre: ' . $nombreP . 'U:' . Auth::user()->name . ' ||' . $clase . '|| ' . ' Mensaje: ' . $mensaje);
+                    Log::info('Vista: ' . $nombreC . ' Padre: ' . $nombreP . ' |U:' . Auth::user()->name . ' ||' . $clase . '|| ' . ' Mensaje: ' . $mensaje);
                 }
                 return $permissions;
             } else {
@@ -153,16 +153,23 @@ class Myhelp {
             if ($permissions == 'profesor') return 2;
             if ($permissions == 'coordinador_de_programa') return 3;
             if ($permissions == 'coordinador_academico') return 4;
-            if ($permissions == 'admin') return 5;
+            if ($permissions == 'admin') return 9;
             if ($permissions == 'superadmin') return 10;
             return 0;
         }
-        public static function getPropertieAutoIncrement($modelName, $RequestPropertie,$StringPropertie) {
+        public static function getPropertieAutoIncrement($modelName, $RequestPropertie,$StringPropertie,$stringHijo,$hijo) {
             if ($RequestPropertie) {
                 return $RequestPropertie;
             } else {
                 $modelInstance = resolve('App\\Models\\' . $modelName);
-                return intval($modelInstance::latest($StringPropertie)->first()->$StringPropertie) + 1 ?? 1;
+                $modelo = $modelInstance::Where($stringHijo, $hijo)->latest($StringPropertie)->first();
+                if($modelo){
+                    $result = intval($modelo->$StringPropertie) + 1 ;
+                    return $result;
+                }else{
+                    return 1;
+                }
+
             }
         }
     //fin LARAVEL

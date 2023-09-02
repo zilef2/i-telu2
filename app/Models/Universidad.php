@@ -21,7 +21,7 @@ class Universidad extends Model {
     public function users() {
         return $this->belongsToMany(User::class, 'universidad_user');
     }
-    public function estudiantes($universidadid,$inscrito,$elrol) {
+    public function estudiantes($universidadid, $inscrito, $elrol) {
         if ($inscrito) {
             $result = $this->belongsToMany(User::class, 'universidad_user')
             ->wherePivot('universidad_id',$universidadid)
@@ -35,7 +35,25 @@ class Universidad extends Model {
             ->WhereHas('roles',function ($query) use ($elrol){
                 $query->where('name', $elrol );
             });
+        }
+
+        return $result;
+    }
+    
+    public function estudiantesMuchosRoles($universidadid, $inscrito, $roles) {
+        if ($inscrito) {
+            $result = $this->belongsToMany(User::class, 'universidad_user')
+            ->wherePivot('universidad_id',$universidadid)
+            ->WhereHas('roles',function ($query) use ($roles){
+                $query->whereIn('name', $roles );
+            });
             
+        } else {
+            $result = $this->belongsToMany(User::class, 'universidad_user')
+            ->wherePivot('universidad_id','<>',$universidadid)
+            ->WhereHas('roles',function ($query) use ($roles){
+                $query->whereIn('name', $roles );
+            });
         }
 
         return $result;

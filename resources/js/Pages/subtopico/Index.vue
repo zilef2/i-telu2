@@ -16,9 +16,12 @@ import { ChevronUpDownIcon, PencilIcon, TrashIcon } from '@heroicons/vue/24/soli
 import Create from '@/Pages/subtopico/Create.vue';
 import Edit from '@/Pages/subtopico/Edit.vue';
 import Delete from '@/Pages/subtopico/Delete.vue';
+import DeleteBulk from '@/Pages/subtopico/DeleteBulk.vue';
 
 import Checkbox from '@/Components/Checkbox.vue';
 import InfoButton from '@/Components/InfoButton.vue';
+import { Inertia } from '@inertiajs/inertia';
+
 import { vectorSelect, formatDate, CalcularEdad, CalcularSexo }from '@/global.ts';;
 
 const { _, debounce, pickBy } = pkg
@@ -51,7 +54,8 @@ const data = reactive({
     deleteBulkOpen: false,
     generico: null,
     dataSet: usePage().props.app.perpage,
-    UnidadsSelect: null
+    UnidadsSelect: null,
+    stringDesdePHP: '',
 })
 
 
@@ -89,9 +93,11 @@ const select = () => {
 }
 
 onMounted(() =>{
+    //aquiiiii : como mostrar 'seleccione' sin que se comprometa la funcion de irTEmas
     if(typeof data.params.selectedUnidadID === 'undefined' || data.params.selectedUnidadID === null) data.params.selectedUnidadID = 0
+    // if(typeof data.params.selectedUnidadID === 'undefined') data.params.selectedUnidadID = 0
 
-    data.UnidadsSelect = vectorSelect(data.UnidadsSelect, props.UnidadsSelect, 'una Unidad')
+    data.UnidadsSelect = vectorSelect(data.UnidadsSelect, props.UnidadsSelect, 'una Unidad',true)
 
 })
 
@@ -113,6 +119,9 @@ onMounted(() =>{
                         v-if="can(['update subtopico'])" :title="props.title" :UnidadsSelect="data.UnidadsSelect" />
                     <Delete :show="data.deleteOpen" @close="data.deleteOpen = false" :subtopico="data.generico"
                         v-if="can(['delete subtopico'])" :title="props.title" />
+                    <DeleteBulk :show="data.deleteBulkOpen"
+                        @close="data.deleteBulkOpen = false, data.multipleSelect = false, data.selectedId = []"
+                        :selectedId="data.selectedId" :title="props.title" />
                 </div>
             </div>
             <div class="relative bg-white dark:bg-gray-800 shadow sm:rounded-lg">

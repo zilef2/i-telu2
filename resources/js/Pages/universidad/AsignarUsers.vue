@@ -34,6 +34,7 @@ const props = defineProps({
 
     profesinscritos: Object,
     profesPorInscribir: Object,
+    numberPermissions: Number,
 })
 
 
@@ -94,13 +95,6 @@ const toEraseIdSubmit = () => {
         onFinish: () => null,
     })
 }
-
-// data.UniversidadSelect = props.UniversidadSelect?.map(
-//     universidad => (
-//         { label: universidad.nombre, value: universidad.id }
-//     )
-// )
-// data.UniversidadSelect.unshift({ label: 'Seleccione una opcion', value: 0 })
 </script>
 
 <template>
@@ -118,7 +112,7 @@ const toEraseIdSubmit = () => {
                         Estudiantes que no pertenecen a <b>{{ universidad?.nombre }}</b>
                     </p>
                     <TextInput v-if="props.numberPermissions > 1" v-model="data.params.search" type="text"
-                        class="my-4 mx-auto block w-4/6 md:w-3/6 lg:w-2/6 rounded-lg" placeholder="Nombre, correo" />
+                        class="my-4 mx-auto block w-4/6 md:w-3/6 lg:w-2/6 rounded-lg" placeholder="Nombre, identificacion" />
 
                     <div class="flex space-x-2 text-center mx-auto">
                         <InfoButton @click="inscribirSubmit" v-show="form.selectedId.length != 0 && can(['delete user'])"
@@ -329,4 +323,5 @@ const toEraseIdSubmit = () => {
             </div>
         </section>
 
-    </AuthenticatedLayout></template>
+    </AuthenticatedLayout>
+</template>

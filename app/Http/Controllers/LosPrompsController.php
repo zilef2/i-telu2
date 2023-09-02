@@ -15,7 +15,7 @@ use Inertia\Inertia;
 
 class LosPrompsController extends Controller
 {
-
+    const LIMITE_DE_PROMPS_PER_USER = 10;
     // - MapearClasePP, Filtros
 
     //no necesita esto?
@@ -67,6 +67,8 @@ class LosPrompsController extends Controller
             ['path' => request()->url()]
         );
 
+        // $limitePromps = self::LimiteDePromps($numberPermissions);
+
         return Inertia::render('LosPromp/Index', [ //carpeta
             'breadcrumbs'           =>  [['label' => __('app.label.LosPromps'), 'href' => route('LosPromp.index')]],
             'title'                 =>  $titulo,
@@ -74,12 +76,18 @@ class LosPrompsController extends Controller
             'perPage'               =>  (int) $perPage,
             'fromController'        =>  $paginated,
             'numberPermissions'     =>  $numberPermissions,
+            // 'limitePromps'          =>  $limitePromps,
         ]);
     } //fin index
 
 
-    public function create()
+    public function LimiteDePromps($numberPermissions)
     {
+        if ($numberPermissions < 5) {
+            $prompsUser = Auth::user()->LimiteDePromps()->get()->count();
+            return $prompsUser < self::LIMITE_DE_PROMPS_PER_USER;
+        }
+        return true;
     }
 
     public function store(Request $request)
@@ -116,10 +124,10 @@ class LosPrompsController extends Controller
             }
         } catch (\Throwable $th) {
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en Guardar LosPromp  - " . $th->getMessage() . ' L:' . $th->getLine());
+            Log::alert("U -> " . Auth::user()->name . " fallo en Guardar LosPromp  - " . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
 
             if (config('app.env') === 'production') {
-                return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.LosPromp')]) . $th->getMessage() . ' L:' . $th->getLine());
+                return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.LosPromp')]) . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
             } else {
                 return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.LosPromp')]) . $th);
             }
@@ -153,8 +161,8 @@ class LosPrompsController extends Controller
         } catch (\Throwable $th) {
 
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en actualizar LosPromp " . $request->nombre . " - " . $th->getMessage() . ' L:' . $th->getLine());
-            return back()->with('error', __('app.label.updated_error', ['nombre' => $LosPromp->nombre]) . $th->getMessage() . ' L:' . $th->getLine());
+            Log::alert("U -> " . Auth::user()->name . " fallo en actualizar LosPromp " . $request->nombre . " - " . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
+            return back()->with('error', __('app.label.updated_error', ['nombre' => $LosPromp->nombre]) . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
         }
     }
 
@@ -175,8 +183,8 @@ class LosPrompsController extends Controller
             return back()->with('success', __('app.label.deleted_successfully2', ['nombre' => $LosPromps->nombre]));
         } catch (\Throwable $th) {
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en borrar LosPromp " . $id . " - " . $th->getMessage() . ' L:' . $th->getLine());
-            return back()->with('error', __('app.label.deleted_error', ['name' => __('app.label.LosPromps')]) . $th->getMessage() . ' L:' . $th->getLine());
+            Log::alert("U -> " . Auth::user()->name . " fallo en borrar LosPromp " . $id . " - " . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
+            return back()->with('error', __('app.label.deleted_error', ['name' => __('app.label.LosPromps')]) . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
         }
     }
 }

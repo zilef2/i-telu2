@@ -32,7 +32,7 @@ const justNames = [
     'enum',
 ]; const form = useForm({ ...Object.fromEntries(justNames.map(field => [field, ''])) });
 const printForm = [
-    { idd: 'enum', label: 'enum', type: 'number', value: form.enum },
+    { idd: 'enum', label: 'enum2', type: 'number', value: form.enum },
     { idd: 'nombre', label: 'nombre', type: 'text', value: form.nombre },
     { idd: 'descripcion', label: 'descripcion', type: 'text', value: form.descripcion },
 

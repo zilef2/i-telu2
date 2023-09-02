@@ -5,13 +5,13 @@ import Breadcrumb from '@/Components/Breadcrumb.vue';
 import TextInput from '@/Components/TextInput.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SelectInput from '@/Components/SelectInput.vue';
-import { reactive, watch, onMounted } from 'vue';
+import { reactive, watch, onMounted, ref } from 'vue';
 import DangerButton from '@/Components/DangerButton.vue';
 import pkg from 'lodash';
 import { router, usePage } from '@inertiajs/vue3';
 
 import Pagination from '@/Components/Pagination.vue';
-import { ChevronUpDownIcon, PencilIcon, TrashIcon } from '@heroicons/vue/24/solid';
+import { ChevronUpDownIcon, PencilIcon, TrashIcon, ArrowSmallRightIcon } from '@heroicons/vue/24/solid';
 
 import Create from '@/Pages/Unidad/Create.vue';
 import Edit from '@/Pages/Unidad/Edit.vue';
@@ -19,6 +19,16 @@ import Delete from '@/Pages/Unidad/Delete.vue';
 
 import Checkbox from '@/Components/Checkbox.vue';
 import InfoButton from '@/Components/InfoButton.vue';
+
+import {
+    TransitionRoot,
+    TransitionChild,
+    Dialog,
+    DialogPanel,
+    DialogTitle,
+} from '@headlessui/vue'
+const isOpen = ref(false)
+function closeModal() { isOpen.value = false }
 
 import { vectorSelect, formatDate, CalcularEdad, CalcularSexo }from '@/global.ts';;
 
@@ -48,6 +58,9 @@ const data = reactive({
         selectedMatID: props.filters.selectedMatID,
 
     },
+    params2: {
+        selectedUnidadID: 0
+    },
     selectedId: [],
     multipleSelect: false,
     createOpen: false,
@@ -58,6 +71,21 @@ const data = reactive({
     MateriasSelect: null,
     dataSet: usePage().props.app.perpage,
 })
+
+const IrTemas = (carreraid, cuantas) => {
+    if (cuantas > 0) {
+
+        data.params2.selectedUnidadID = carreraid
+        let params = pickBy(data.params2)
+        router.get(route("subtopico.index"), params, {
+            replace: true,
+            preserveState: true,
+            preserveScroll: true,
+        })
+    } else {
+        isOpen.value = true
+    }
+}
 
 
 const order = (field) => {
@@ -97,8 +125,7 @@ onMounted(() =>{
     if(typeof data.params.selectedMatID === 'undefined') data.params.selectedMatID = 0
     if(data.params.selectedMatID === null) data.params.selectedMatID = 0
 
-    data.MateriasSelect = vectorSelect(data.MateriasSelect,props.MateriasSelect,'una')
-    console.log("🧈 debu data.params.selectedMatID:", data.params.selectedMatID);
+    data.MateriasSelect = vectorSelect(data.MateriasSelect,props.MateriasSelect,'una materia')
 })
 
 // data.MateriasSelect = vectorSelect(data.MateriasSelect, props.MateriasSelect, 'una')
@@ -181,14 +208,19 @@ onMounted(() =>{
                                                 class="px-2 py-1.5 rounded-none" v-tooltip="lang().tooltip.delete">
                                                 <TrashIcon class="w-4 h-4" />
                                             </DangerButton>
+                                            <InfoButton type="button"
+                                                @click="IrTemas(clasegenerica.id, clasegenerica.cuantosTemas)"
+                                                class="px-2 py-1.5 rounded-none" v-tooltip="'Ver temas'">
+                                                <ArrowSmallRightIcon class="w-4 h-4" />
+                                            </InfoButton>
                                         </div>
                                     </div>
                                 </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.enum) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.nombre) }} </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.codigo) }} </td>
+                                <!-- <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.codigo) }} </td> -->
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.hijo) }} </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.descripcion) }} </td>
+                                <!-- <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.descripcion) }} </td> -->
                             </tr>
                         </tbody>
                     </table>
@@ -198,5 +230,44 @@ onMounted(() =>{
                 </div>
             </div>
         </div>
+
+        <template>
+            <TransitionRoot appear :show="isOpen" as="template">
+                <Dialog as="div" @close="closeModal" class="relative z-10">
+                    <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0"
+                        enter-to="opacity-100" leave="duration-200 ease-in" leave-from="opacity-100" leave-to="opacity-0">
+                        <div class="fixed inset-0 bg-black bg-opacity-25" />
+                    </TransitionChild>
+
+                    <div class="fixed inset-0 overflow-y-auto">
+                        <div class="flex min-h-full items-center justify-center p-4 text-center">
+                            <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95"
+                                enter-to="opacity-100 scale-100" leave="duration-200 ease-in"
+                                leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
+                                <DialogPanel
+                                    class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                                    <DialogTitle as="h3" class="text-lg font-medium leading-6 text-gray-900">
+                                        Sin temas
+                                    </DialogTitle>
+                                    <div class="mt-2">
+                                        <p class="text-sm text-gray-500">
+                                            Esta unidad no tiene temas inscritos
+                                        </p>
+                                    </div>
+
+                                    <div class="mt-4">
+                                        <button type="button"
+                                            class="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                                            @click="closeModal">
+                                            Listo
+                                        </button>
+                                    </div>
+                                </DialogPanel>
+                            </TransitionChild>
+                        </div>
+                    </div>
+                </Dialog>
+            </TransitionRoot>
+        </template>
     </AuthenticatedLayout>
 </template>

@@ -36,27 +36,28 @@ class UnidadsController extends Controller
                 if (!in_array($Unidad->materia_id, $MateriasUser)) return null;
             }
             $Unidad->hijo = $Unidad->materia_nombre();
+            $Unidad->cuantosTemas = $Unidad->subtopicos()->count();
             return $Unidad;
         })->filter();
     }
 
     public function fNombresTabla($numberPermissions)
     {
-        if($numberPermissions > 1)
-        $nombresTabla = [ //0: como se ven //1 como es la BD //2orden
-            ["Acciones"],
-            [],
-            [null]
-        ];
-        else{
+        if ($numberPermissions > 1)
+            $nombresTabla = [ //0: como se ven //1 como es la BD //2orden
+                ["Acciones"],
+                [],
+                [null]
+            ];
+        else {
             $nombresTabla = [ //0: como se ven //1 como es la BD //2orden
                 [],
                 [],
                 []
             ];
         }
-        $nombresTabla[2] = array_merge($nombresTabla[2], ["enum", "nombre", "codigo", "materia_id", "descripcion"]);
-        $nombresTabla[0] = array_merge($nombresTabla[0], ["#", "nombre", "codigo", "materia", "descripcion"]);
+        $nombresTabla[2] = array_merge($nombresTabla[2], ["enum", "nombre", "materia_id"]);
+        $nombresTabla[0] = array_merge($nombresTabla[0], ["#", "nombre", "materia"]);
         return $nombresTabla;
     }
     public function Filtros($request, &$unidads, $numberPermissions)
@@ -172,12 +173,17 @@ class UnidadsController extends Controller
             ]);
 
             if ($request->nsubtemas) {
+                $enum = Myhelp::getPropertieAutoIncrement('Subtopico', null, 'enum', 'unidad_id', $Unidad->id);
                 foreach ($request->subtema as $key => $value) {
-                    if ($value) Subtopico::create([
-                        'nombre' => $value,
-                        'unidad_id' => $Unidad->id,
-                        'resultado_aprendizaje' => $request->resultAprendizaje[$key],
-                    ]);
+                    if ($value) {
+                        Subtopico::create([
+                            'enum' => $enum,
+                            'nombre' => $value,
+                            'unidad_id' => $Unidad->id,
+                            'resultado_aprendizaje' => $request->resultAprendizaje[$key],
+                        ]);
+                        $enum++;
+                    }
                 };
             }
 
@@ -187,9 +193,9 @@ class UnidadsController extends Controller
             return back()->with('success', __('app.label.created_successfully2', ['nombre' => $Unidad->nombre]));
         } catch (\Throwable $th) {
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en Guardar Unidad " . $request->nombre . " - " . $th->getMessage() . ' L:' . $th->getLine());
+            Log::alert("U -> " . Auth::user()->name . " fallo en Guardar Unidad " . $request->nombre . " - " . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
 
-            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.Unidad')]) . $th->getMessage() . ' L:' . $th->getLine());
+            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.Unidad')]) . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
         }
     }
 
@@ -224,8 +230,8 @@ class UnidadsController extends Controller
         } catch (\Throwable $th) {
 
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en actualizar Unidad " . $request->nombre . " - " . $th->getMessage() . ' L:' . $th->getLine());
-            return back()->with('error', __('app.label.updated_error', ['nombre' => $Unidad->nombre]) . $th->getMessage() . ' L:' . $th->getLine());
+            Log::alert("U -> " . Auth::user()->name . " fallo en actualizar Unidad " . $request->nombre . " - " . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
+            return back()->with('error', __('app.label.updated_error', ['nombre' => $Unidad->nombre]) . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
         }
     }
 
@@ -245,9 +251,15 @@ class UnidadsController extends Controller
             DB::commit();
             return back()->with('success', __('app.label.deleted_successfully2', ['nombre' => $unidads->nombre]));
         } catch (\Throwable $th) {
-            DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en borrar Unidad " . $id . " - " . $th->getMessage() . ' L:' . $th->getLine());
-            return back()->with('error', __('app.label.deleted_error', ['name' => __('app.label.unidads')]) . $th->getMessage() . ' L:' . $th->getLine());
+            if ($th->getCode() == 23000) {
+                Log::info("U -> " . Auth::user()->name . " fallo en borrar Unidad " . $id . " - " . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
+                DB::rollback();
+                return back()->with('warning', 'Debe borrar los subtopicos asociados a esta unidad antes de proceder. ' . $th->getMessage());
+            } else {
+                Log::alert("U -> " . Auth::user()->name . " fallo en borrar Unidad " . $id . " - " . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
+                DB::rollback();
+                return back()->with('error', __('app.label.deleted_error', ['name' => __('app.label.unidads')]) . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
+            }
         }
     }
 

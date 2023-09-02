@@ -35,18 +35,15 @@ createInertiaApp({
                         return usePage().props.language.original;
                     }
                 },
+                compilerOptions: {
+                    isCustomElement: (tag) => ['md-linedivider'].includes(tag),
+                }
             })
             .component("v-select", vSelect)
             .mount(el);
     },
     progress: {
         color: '#0284c7',
-        includeCSS: true,
         showSpinner: true,
-        spinner: {
-            // Increase the size of the spinner
-            scale: 1.5,
-        },
-
     },
 });

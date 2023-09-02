@@ -6,6 +6,7 @@ import {  PencilIcon, TrashIcon, UserCircleIcon, ArrowSmallRightIcon } from '@he
 defineProps({
     visualizar: Array,
     ruta: String,
+    rutaMapa: String,
 
     id1:{
         type:Number,
@@ -29,7 +30,7 @@ const irHijo = () => {
 
 <template>
     <div class="flex flex-col">
-        <div class="border border-gray-50 py-3 flex gap-1 shadow-xl">
+        <div class="py-1 flex gap-1 shadow-xl">
 
             <div v-if="visualizar[0] != ''" 
                 @click="editar()"
@@ -39,7 +40,7 @@ const irHijo = () => {
                     <PencilIcon class="w-7 h-7" />
                 </div>
                 <span
-                    class="absolute -top-5 left-[120%] -translate-x-[50%] z-10 origin-left scale-0 rounded-lg border border-gray-300 dark:bg-black bg-white px-3 py-2 text-sm font-medium shadow-md transition-all duration-300 ease-in-out group-hover:scale-75">
+                    class="dark:bg-black absolute -top-4 rigth-[150%] -translate-x-[20%] z-20 origin-left scale-0 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium shadow-md transition-all duration-300 ease-in-out group-hover:scale-100">
                     {{visualizar[0]}}
                 </span>
             </div>
@@ -53,9 +54,8 @@ const irHijo = () => {
                     <TrashIcon class="w-7 h-7" />
                 </div>
                 <span
-                    class="dark:bg-black absolute -top-5 left-[120%] -translate-x-[50%] z-20 origin-left scale-0 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium shadow-md transition-all duration-300 ease-in-out group-hover:scale-100">
+                    class="dark:bg-black absolute -top-4 rigth-[150%] -translate-x-[20%] z-20 origin-left scale-0 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium shadow-md transition-all duration-300 ease-in-out group-hover:scale-100">
                     {{visualizar[1]}}
-
                 </span>
             </div>
 
@@ -66,8 +66,18 @@ const irHijo = () => {
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" height="24" width="24"> <path stroke-linejoin="round" stroke-linecap="round" stroke-width="1.5" stroke="currentColor" d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13M16 3.13C16.8604 3.3503 17.623 3.8507 18.1676 4.55231C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89317 18.7122 8.75608 18.1676 9.45769C17.623 10.1593 16.8604 10.6597 16 10.88M13 7C13 9.20914 11.2091 11 9 11C6.79086 11 5 9.20914 5 7C5 4.79086 6.79086 3 9 3C11.2091 3 13 4.79086 13 7Z"> </path> </svg>
                 </div>
                 <span
-                    class="dark:bg-black absolute -top-5 left-[120%] -translate-x-[50%] z-20 origin-left scale-0 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium shadow-md transition-all duration-300 ease-in-out group-hover:scale-100">
-                        {{visualizar[2]}}
+                    class="dark:bg-black absolute -top-4 rigth-[150%] -translate-x-[20%] z-20 origin-left scale-0 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium shadow-md transition-all duration-300 ease-in-out group-hover:scale-100">
+                    {{visualizar[2]}}
+                </span>
+            </Link>
+            <Link v-if="visualizar[4]"  :href="route(rutaMapa, id1)"
+                class="group relative px-1 cursor-pointer">
+                <div class="flex h-10 w-10 items-center justify-center rounded-full hover:text-blue-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-7 h-7"> <path stroke-linecap="round" stroke-linejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z" /> </svg>
+                </div>
+                <span
+                    class="dark:bg-black absolute -top-4 rigth-[150%] -translate-x-[20%] z-20 origin-left scale-0 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium shadow-md transition-all duration-300 ease-in-out group-hover:scale-100">
+                    {{visualizar[4]}}
                 </span>
             </Link>
 
@@ -79,7 +89,7 @@ const irHijo = () => {
                     <ArrowSmallRightIcon class="w-7 h-7" />
             </div>
                 <span
-                    class="dark:bg-black absolute -top-5 left-[10%] -translate-x-[50%] z-20 origin-left scale-0 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium shadow-md transition-all duration-300 ease-in-out group-hover:scale-100">
+                    class="dark:bg-black absolute -top-2 left-[10%] -translate-x-[50%] z-20 origin-left scale-0 rounded-lg border border-gray-300 bg-white px-3 py-1 text-sm font-medium shadow-md transition-all duration-300 ease-in-out group-hover:scale-100">
                         {{visualizar[3]}}
                 </span>
             </div>
