@@ -1,4 +1,6 @@
 <?php
+
+use App\helpers\Myhelp;
 use App\Http\Controllers\CarrerasController;
 use App\Http\Controllers\EjerciciosController;
 use App\Http\Controllers\LosPrompsController;
@@ -15,11 +17,13 @@ use App\Http\Controllers\TemporalPdfReader;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
-
+use Carbon\Carbon;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 require __DIR__ . '/auth.php';
 
@@ -35,12 +39,14 @@ require __DIR__ . '/auth.php';
 Route::get('/', function () { return redirect('/login'); });
 
 
+
+
+
+
 Route::get('/dashboard', function () {
     $permissions = auth()->user()->roles->pluck('name')[0];
-    
-    if($permissions == "estudiante"){
-        return redirect('/materia');
-    }
+    if($permissions == "estudiante") return redirect('/materia');
+
 
     return Inertia::render('Dashboard', [
         'users'         => (int) User::count(),
@@ -48,6 +54,32 @@ Route::get('/dashboard', function () {
         'permissions'   => (int) Permission::count(),
     ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
+
+
+Route::get('/userAPI',function () {
+    $user = Auth::user();
+    $permissions = Myhelp::EscribirEnLog($this, ' Se genero un token');
+    $numberPermissions = Myhelp::getPermissionToNumber($permissions);
+    if($numberPermissions > 8){
+
+        $expiration = now()->addHour(4);
+        $token = $user->createToken('Token Name');
+        $token->expires_at = $expiration;
+        // $token->save();
+        $token = $token->plainTextToken;
+        $token = str_replace(1,'ñ',$token);
+        
+        dd(
+            // response()->json(['token' => $token]),
+            $token,
+            'Vencimiento: '. $expiration,
+            'Cierre esta ventana tan pronto como sea posible'
+        );
+    }else{
+        Myhelp::EscribirEnLog($this, 'API', 'no valid user trying to get token', false,true);
+    }
+})->middleware(['auth', 'verified']);
+
 
 Route::get('/setLang/{locale}', function ($locale) {
     Session::put('locale', $locale);
@@ -61,6 +93,8 @@ Route::middleware('auth', 'verified')->group(function () {
 
     //# user
     Route::resource('/user', UserController::class)->except('create', 'show', 'edit');
+   
+    
     Route::post('/user/destroy-bulk', [UserController::class, 'destroyBulk'])->name('user.destroy-bulk');
     // Route::get('/subirexceles', [UserController::class, 'subirexceles'])->name('subirexceles');
 
@@ -125,6 +159,8 @@ Route::middleware('auth', 'verified')->group(function () {
 
     // #unidads
     Route::resource('/Unidad', UnidadsController::class);
+    Route::post('/Unidad/destroy-bulk', [UnidadsController::class, 'destroyBulk'])->name('Unidad.destroy-bulk');
+
     Route::post('/gpt/temasCreate', [UnidadsController::class, 'temasCreate']); //->name('unidads.temasCreate');
     
     //# otros

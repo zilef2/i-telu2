@@ -33,13 +33,15 @@ const form = useForm({
     // descripcion: '',
     nombre_mat: '',
     carrera_id: 1,//tempForm
-    codigo_mat: '', //tempForm
+    materia_id: 1,//tempForm
+    codigo_mat: '',
     objetivo: '',
     nombre_unidad: [[]],
     Cuantas_u: "2",
     Array_nombre_tema: [],
     Cuantas_t: "2",
     Array_RA: [[]],
+    totalUT: 12,
 
     //loader
     mostrarLoader: false,
@@ -47,11 +49,13 @@ const form = useForm({
 })
 const create = () => {
     if (form.codigo_mat != '') {
+        data.errorCarrera = '';
+
         form.post(route('materia.guardarGenerado'), {
             preserveScroll: true,
             onSuccess: () => {
-                emit("close")
-                form.reset()
+                // emit("close")
+                // form.reset()
             },
             // onError: () => null,
             onError: () => alert(JSON.stringify(form.errors, null, 4)),
@@ -69,7 +73,6 @@ const generar = async () => {
 
     if (validar()) {
         data.mostrarLoader = true
-        console.log("🧈 debu form.Cuantas_u:", form.Cuantas_u);
         router.reload({
             only: [
                 'ValoresGenerarMateria',
@@ -78,6 +81,7 @@ const generar = async () => {
                 unidades: form.Cuantas_u,
                 temas: form.Cuantas_t,
                 carrera_id: form.carrera_id,
+                materia_id: form.materia_id,
             },
         })
     }
@@ -90,8 +94,17 @@ const validar = () => {
     }
     let Cunidades = parseInt(form.Cuantas_u);
     let Ctemas = parseInt(form.Cuantas_t);
-    if (Cunidades > Ctemas) {
-        data.errorCarrera = 'Los temas deben ser mayor a los unidades';
+    let total = parseInt(form.totalUT);
+    if (Cunidades > 9) {
+        data.errorCarrera = 'Demasiadas unidades';
+        return false
+    }
+    if (Ctemas > 9) {
+        data.errorCarrera = 'Demasiados tenas';
+        return false
+    }
+    if (total > 35) {
+        data.errorCarrera = 'Demasiadas unidades y temas';
         return false
     }
     if (Cunidades < 1 || Ctemas < 1) {
@@ -107,6 +120,7 @@ watchEffect(() => {
     if (props.show) {
         form.errors = {}
 
+        form.totalUT = 2 + parseInt(form.Cuantas_u) * ( 2 * parseInt(form.Cuantas_t) + 1)
         data.contadorRespuesta = 1
         if (props.ValoresGenerarMateria != null) {
             // data.contadorRespuesta = 2
@@ -154,43 +168,45 @@ watchEffect(() => {
             <form id="generarTodo" class="p-6" @submit.prevent="create">
                 <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
                     Generación de {{ props.title }}
-                    <!-- {{ props?.ValoresGenerarMateria }} -->
                 </h2>
-                <div v-for=" (ele) in props?.ValoresGenerarMateria">
+                <!-- <div v-for=" (ele) in props?.ValoresGenerarMateria">
                     <section v-for=" (el, ind) in ele">
                         <p v-if="ind < 3" class="text-sky-500">{{ ind }}.-. {{ el }} </p>
                         <p v-else-if="ind < (3 + parseInt(form.Cuantas_u))" class="text-sky-900">{{ ind }}.-. {{ el }} </p>
                         <p v-else class="text-green-800">{{ ind }}.-. {{ el }} </p>
                         <br>
                     </section>
-                </div>
+                </div> -->
                 <div class="my-6 grid grid-cols-1 sm:grid-cols-8 md:grid-cols-8 gap-6">
 
-
-                    <div class="sm:col-span-8 md:col-span-4">
-                        <InputLabel for="carrera_id" :value="lang().label.carrera" />
+                    <div class="sm:col-span-8 md:col-span-3">
+                        <InputLabel for="carrera_id" :value="lang().label.carrera" class="my-3" />
                         <SelectInput name="carrera_id" class="mt-1 block w-full" v-model="form.carrera_id" required
                             :dataSet="props.carrerasSelect"> </SelectInput>
                         <InputError class="mt-2" :message="form.errors.carrera_id" />
-                        <p class="mt-2 text-red-500 text-lg"> {{ data.errorCarrera }}</p>
                     </div>
-                    <div class="sm:col-span-8 md:col-span-2">
-                        <InputLabel for="Cuantas_u" :value="lang().label.Cuantas_unidades" />
+                    <div class="sm:col-span-8 md:col-span-3">
+                        <InputLabel for="materia_id" :value="lang().label.materia" class="my-3" />
+                        <SelectInput name="materia_id" class="mt-1 block w-full" v-model="form.materia_id" required
+                            :dataSet="props.MateriasRequisitoSelect"> </SelectInput>
+                        <InputError class="mt-2" :message="form.errors.materia_id" />
+                    </div>
+                    <div class="sm:col-span-8 md:col-span-1">
+                        <InputLabel for="Cuantas_u" :value="lang().label.Cuantas_unidades" class="text-sm"/>
                         <TextInput name="Cuantas_u" type="number" min="1" class="mt-1 block w-full"
                             v-model="form.Cuantas_u"> </TextInput>
                         <InputError class="mt-2" :message="form.errors.Cuantas_u" />
                     </div>
-                    <div class="sm:col-span-8 md:col-span-2">
-                        <InputLabel for="Cuantas_t" :value="lang().label.Cuantas_temas" />
+                    <div class="sm:col-span-8 md:col-span-1">
+                        <InputLabel for="Cuantas_t" :value="lang().label.Cuantas_temas + ' por unidad'" class="text-sm"/>
                         <TextInput name="Cuantas_t" type="number" min="1" class="mt-1 block w-full"
                             v-model="form.Cuantas_t"> </TextInput>
                         <InputError class="mt-2" :message="form.errors.Cuantas_t" />
                     </div>
-
                 </div>
-
+                <p class="my-6">{{ form.totalUT }}</p>
                 <!-- cosas generadas -->
-                <div class="my-6 grid grid-cols-1 sm:grid-cols-6 gap-6">
+                <div v-show="props?.ValoresGenerarMateria" class="my-6 grid grid-cols-1 sm:grid-cols-6 gap-6">
 
                     <div class="col-span-6">
                         <InputLabel for="nombre_mat" :value="lang().label.nombre_mat" />
@@ -244,12 +260,13 @@ watchEffect(() => {
                 <div class="col-span-2 sm:col-span-4 w-full md:w-1/2">
                     <InputLabel for="codigo_mat" :value="lang().label.codigoCar" />
                     <TextInput id="codigo_mat" type="text" class="mt-1 block w-full border-x-2 border-sky-500"
-                        v-model="form.codigo_mat" required placeholder="Por favor escriba el codigo_mat"
+                        v-model="form.codigo_mat" required placeholder="Por favor escriba el codigo de la materia"
                         :error="form.errors.codigo_mat" />
                     <InputError class="mt-2" :message="form.errors.codigo_mat" />
                 </div>
 
                 <p v-if="data.recuerdeCodigo" class="text-lg">{{ data.recuerdeCodigo }}</p>
+                <p v-if="data.errorCarrera" class="text-lg text-red-600 my-4">{{ data.errorCarrera }}</p>
 
                 <div class="flex justify-end">
                     <SecondaryButton :disabled="form.processing" @click="emit('close'), form.reset(), cerrarForm()"> {{
@@ -267,5 +284,6 @@ watchEffect(() => {
                     <Generando v-if="data.mostrarLoader" />
                 </div>
             </form>
-    </Modal>
-</section></template>
+        </Modal>
+    </section>
+</template>

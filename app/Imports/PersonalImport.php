@@ -4,106 +4,124 @@ namespace App\Imports;
 
 use App\helpers\HelpExcel;
 use App\helpers\Myhelp;
+use App\Models\Parametro;
+use App\Models\Permission;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Maatwebsite\Excel\Concerns\Importable;
+use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithUpserts;
+use Maatwebsite\Excel\Concerns\WithValidation;
+use Spatie\Permission\Traits\HasRoles;
 
-class PersonalImport implements ToModel
+class PersonalImport implements
+ToModel,
+WithValidation,
+WithHeadingRow,
+WithUpserts,
+SkipsEmptyRows
 {
-    /**
-     * @param array $row
-     *
-     * @return \Illuminate\Database\Eloquent\Model|null
-     */
-    public function model(array $row)
+    use Importable,HasRoles;
+
+    public $countfilas, $contarEmailExistente, $contar2, $contarNoNumeros, $contar4, $contar5, $contarVacios, $larow;
+    public $parametro;
+
+    public function __construct() {
+        $this->countfilas = 0;
+        $this->contarEmailExistente = 0;
+        $this->contar2 = -1;
+        $this->contarNoNumeros = 0;
+        $this->contar4 = 0;
+        $this->contar5 = 0;
+        $this->contarVacios = 0;
+        $this->parametro = Parametro::first();
+    }
+
+    public function uniqueBy() { return 'Correo'; }
+    public function rules(): array
     {
+        return [
+            'nombre' => 'required',
+        ];
+    }
+    public function model(array $row) {
         try {
-            $countfilas = session('CountFilas', 0);
-            $contar1 = session('contar1', 0);
-            $contar2 = session('contar2', -1);
-            $contar3 = session('contar3', 0);
-            $contar4 = session('contar4', 0);
-            $contar5 = session('contar5', 0);
-            $contarVacios = session('contarVacios', 0);
-
-            session(['larow' => $row]);
-
+            $this->larow = $row;
             //# validaciones
-            if (!$this->Requeridos($row)) {
-                session(['contarVacios' => ++$contarVacios]);
-                return null;
-            }
+                if (User::where('email', $row['correo'])->exists()) {
+                    $this->contarEmailExistente++;
+                    return null;
+                }
 
-            if (User::where('email', $row[1])->exists()) {
-                session(['contar1' => ++$contar1]);
-                return null;
-            }
-            if (User::where('identificacion', $row[2])->exists()) {
-                session(['contar5' => ++$contar5]);
-                return null;
-            }
+                if (User::where('identificacion', $row['identificacion'])->exists()) {
+                    $this->contar5++;
+                    return null;
+                }
 
-            if (strtolower(trim($row[0])) === 'nombre' || strtolower(trim($row[0])) == '') { //saltar 1 fila
-                session(['contar2' => ++$contar2]);
-                return null;
-            }
-            if (!is_numeric($row[2])) {
-                session(['contar3' => ++$contar3]);
-                return null;
-            }
-            if (strtolower($row[3]) != 'femenino' && strtolower($row[3]) != 'masculino' && strtolower($row[3]) != 'otro') {
-                session(['contar4' => ++$contar4]);
-                return null;
-            }
+                if (strtolower(trim($row['nombre'])) === 'nombre' || strtolower(trim($row['nombre'])) == '') { //saltar 1 fila
+                    $this->contar2++;
+                    return null;
+                }
+                if (!is_numeric($row['identificacion'])) {
+                    $this->contarNoNumeros++;
+                    return null;
+                }
+                if (strtolower($row['sexo']) != 'femenino' && strtolower($row['sexo']) != 'masculino' && strtolower($row['sexo']) != 'otro') {
+                    $this->contar4++;
+                    return null;
+                }
 
-            if (strtolower($row[7]) != 'estudiante' && strtolower($row[7]) != 'profesor') {
-                session(['contar4' => ++$contar4]);
-                return null;
-            }
+                if (strtolower($row['cargo']) != 'estudiante' && strtolower($row['cargo']) != 'profesor') {
+                    $this->contar4++;
+                    return null;
+                }
             //# fin validaciones
 
-            //todo: si encuentra otro email, que actualize la info
+            //todo: si encuentra otro (email con la misma identificacion), que actualize la info
             //todo: si encuentra con la misma identificacion, que actualize la info
             //todo: Primaria, bachillerato, tecnologia, profesional,especializacion,maestría,doctorado
-            // if(strtolower($row[3]) != 'femenino' && strtolower($row[3]) != 'masculino' && strtolower($row[3]) != 'otro'){
+            // if(strtolower($row['Sexo']) != 'femenino' && strtolower($row['Sexo']) != 'masculino' && strtolower($row['Sexo']) != 'otro'){
             //     session(['contar4' => $contar4++]);
             //     return null;
             // }
-            session(['CountFilas' => $countfilas + 1]);
-            $fechaNacimiento = HelpExcel::getFechaExcel($row[4])->format('Y-m-d H:i');
-
-            $user = new User([
-                'name'     => $row[0],
-                'email'    => $row[1],
-                'identificacion' => intval($row[2]),
-                'sexo' => $row[3],
+            $fechaNacimiento = HelpExcel::getFechaExcel($row['fecha_de_nacimiento'])->format('Y-m-d H:i');
+            $NumTickesDefecto = $this->parametro->NumeroTicketDefecto;
+            
+            $elUsuario = new User([
+                'name'     => $row['nombre'],
+                'email'    => $row['correo'],
+                'identificacion' => intval($row['identificacion']),
+                'sexo' => ucfirst($row['sexo']),
                 'fecha_nacimiento' => $fechaNacimiento,
-                'semestre' => $row[5],
-                'pgrado' => $row[6],
-
-                'password' => Hash::make($row[2]),
+                'semestre' => $row['semestre'],
+                'pgrado' => $row['nivel'],
+                'limite_token_general' => $NumTickesDefecto,
+                'limite_token_leccion' => $NumTickesDefecto,
+                'password' => Hash::make($row['identificacion']),
+                'email_verified_at' => now(),
             ]);
-            // dd($fechaNacimiento,$row[7], strtolower(trim($row[0])) === 'nombre');
-            $user->assignRole($row[7]);
-
+            // $user->assignRole('estudiante');
+            $role = Role::where('name', 'estudiante')->first();
+            // $elUsuario->assignRole($role);
+            // $elUsuario->assignRole([$role->id]);
+            // $elUsuario->syncRoles($role);
+            $elUsuario->assignRole([$role->id]);
+            // dd(
+            //     $role,
+            //     $elUsuario->getPermissionNames(),
+            //     $elUsuario->permissions,
+            // );
+            $this->countfilas++;
             //todo: enviar correo a cada estudiante, que ha sido registrado
 
-            return $user;
+            return $elUsuario;
         } catch (\Throwable $th) {
             Myhelp::EscribirEnLog($this, 'IMPORT:users', ' Fallo dentro de la importacion: ' . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile(), false);
+            return null;
         }
-    }
-
-    public function Requeridos($theRow)
-    {
-        foreach ($theRow as $value) {
-            if (is_null($value) || $value === '')
-                return false;
-        }
-        if (!is_string($theRow[0])) return false;
-        if (!is_int(intval($theRow[2]))) return false;
-
-        return true;
     }
 }
 

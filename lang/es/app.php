@@ -3,6 +3,7 @@
 return [
     'label' => [
         //generando mat
+        'totalUT' => 'total',
         'Array_nombre_unidad' => 'Unidad',
         'Array_nombre_tema' => 'Tema',
         'nombre_unidad' => 'Unidad',
@@ -52,7 +53,7 @@ return [
         'requisito1' => 'Requisito 1',
         'requisito2' => 'Requisito 2',
         'requisito3' => 'Requisito 3',
-        'carrera' => 'carrera',
+        'carrera' => 'Carrera',
         'descripcion' => 'descripcion',
         'seeTemas' => 'Unidades',
         //user
@@ -84,7 +85,7 @@ return [
         'universidadCarreras' => 'Universidad y Carreras',
         'carrera' => 'carrera',
         'Carreras' => 'carreras',
-        'materia' => 'materia',
+        'materia' => 'Materia',
         'Unidad' => 'Unidad',
         'subtopico' => 'Tema',
         'ejercicio' => 'ejercicio',
@@ -232,19 +233,20 @@ return [
         'locale' => 'Change to Indonesian',
     ],
     'profile' => [
-        'profile_information' => 'Profile Information',
-        'update_profile' => "Update your account's profile information and email address.",
-        'unverified_email' => 'Your email address is unverified.',
-        'resend_email_verification' => 'Click here to re-send the verification email.',
-        'sent_verification_email' => 'A new verification link has been sent to your email address.',
+        'profile_information' => 'Información del Perfil',
+        'update_profile' => 'Actualiza la información de tu cuenta y la dirección de correo electrónico.',
+        'unverified_email' => 'Tu dirección de correo electrónico no está verificada.',
+        'resend_email_verification' => 'Haz clic aquí para reenviar el correo de verificación.',
+        'sent_verification_email' => 'Se ha enviado un nuevo enlace de verificación a tu dirección de correo electrónico.',
         'saved' => 'Guardado.',
-        'update_password' => 'Update Password',
-        'update_password_caption' => 'Ensure your account is using a long, random password to stay secure.',
-        'current_password' => 'Current Password',
-        'new_password' => 'New Password',
+        'update_password' => 'Actualizar Contraseña',
+        'update_password_caption' => 'Asegura que tu cuenta utilice una contraseña larga y aleatoria para mantenerla segura.',
+        'current_password' => 'Contraseña Actual',
+        'new_password' => 'Nueva Contraseña',
         'delete_account' => 'Borrar Cuenta',
-        'delete_account_caption' => 'Once your account is deleted, all of its resources and data will be permanently deleted. Before deleting your account, please download any data or information that you wish to retain.',
-        'delete_account_modal_title' => 'Are you sure you want to delete your account?',
-        'delete_account_modal_caption' => 'Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.',
+        'delete_account_caption' => 'Una vez que se elimine tu cuenta, todos sus recursos e información se borrarán permanentemente. Antes de eliminar tu cuenta, descarga cualquier dato o información que desees conservar.',
+        'delete_account_modal_title' => '¿Estás seguro de que deseas eliminar tu cuenta?',
+        'delete_account_modal_caption' => 'Una vez que se elimine tu cuenta, todos sus recursos e información se borrarán permanentemente. Ingresa tu contraseña para confirmar que deseas eliminar permanentemente tu cuenta.'
+
     ],
 ];

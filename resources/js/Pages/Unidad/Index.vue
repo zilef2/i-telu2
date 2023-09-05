@@ -16,6 +16,7 @@ import { ChevronUpDownIcon, PencilIcon, TrashIcon, ArrowSmallRightIcon } from '@
 import Create from '@/Pages/Unidad/Create.vue';
 import Edit from '@/Pages/Unidad/Edit.vue';
 import Delete from '@/Pages/Unidad/Delete.vue';
+import DeleteBulk from '@/Pages/Unidad/DeleteBulk.vue';
 
 import Checkbox from '@/Components/Checkbox.vue';
 import InfoButton from '@/Components/InfoButton.vue';
@@ -149,6 +150,9 @@ onMounted(() =>{
                         v-if="can(['update Unidad'])" :MateriasSelect="data.MateriasSelect" />
                     <Delete :show="data.deleteOpen" @close="data.deleteOpen = false" :Unidad="data.generico"
                         v-if="can(['delete Unidad'])" :title="props.title" />
+                    <DeleteBulk :show="data.deleteBulkOpen"
+                        @close="data.deleteBulkOpen = false, data.multipleSelect = false, data.selectedId = []"
+                        :selectedId="data.selectedId" :title="props.title" />
                 </div>
             </div>
             <div class="relative bg-white dark:bg-gray-800 shadow sm:rounded-lg">

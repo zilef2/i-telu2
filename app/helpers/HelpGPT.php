@@ -21,31 +21,51 @@ class HelpGPT {
     const PreguntaCorta = 'PreguntaCorta';
     const MAX_USAGE_RESPUESTA = 550;
     const MAX_USAGE_TOTAL = 600;
-    const TOKEN_GENERAR_MATERIA = 2000;
+    const TOKEN_GENERAR_MATERIA = 4000;
 
 
     //? goes to materiascontroller.index
-    public static function ValoresGenerarMateria($stringCarreraNombre,$listaMaterias,$numero, $debug = false) {
+    public static function ValoresGenerarMateria($stringCarreraNombre,$materiaNombre,$numero, $debug = false) {
         if (!$debug) {
-            $numeroRenglones = 2 + $numero['unidades'] + ($numero['temas']* 2 * $numero['unidades']);
             $renglon = 3;
-            $listMaterias = implode(", ", $listaMaterias->toArray());
-            
-            $elpromp = 
-            "Divide la respuesta en  $numeroRenglones renglones, con el siguiente patron".
-            ". En el renglon 1 Genera el nombre de una asignatura que se encuentre en la carrera universitaria :".$stringCarreraNombre. 
-            ". No puede ser una de las siguientes materias: ".$listMaterias.
-            ". En el renglon 2 genera el objetivo de dicha materia";
-            for ($i=0; $i < $numero['unidades']; $i++) { 
-                $elpromp .= ". En el renglon ".$renglon." genera el nombre de una unidad que pertenesca a dicha asignatura";
-                $renglon++;
-                for ($j=0; $j < $numero['temas']; $j++) { 
-                    $elpromp .= ". En el renglon ".$renglon." genera el nombre de un tema que pertenesca a la ultima unidad";
-                    $renglon++;
-                    $elpromp .= ". En el renglon ".$renglon." genera un resultado aprendizaje de este tema";
-                    $renglon++;
+            // $listMaterias = implode(", ", $listaMaterias->toArray());
+
+            $unidades = intval($numero['unidades']);
+            $temas = intval($numero['temas']);
+            $numeroRenglones = 1 + $unidades + ($temas * 2 * $unidades);
+
+            for ($i=0; $i < $unidades; $i++) { 
+
+                $renglonesUnidad[$i] = 2 + $i*($temas+1);
+                for ($j=0; $j < $temas; $j++) { 
+                    $renglonesTema[] = $renglonesUnidad[$i] + ($j+1);
                 }
             }
+            $renglonesUnidad = implode(", ", $renglonesUnidad);
+            // $renglonesTema = implode(", ", $renglonesTema);
+            
+            $elpromp = 
+            "Actua como un rector universitario. Las asignaturas tienen muchas unidades, y las unidades tienen muchos temas."
+            ." Divide la respuesta en  $numeroRenglones renglones, con el siguiente patron".
+            // ". En el renglon 1 Genera el nombre de una asignatura que se encuentre en la carrera universitaria :".$stringCarreraNombre. 
+            // ". No puede ser una de las siguientes materias: ".$listMaterias.
+            ". En el renglon 1 genera el objetivo de la asignatura ".$materiaNombre
+            .". En el renglon $renglonesUnidad genera el nombre de una unidad que pertenesca a dicha asignatura";
+            
+            for ($i = 0; $i < $unidades; $i++) {
+                $elpromp .= ". En el renglon ".$renglonesTema[$i]." genera el nombre de una unidad que pertenesca a la asignatura "($i + 1);
+            }
+
+            // for ($i=0; $i < $numero['unidades']; $i++) { 
+            //     $elpromp .= ". En el renglon ".$renglon." genera el nombre de una unidad que pertenesca a dicha asignatura";
+            //     $renglon++;
+            //     for ($j=0; $j < $numero['temas']; $j++) { 
+            //         $elpromp .= ". En el renglon ".$renglon." genera el nombre de un tema que pertenesca a la ultima unidad";
+            //         $renglon++;
+            //         $elpromp .= ". En el renglon ".$renglon." genera un resultado aprendizaje de este tema";
+            //         $renglon++;
+            //     }
+            // }
             
             $client = OpenAI::client(env('GTP_SELECT'));
             $result = $client->completions()->create([

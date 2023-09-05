@@ -48,7 +48,7 @@ const updateProfile = () => {
             <div>
                 <InputLabel for="email" :value="lang().label.email" />
 
-                <TextInput id="email" type="email" class="mt-1 block w-full" v-model="form.email" required
+                <TextInput id="email" type="text" class="mt-1 block w-full" v-model="form.email" required
                     autocomplete="email" :placeholder="lang().placeholder.email" :error="form.errors.email" />
 
                 <InputError class="mt-2" :message="form.errors.email" />

@@ -52,7 +52,7 @@ class UniversidadsController extends Controller
             [],
             [null]
         ];
-        $nombresTabla[0] = array_merge($nombresTabla[0], ["Num", "nombre", "codigo", "# Inscritos", "Inscritos"]);
+        $nombresTabla[0] = array_merge($nombresTabla[0], ["#", "nombre", "codigo", "# Inscritos", "Inscritos"]);
         $nombresTabla[2] = array_merge($nombresTabla[2], ["enum", "nombre", "codigo", null, null]);
         return $nombresTabla;
     }

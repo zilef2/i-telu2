@@ -16,8 +16,10 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         // $schedule->command('inspire')->hourly();
-    //    $schedule->command('send:zip')->daily();
-       $schedule->command('send:zip')->everyTwoMinutes();
+        //    $schedule->command('send:zip')->daily();
+        //    $schedule->command('send:zip')->everyTwoMinutes();
+       $schedule->command('backup:run')->everyTenMinutes();
+       $schedule->command('send:zip')->everyTenMinutes();
     }
 
     /**
@@ -30,8 +32,7 @@ class Kernel extends ConsoleKernel
         $this->load(__DIR__.'/Commands');
 
         require base_path('routes/console.php');
-
-        // $this->command('command:nuncaUsare','app\Console\Commands\PruebaGenerarControlador.php');
         
+        // $this->command('command:nuncaUsare','app\Console\Commands\PruebaGenerarControlador.php');
     }
 }

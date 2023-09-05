@@ -77,7 +77,7 @@ function uploadFileestudiantes() {
         preserveScroll: true,
         onSuccess: () => {
             // emit("close")
-            form.reset()
+            // form.reset()
             // data.respuesta = $page.props.flash.success
         },
         onError: () => null,

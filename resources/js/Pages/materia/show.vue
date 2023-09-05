@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 import Breadcrumb from '@/Components/Breadcrumb.vue';
 import { reactive, watch, ref, watchEffect, onMounted } from 'vue';
 import pkg from 'lodash';
@@ -137,6 +137,11 @@ onMounted(() => {
                     class="flex ml-auto text-white bg-indigo-500 border-0 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded">Button</button>
             </div> -->
         </section>
-
+        <div class="text-center mt-8">
+            <Link :href="route('materia.index')"
+                class="text-center my-4 border border-sky-700  bg-black text-white rounded-md px-4 py-2 m-2 transition duration-500 ease select-none hover:bg-sky-600 focus:outline-none focus:shadow-outline">
+                Regresar
+            </Link>
+        </div>
     </AuthenticatedLayout>
 </template>

@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('los_promps', function (Blueprint $table) {
             $table->id();
-            $table->string('principal');
+            $table->text('principal');
             $table->string('clasificacion');
             $table->string('teoricaOpractica');
             $table->integer('tokensAproximados');

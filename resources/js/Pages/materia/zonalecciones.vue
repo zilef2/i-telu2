@@ -47,7 +47,6 @@ watchEffect(() => {
 
     </div>
     <section v-if="props.Unidad != null" class="text-gray-600 body-font">
-        <!-- aaaaaaaaaaaaaaaaa {{ props.subtopSelected }} aaaaaaaaaaaaaaaaa -->
         <div class="container px-5 py-3 mx-auto">
             <div class="flex flex-wrap -m-4">
                 <!-- <div v-for="(ejercicio, index) in Unidad[props.temaSelected].sub[props.subtopSelected].ejer" -->

@@ -219,13 +219,12 @@ class UserController extends Controller
 
 
     //todo: Duplicate entry '1152194566' for key 'users_identificacion_unique'
-    private function MensajeWar()
-    {
+    private function MensajeWar() {
         $bandera = false;
         $contares = [
-            'contar1',
+            'contarEmailExistente',
             'contar2',
-            'contar3',
+            'contarNoNumeros',
             'contar4',
             'contar5',
             'contarVacios',
@@ -261,8 +260,15 @@ class UserController extends Controller
 
     public function uploadestudiantes(Request $request)
     {
+        //? temp aquiiiiiiii
+
+
+
+        DB::beginTransaction();
         Myhelp::EscribirEnLog($this, get_called_class(), 'Empezo a importar', false);
         $countfilas = 0;
+        $personalImp = new PersonalImport(); 
+
         try {
             if ($request->archivo1) {
 
@@ -270,30 +276,32 @@ class UserController extends Controller
                 $mensageWarning = $helpExcel->validarArchivoExcel($request->archivo1);
                 if ($mensageWarning != '') return back()->with('warning', $mensageWarning);
 
-                Excel::import(new PersonalImport(), $request->archivo1);
-
-                $countfilas = session('CountFilas', 0);
-                session(['CountFilas' => 0]);
+                Excel::import($personalImp, $request->archivo1);
 
                 $MensajeWarning = self::MensajeWar();
                 if ($MensajeWarning !== '') {
-                    return back()->with('success', 'Usuarios nuevos: ' . $countfilas)
+                    return back()->with('success', 'Usuarios nuevos: ' . $personalImp->countfilas)
                         ->with('warning', $MensajeWarning);
                 }
 
                 Myhelp::EscribirEnLog($this, 'IMPORT:users', ' finalizo con exito', false);
-                if ($countfilas == 0)
+                DB::commit();
+                if ($personalImp->countfilas == 0)
                     return back()->with('success', __('app.label.op_successfully') . ' No hubo cambios');
                 else
-                    return back()->with('success', __('app.label.op_successfully') . ' Se leyeron ' . $countfilas . ' filas con exito');
+                    return back()->with('success', __('app.label.op_successfully') . ' Se leyeron ' . $personalImp->countfilas . ' filas con exito');
             } else {
                 return back()->with('error', __('app.label.op_not_successfully') . ' archivo no seleccionado');
             }
         } catch (\Throwable $th) {
+            DB::rollback();
+
             Myhelp::EscribirEnLog($this, 'IMPORT:users', ' Fallo importacion: ' . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile(), false);
-            return back()->with('error', __('app.label.op_not_successfully') . ' Usuario del error: ' . session('larow')[0] . ' error en la iteracion ' . $countfilas . ' ' . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
+            $larowNull = $personalImp->larow[0] ?? null;
+            return back()->with('error', __('app.label.op_not_successfully') . ' Usuario del error: ' . $larowNull . ' error en la iteracion ' . $countfilas . ' ' . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
         }
     }
+
 
     //mio
     public function uploadUniversidad_notusing(Request $request)

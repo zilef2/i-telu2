@@ -68,6 +68,8 @@ class Help_2GPT {
 
             $value = str_replace('Renglon ','',$value);
             $value = str_replace('Renglón ','',$value);
+            $value = str_replace('RENGLON ','',$value);
+            $value = str_replace('renglon ','',$value);
 
             $Array[$key] = preg_replace($pattern, '', $value);
             if(strlen($value) < 3) unset($Array[$key]);

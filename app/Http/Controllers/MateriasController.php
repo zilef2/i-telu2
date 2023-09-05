@@ -114,7 +114,7 @@ class MateriasController extends Controller
             $MateriasRequisitoSelect = Auth::user()->materias;
         } else {
             $UniversidadSelect = Universidad::has('carreras')->get();
-            $MateriasRequisitoSelect = Universidad::has('carreras')->get();
+            $MateriasRequisitoSelect = Materia::all();
         }
     }
 
@@ -154,9 +154,10 @@ class MateriasController extends Controller
             ['path' => request()->url()]
         );
 
-        $listaMaterias = Materia::where('carrera_id',$request->carrera_id)->pluck('nombre') ?? [];
+        // $listaMaterias = Materia::where('carrera_id',$request->carrera_id)->pluck('nombre') ?? [];
+        $materiaNombre = Materia::find($request->materia_id)->nombre;
         $laCarrera = Carrera::find($request->carrera_id) ?? null;
-        $ValoresGenerarMateria = Inertia::lazy(fn () => HelpGpt::ValoresGenerarMateria($laCarrera->nombre, $listaMaterias,[
+        $ValoresGenerarMateria = Inertia::lazy(fn () => HelpGpt::ValoresGenerarMateria($laCarrera->nombre, $materiaNombre,[
             'temas' => $request->temas,
             'unidades' => $request->unidades,
         ]));
@@ -233,7 +234,6 @@ class MateriasController extends Controller
 
         try {
             $enum = $this->enumUltimo($request->enum_mat);
-
             $materia = Materia::create([
                 'nombre' => $request->nombre_mat,
                 'descripcion' => '',
@@ -242,8 +242,7 @@ class MateriasController extends Controller
                 'codigo' => $request->codigo_mat
             ]);
             Objetivo::create(['nombre' => $request->objetivo, 'materia_id' => $materia->id]);
-            $contadorUnidad = 1;
-            $contadorTema = 0;
+            $contadorUnidad = 0;
             foreach ($request->nombre_unidad as $keyUnidad => $unidad) {
 
                 $unid = Unidad::create([
@@ -251,20 +250,18 @@ class MateriasController extends Controller
                     'descripcion' => '',
                     'materia_id' => $materia->id,
                     'codigo' => $request->codigo_mat .'_'.$unidad,
-                    'enum' => $contadorUnidad,
+                    'enum' => $contadorUnidad + 1,
                 ]);
 
                 for ($i=0; $i < intval($request->Cuantas_t); $i++) { 
                     Subtopico::create([
-                        'nombre' => $request->Array_nombre_tema[$contadorTema],
+                        'nombre' => $request->Array_nombre_tema[$contadorUnidad][$i],
                         'descripcion' => '',
                         'unidad_id' => $unid->id,
-                        'resultado_aprendizaje' => $request->Array_RA[$contadorTema],
+                        'resultado_aprendizaje' => $request->Array_RA[$contadorUnidad][$i],
                         'enum' => $i+1,
                         'codigo' => $request->codigo_mat,
                     ]);
-
-                    $contadorTema++;
                 }
                 $contadorUnidad++;
             }

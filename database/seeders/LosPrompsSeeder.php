@@ -16,12 +16,10 @@ class LosPrompsSeeder extends Seeder
     {
         // Expectativas altas
         LosPromps::create(['principal' => "¿Cómo podrías utilizar tus conocimientos y habilidades previas para abordar este nuevo desafío? ¿Qué estrategias usarías para superar cualquier obstáculo?", 'clasificacion' => 'General', 'teoricaOpractica' => 'teorica', 'tokensAproximados' => 1]);
-        LosPromps::create(['principal' => "Cree un plan de lección para una clase de estudiantes de [nivel de habilidad del estudiante] que cubra [tema] e incluya una variedad de actividades y evaluaciones.", 'clasificacion' => 'General', 'teoricaOpractica' => 'teorica', 'tokensAproximados' => 1]);
         LosPromps::create(['principal' => "Cree una prueba corta con 5 preguntas de opción múltiple que evalúe la comprensión de los estudiantes sobre [tema]", 'clasificacion' => 'General', 'teoricaOpractica' => 'practica', 'tokensAproximados' => 1]);
         LosPromps::create(['principal' => "Crea una tarea que sea desafiante para los estudiantes que tienen una comprensión sólida de [tema], pero que también brinde apoyo y andamiaje a los estudiantes que tienen dificultades con el material.", 'clasificacion' => 'General', 'teoricaOpractica' => 'teorica', 'tokensAproximados' => 1]);
         LosPromps::create(['principal' => "Cree un póster que enumere las reglas de la clase y explique las consecuencias de romperlas.", 'clasificacion' => 'General', 'teoricaOpractica' => 'teorica', 'tokensAproximados' => 1]);
         LosPromps::create(['principal' => "Genere un ejemplo de un ensayo bien escrito sobre [tema] que cumpla con los criterios de calificación para la maxima nota.", 'clasificacion' => 'General', 'teoricaOpractica' => 'teorica', 'tokensAproximados' => 1]);
-        LosPromps::create(['principal' => "Genere una lista de pasos específicos y accionables que un estudiante puede tomar para mejorar su desempeño en [Asignatura].", 'clasificacion' => 'General', 'teoricaOpractica' => 'teorica', 'tokensAproximados' => 1]);
 
 
         // Enseñanza Explicita

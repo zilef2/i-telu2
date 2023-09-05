@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\helpers\HelpGPT;
+use App\helpers\ModelFunctions;
 use App\helpers\Myhelp;
 use Inertia\Inertia;
 
@@ -261,6 +262,10 @@ class UnidadsController extends Controller
                 return back()->with('error', __('app.label.deleted_error', ['name' => __('app.label.unidads')]) . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
             }
         }
+    }
+    public function destroyBulk(Request $request) {
+        $arrayMensaje = ModelFunctions::destroyBulkHelper($this->modelName,$request->id);
+        return back()->with($arrayMensaje[0], $arrayMensaje[1]);
     }
 
     //todo: borrar y dejar el que es

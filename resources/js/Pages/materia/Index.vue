@@ -91,7 +91,16 @@ watchEffect(() => {
         )
     )
     data.carrerasDeUSel.unshift({ label: 'Seleccione carrera', value: 0 })
-    // }
+    data.MateriasRequisitoSelect = props.MateriasRequisitoSelect?.map(
+        carrera => (
+            { label: carrera.nombre, value: carrera.id }
+        )
+    )
+    data.MateriasRequisitoSelect.unshift({ label: 'Seleccione materia', value: 0 })
+
+    if(typeof (data.params.selectedUni) == 'undefined' || typeof (data.params.selectedUni) == 'object'){
+        data.params.selectedUni = "0";
+    }
 })
 const selectAll = (event) => {
     if (event.target.checked === false) {
@@ -140,7 +149,8 @@ onMounted(() => {
                     </PrimaryButton>
                     <generarTodo :show="data.generarOpen" @close="data.generarOpen = false" :title="props.title"
                         v-if="can(['create materia'])" :carrerasSelect="data.carrerasDeUSel" :ValoresGenerarMateria="props.ValoresGenerarMateria"
-                        :MateriasRequisitoSelect="props.MateriasRequisitoSelect" />
+                        :MateriasRequisitoSelect="data.MateriasRequisitoSelect" 
+                        />
 
 
                     <Create :show="data.createOpen" @close="data.createOpen = false" :title="props.title"
