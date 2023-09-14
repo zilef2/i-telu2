@@ -10,7 +10,7 @@ import { reactive, watch, watchEffect } from 'vue';
 import DangerButton from '@/Components/DangerButton.vue';
 import pkg from 'lodash';
 import Pagination from '@/Components/Pagination.vue';
-import { CheckCircleIcon, CheckBadgeIcon, ChevronUpDownIcon, PencilIcon, TrashIcon, UserCircleIcon } from '@heroicons/vue/24/solid';
+import { CheckBadgeIcon, ChevronUpDownIcon, PencilIcon, TrashIcon, UserCircleIcon, EyeIcon } from '@heroicons/vue/24/solid';
 import Create from '@/Pages/User/Create.vue';
 import Edit from '@/Pages/User/Edit.vue';
 import Delete from '@/Pages/User/Delete.vue';
@@ -29,7 +29,6 @@ const props = defineProps({
     breadcrumbs: Object,
     perPage: Number,
     numberPermissions: Number,
-    flash: Object,
 })
 const data = reactive({
     params: {
@@ -95,45 +94,11 @@ watchEffect(() => {
 
 <template>
     <Head :title="props.title" />
-
     <AuthenticatedLayout>
         <Breadcrumb :title="title" :breadcrumbs="breadcrumbs" />
         <div class="space-y-4">
-
-            <div v-if="props.flash.warning" class="px-2 sm:px-0">
-                <div class="rounded-lg overflow-hidden w-fit">
-                    <div class="flex max-w-screen-xl shadow-lg rounded-lg">
-                        <div class="bg-yellow-600 py-4 px-2 rounded-l-lg flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="fill-current text-white" width="20" height="20"> <path fill-rule="evenodd" d="M8.22 1.754a.25.25 0 00-.44 0L1.698 13.132a.25.25 0 00.22.368h12.164a.25.25 0 00.22-.368L8.22 1.754zm-1.763-.707c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0114.082 15H1.918a1.75 1.75 0 01-1.543-2.575L6.457 1.047zM9 11a1 1 0 11-2 0 1 1 0 012 0zm-.25-5.25a.75.75 0 00-1.5 0v2.5a.75.75 0 001.5 0v-2.5z"> </path> </svg>
-                        </div>
-                        <div
-                            class="px-8 py-6 bg-white rounded-r-lg flex justify-between items-center w-full border border-l-transparent border-gray-200">
-                            <p v-html="props?.flash.warning"> </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div v-if="props.flash.success" class="px-2 sm:px-0">
-                <div class="rounded-lg overflow-hidden w-fit">
-                    <div class="flex max-w-screen-xl shadow-lg rounded-lg">
-                        <div class="bg-white py-4 px-2 rounded-l-lg flex items-center">
-                            <CheckCircleIcon class="ml-4 w-16 h-16 text-primary dark:text-white bg-white" />
-                        </div>
-                        <div
-                            class="px-8 py-6 bg-white rounded-r-lg flex justify-between items-center w-full border border-l-transparent border-gray-200">
-                            <p v-html="props?.flash.success"> </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
             <div class="px-4 sm:px-0">
-                
                 <div class="rounded-lg overflow-hidden w-fit">
-                    <PrimaryButton v-show="can(['create user'])" class="rounded-none" @click="data.createOpen = true">
-                        {{ lang().button.add }}
-                    </PrimaryButton>
-                    <Create :show="data.createOpen" @close="data.createOpen = false" :roles="props.roles"
-                        v-if="can(['create user'])" :title="props.title" />
                     <Edit :show="data.editOpen" @close="data.editOpen = false" :user="data.user" :roles="props.roles"
                         v-if="can(['update user'])" :title="props.title" />
                     <Delete :show="data.deleteOpen" @close="data.deleteOpen = false" :user="data.user"
@@ -152,14 +117,6 @@ watchEffect(() => {
                             v-tooltip="lang().tooltip.delete_selected">
                             <TrashIcon class="w-5 h-5" />
                         </DangerButton>
-                        <Link :href="route('subirexceles')" v-show="can(['create user'])" type="button"
-                            class="px-2 -mb-1.5 py-1.5 rounded-none hover:bg-blue-500">
-                            <UserCircleIcon class="w-9 h-9" />Subir excel
-                        </Link>
-                        <!-- <Link :href="route('VerTiemposEstudiantes')" v-show="can(['create user'])" type="button"
-                            class="px-2 -mb-1.5 py-1.5 rounded-none hover:bg-blue-500">
-                            <UserCircleIcon class="w-9 h-9" />VerTiemposEstudiantes
-                        </Link> -->
                     </div>
                     <TextInput v-if="props.numberPermissions > 1" v-model="data.params.search" type="text"
                         class="block w-4/6 md:w-3/6 lg:w-2/6 rounded-lg" placeholder="Nombre, correo, nivel o ID " />
@@ -168,9 +125,10 @@ watchEffect(() => {
                     <table class="w-full">
                         <thead class="uppercase text-sm border-t border-gray-200 dark:border-gray-700">
                             <tr class="dark:bg-gray-900/50 text-left">
-                                <th class="px-2 py-4 text-center">
+                                <!-- <th class="px-2 py-4 text-center">
                                     <Checkbox v-model:checked="data.multipleSelect" @change="selectAll" />
-                                </th>
+                                </th> -->
+                                <th class="px-2 py-4 text-center">Acción</th>
                                 <th class="px-2 py-4 text-center">#</th>
                                 <th class="px-2 py-4 cursor-pointer" v-on:click="order('name')">
                                     <div class="flex justify-between items-center">
@@ -181,11 +139,15 @@ watchEffect(() => {
                                 <!-- <th class="px-2 py-4 cursor-pointer" v-on:click="order('email')">
                                     <div class="flex justify-between items-center"> <span>{{ lang().label.email }}</span> <ChevronUpDownIcon class="w-4 h-4" /> </div>
                                 </th> -->
-                                <th class="px-2 py-4">{{ lang().label.role }}</th>
+                                <!-- <th class="px-2 py-4">{{ lang().label.role }}</th> -->
 
                                 <th class="px-2 py-4 cursor-pointer" v-on:click="order('identificacion')">
-                                    <div class="flex justify-between items-center"> <span>{{ lang().label.identificacion
-                                                                                }}</span>
+                                    <div class="flex justify-between items-center"> <span>{{ lang().label.MedidaControl }}</span>
+                                        <ChevronUpDownIcon class="w-4 h-4" />
+                                    </div>
+                                </th>
+                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('identificacion')">
+                                    <div class="flex justify-between items-center"> <span>{{ lang().label.identificacion }}</span>
                                         <ChevronUpDownIcon class="w-4 h-4" />
                                     </div>
                                 </th>
@@ -209,43 +171,46 @@ watchEffect(() => {
                                         <ChevronUpDownIcon class="w-4 h-4" />
                                     </div>
                                 </th>
-                                <!-- <th class="px-2 py-4 cursor-pointer" v-on:click="order('semestre_mas_bajo')"> <div class="flex justify-between items-center"> <span>{{ lang().label.semestre_mas_bajo }}</span> <ChevronUpDownIcon class="w-4 h-4" /> </div> </th> -->
-                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('limite_token_general')">
-                                    <div class="flex justify-between items-center"> <span>{{
-                                                                                lang().label.limite_token_general }}</span>
-                                        <ChevronUpDownIcon class="w-4 h-4" />
-                                    </div>
-                                </th>
                                 <th class="px-2 py-4 cursor-pointer" v-on:click="order('limite_token_leccion')">
-                                    <div class="flex justify-between items-center"> <span>{{ lang().label.limite_token_lec
-                                                                                }}</span>
+                                    <div class="flex justify-between items-center"> <span>{{ lang().label.limite_token_lec }}</span>span
                                         <ChevronUpDownIcon class="w-4 h-4" />
                                     </div>
                                 </th>
-                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('pgrado')">
+                                <!-- <th class="px-2 py-4 cursor-pointer" v-on:click="order('pgrado')">
                                     <div class="flex justify-between items-center"> <span>{{ lang().label.pgrado }}</span>
                                         <ChevronUpDownIcon class="w-4 h-4" />
                                     </div>
-                                </th>
+                                </th> -->
 
-                                <th class="px-2 py-4">Accion</th>
+                                <!-- <th class="px-2 py-4">Accion</th> -->
                             </tr>
                         </thead>
                         <tbody>
                             <tr v-for="(user, index) in users.data" :key="index"
                                 class="border-t border-gray-200 dark:border-gray-700 hover:bg-sky-100 hover:dark:bg-gray-900/20"
                                 :class="index % 2 == 0 ? 'bg-gray-100 dark:bg-gray-800' : ''">
-
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-center">
-                                    <input
-                                        class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-primary dark:text-primary shadow-sm focus:ring-primary/80 dark:focus:ring-primary dark:focus:ring-offset-gray-800 dark:checked:bg-primary dark:checked:border-primary"
-                                        type="checkbox" @change="select" :value="user.id" v-model="data.selectedId" />
+                                
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">
+                                    <div class="flex justify-center items-center">
+                                        <div class="rounded-md overflow-hidden">
+                                            <!-- v-show="can(['update user'])"  -->
+                                            <Link :href="route('verEstudiante', user.id)">
+                                            <InfoButton class="px-2 py-1.5 rounded-none" v-tooltip="'Ver'">
+                                                    <EyeIcon class="w-4 h-4" />
+                                                </InfoButton>
+                                            </Link>
+                                            <!-- <DangerButton v-show="can(['delete user'])" type="button"
+                                                @click="(data.deleteOpen = true), (data.user = user)"
+                                                class="px-2 py-1.5 rounded-none" v-tooltip="lang().tooltip.delete">
+                                                <TrashIcon class="w-4 h-4" />
+                                            </DangerButton> -->
+                                        </div>
+                                    </div>
                                 </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-center">{{ ++index }}</td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">
                                     <span class="flex justify-start items-center">
                                         {{ user.name }}
-                                        
                                         <CheckBadgeIcon class="ml-[2px] w-4 h-4 text-primary dark:text-white"
                                             v-show="user.email_verified_at" />
                                     </span>
@@ -254,38 +219,19 @@ watchEffect(() => {
                                     </span>
 
                                 </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{
-                                                                    user.roles.length == 0 ? 'not selected' : user.roles[0].name
-                                                                    }}</td>
+                                <!-- <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.roles.length == 0 ? 'not selected' : user.roles[0].name }}</td> -->
                                 <!-- <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.created_at }}</td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.updated_at }}</td> -->
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.MedidaControl }}</td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.identificacion }}</td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.sexo }}</td>
-                                <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">{{
-                                                                    CalcularEdad(user.fecha_nacimiento) }}</td>
+                                <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">{{ CalcularEdad(user.fecha_nacimiento) }}</td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.pgrado }}</td>
                                 <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">{{ user.semestre }}</td>
-                                <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">{{ user.limite_token_general }}
-                                </td>
                                 <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">{{ user.limite_token_leccion }}
                                 </td>
-                                <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">{{ user.pgrado }}</td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">
-                                    <div class="flex justify-center items-center">
-                                        <div class="rounded-md overflow-hidden">
-                                            <InfoButton v-show="can(['update user'])" type="button"
-                                                @click="(data.editOpen = true), (data.user = user)"
-                                                class="px-2 py-1.5 rounded-none" v-tooltip="lang().tooltip.edit">
-                                                <PencilIcon class="w-4 h-4" />
-                                            </InfoButton>
-                                            <DangerButton v-show="can(['delete user'])" type="button"
-                                                @click="(data.deleteOpen = true), (data.user = user)"
-                                                class="px-2 py-1.5 rounded-none" v-tooltip="lang().tooltip.delete">
-                                                <TrashIcon class="w-4 h-4" />
-                                            </DangerButton>
-                                        </div>
-                                    </div>
-                                </td>
+                                <!-- <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">{{ user.pgrado }}</td> -->
+                               
                             </tr>
                         </tbody>
                     </table>

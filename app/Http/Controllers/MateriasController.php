@@ -19,6 +19,7 @@ use App\Http\Requests\IA_MateriaRequest;
 use Illuminate\Support\Facades\Auth;
 
 use App\Http\Requests\MateriumRequest;
+use App\Models\Archivo;
 use App\Models\Ejercicio;
 use App\Models\LosPromps;
 use App\Models\Objetivo;
@@ -41,8 +42,7 @@ class MateriasController extends Controller
 
 
     //! index functions ()
-    public function MapearClasePP(&$materias, $numberPermissions)
-    {
+    public function MapearClasePP(&$materias, $numberPermissions) {
         $materias = $materias->get()->map(function ($materia) use ($numberPermissions) {
 
             if ($numberPermissions < 2) {
@@ -63,12 +63,13 @@ class MateriasController extends Controller
     }
     public function fNombresTabla($numberPermissions)
     {
-        $nombresTabla[2] = [null, null, null, "enum", "nombre", "codigo", "carrera_id", null, null, null, "descripcion"];
-
+        
         if ($numberPermissions <= 2) {
-            $nombresTabla[0] = ["IA", "Semestre", "Nombre", "Codigo", "Carrera", "Unidades", "Objetivos", "descripcion"];
+            $nombresTabla[2] = [null, null,      "enum",    "nombre",  "codigo", "carrera_id", null     , null,       "descripcion"];
+            $nombresTabla[0] = ["IA", "Archivos","Semestre", "Nombre", "Codigo", "Carrera",   "Unidades", "Objetivos", "descripcion"];
         } else { //not estudiante
-            $nombresTabla[0] = ["Edicion", "Matricular", "IA", "Semestre", "Nombre", "Codigo", "Carrera", "Unidades", "usuarios", "Objetivos", "descripcion"];
+            $nombresTabla[2] = [null, null, null, null,                     "enum",     "nombre", "codigo", "carrera_id", null,      null,       null, "descripcion"];
+            $nombresTabla[0] = ["Edicion", "Matricular", "IA", "Archivos",  "Semestre", "Nombre", "Codigo", "Carrera",  "Unidades", "usuarios", "Objetivos", "descripcion"];
         }
 
         return $nombresTabla;
@@ -102,7 +103,11 @@ class MateriasController extends Controller
         if ($request->has('selectedUni') &&  $request->selectedUni != 0) {
             $carrerasSelect = Carrera::where('universidad_id', $request->selectedUni)->get();
         } else {
-            $carrerasSelect = Carrera::all();
+            if($numberPermissions > 8){
+                $carrerasSelect = Carrera::all();
+            }else{
+                $carrerasSelect = Auth::user()->carreras;
+            }
         }
         if ($request->has('selectedcarr') && $request->selectedcarr != 0) {
             $materias = $materias->whereIn('carrera_id', $request->selectedcarr);
@@ -119,8 +124,7 @@ class MateriasController extends Controller
     }
 
 
-    public function index(Request $request)
-    {
+    public function index(Request $request) {
         $permissions = Myhelp::EscribirEnLog($this, ' materia');
         $numberPermissions = Myhelp::getPermissionToNumber($permissions);
 
@@ -153,9 +157,13 @@ class MateriasController extends Controller
             $page,
             ['path' => request()->url()]
         );
+        $errorMessage = '';
+
+        //# generarTodo.vue :> generar
 
         // $listaMaterias = Materia::where('carrera_id',$request->carrera_id)->pluck('nombre') ?? [];
-        $materiaNombre = Materia::find($request->materia_id)->nombre;
+        $materiaNombre = Materia::find($request->materia_id);
+        $materiaNombre = $materiaNombre->nombre ?? '';
         $laCarrera = Carrera::find($request->carrera_id) ?? null;
         $ValoresGenerarMateria = Inertia::lazy(fn () => HelpGpt::ValoresGenerarMateria($laCarrera->nombre, $materiaNombre,[
             'temas' => $request->temas,
@@ -165,7 +173,13 @@ class MateriasController extends Controller
         //     $request->temas,
         //     $request->unidades,
         // );
-        $errorMessage = '';
+
+        //# generarTodo.vue :> buscarMateriasSelect
+        if ($request->has('carrera_id_buscar') && $request->carrera_id_buscar != 0) {
+            $MateriasRequisitoSelect = Inertia::lazy(fn () => Myhelp::buscarMaterias($request->carrera_id_buscar));
+
+        }
+
         return Inertia::render('materia/Index', [ //carpeta
             'breadcrumbs'               =>  [['label' => __('app.label.materias'), 'href' => route('materia.index')]],
             'title'                     =>  $titulo,
@@ -185,8 +199,7 @@ class MateriasController extends Controller
 
 
     //! STORE & SHOW & UPDATE & DESTTROY
-    public function store(MateriumRequest $request)
-    {
+    public function store(MateriumRequest $request) {
         DB::beginTransaction();
         Myhelp::EscribirEnLog($this, get_called_class(), '', false);
 
@@ -233,14 +246,15 @@ class MateriasController extends Controller
         Myhelp::EscribirEnLog($this, get_called_class(), '', false);
 
         try {
-            $enum = $this->enumUltimo($request->enum_mat);
-            $materia = Materia::create([
-                'nombre' => $request->nombre_mat,
-                'descripcion' => '',
-                'carrera_id' =>  $request->carrera_id,
-                'enum' => $enum,
-                'codigo' => $request->codigo_mat
-            ]);
+            // $enum = $this->enumUltimo($request->enum_mat);
+            $materia = Materia::find($request->materia_id);
+            // $materia = Materia::create([
+            //     'nombre' => $request->nombre_mat,
+            //     'descripcion' => '',
+            //     'carrera_id' =>  $request->carrera_id,
+            //     'enum' => $enum,
+            //     'codigo' => $request->codigo_mat
+            // ]);
             Objetivo::create(['nombre' => $request->objetivo, 'materia_id' => $materia->id]);
             $contadorUnidad = 0;
             foreach ($request->nombre_unidad as $keyUnidad => $unidad) {
@@ -277,8 +291,7 @@ class MateriasController extends Controller
     }
 
 
-    public function show($id)
-    {
+    public function show($id) {
         $materia = Materia::find($id);
         $unidads = $materia->unidads;
         $objetivos = $materia->objetivos;
@@ -301,12 +314,9 @@ class MateriasController extends Controller
             'breadcrumbs'    =>  [['label' => __('app.label.materias'), 'href' => route('materia.index')]],
         ]);
     }
-    public function edit(materia $materia)
-    {
-    }
+    public function edit(materia $materia) { }
 
-    public function update(Request $request, $id)
-    {
+    public function update(Request $request, $id) {
         $materia = Materia::find($id);
         $request->validate([
             'codigo' => 'required|unique:materias,codigo,' . $id,
@@ -364,16 +374,16 @@ class MateriasController extends Controller
     }
 
 
-    public function destroy($id)
-    {
+    public function destroy($id) {
         Myhelp::EscribirEnLog($this, get_called_class(), '', false);
 
         DB::beginTransaction();
 
+        //todo: si borra esta materia, tendra que borrar todos los archivo asociadas a ella
+
         try {
             $materias = Materia::findOrFail($id);
             Myhelp::EscribirEnLog($this, get_called_class(), "La materia id:" . $id . " y nombre:" . $materias->nombre . " ha sido borrada correctamente", false);
-
 
             $materias->delete();
             DB::commit();
@@ -388,8 +398,7 @@ class MateriasController extends Controller
 
 
 
-    public function AsignarUsers(Request $request, $materiaid)
-    {
+    public function AsignarUsers(Request $request, $materiaid) {
         $titulo = 'Seleccione los estudiantes a matricular';
         $permissions = Myhelp::EscribirEnLog($this, 'carrera');
         if ($permissions === "estudiante") {
@@ -434,8 +443,7 @@ class MateriasController extends Controller
         ]);
     }
 
-    private function UsuariosSinLosInscritos($modelo, $carrera)
-    {
+    private function UsuariosSinLosInscritos($modelo, $carrera) {
         $usuariosU = $carrera->users->pluck('id');
         $usuariosDeLaMateria = $modelo->users->pluck('id');
 
@@ -446,8 +454,7 @@ class MateriasController extends Controller
     }
 
 
-    public function SubmitAsignarUsers(Request $request)
-    {
+    public function SubmitAsignarUsers(Request $request) {
         DB::beginTransaction();
         Myhelp::EscribirEnLog($this, ' materia');
 
@@ -469,8 +476,7 @@ class MateriasController extends Controller
         }
     }
 
-    public function lookForTemas($materiaid)
-    {
+    public function lookForTemas($materiaid) {
         $materia = Materia::find($materiaid);
         $unidads = $materia->unidads;
         foreach ($unidads as $key => $value) {
@@ -492,9 +498,7 @@ class MateriasController extends Controller
     }
 
 
-
-    public function VistaTema(Request $request, $materiaid, $ejercicioid = null, $idnivel = null, $subtemaid = null, $selectedPrompID = null)
-    {
+    public function VistaTema(Request $request, $materiaid, $ejercicioid = null, $idnivel = null, $subtemaid = null, $selectedPrompID = null) {
         $permissions = Myhelp::EscribirEnLog($this, ' VistaTem ');
         $numberPermissions = Myhelp::getPermissionToNumber($permissions);
         $usuario = Auth::user();
@@ -502,7 +506,6 @@ class MateriasController extends Controller
         set_time_limit(180);
         $unidad = Unidad::where('materia_id', $materiaid)->first();
         $respuesta = '';
-
         if ($numberPermissions > 1) {
             try {
                 $vectorYSelecNiveles = HelpGPT::nivelesAplicativo();
@@ -537,7 +540,6 @@ class MateriasController extends Controller
                         }
                     } else {
                         $ejercicio = Ejercicio::find($ejercicioid);
-                        $ejercicioSelec = $ejercicio->nombre;
 
                         $subtopicoSelec = Subtopico::find($ejercicio->subtopico_id);
                         $temaSelec = Unidad::find($subtopicoSelec->unidad_id)->nombre;
@@ -554,11 +556,11 @@ class MateriasController extends Controller
                                 } else {
                                     $selectedReasonString = Parametro::first()->prompExplicarTema;
                                 }
-                                $gpt = HelpGPT::gptResolverTema($selectedReasonString, $subtopicoSelec->nombre, $unidad->nombre, $ChosenNivel, $materia->nombre, $usuario, env('DEBUGGINGGPT'));
+                                $gpt = HelpGPT::gptResolverTema($selectedReasonString, $subtopicoSelec, $unidad->nombre, $ChosenNivel, $materia->nombre, $usuario, env('DEBUGGINGGPT'));
                             }
 
                             if ($opcion === 3) { //ejercicio
-                                $gpt = HelpGPT::gptPart1($ejercicioSelec, $ChosenNivel, $materia->nombre, $usuario, $soloEjercicios, env('DEBUGGINGGPT'));
+                                $gpt = HelpGPT::gptPart1($ejercicio, $ChosenNivel, $materia->nombre, $usuario, $soloEjercicios, env('DEBUGGINGGPT'));
                             }
                             $respuesta = preg_replace("/^\n\n/", "", $gpt['respuesta']);
                         } else { //resolver quiz opcion = 4
@@ -621,9 +623,9 @@ class MateriasController extends Controller
             if ($limite > 0) {
 
                 if ($subtemaid !== null) {
-                    $subtopicoSelec = Subtopico::find($subtemaid);
-                    $temaSelec = Unidad::find($subtopicoSelec->unidad_id);
-                    $gpt = HelpGPT::gptResolverTema($selectedReasonString, $subtopicoSelec->nombre, $unidad->nombre, 'Profesional', $materia->nombre, $usuario, env('DEBUGGINGGPT'));
+                    $subtopicoModel = Subtopico::find($subtemaid);
+                    $temaSelec = Unidad::find($subtopicoModel->unidad_id);
+                    $gpt = HelpGPT::gptResolverTema($selectedReasonString, $subtopicoModel, $unidad->nombre, 'Profesional', $materia->nombre, $usuario, env('DEBUGGINGGPT'));
                     $restarAlToken = $gpt['restarAlToken'];
                     $limite = intval($usuario->limite_token_leccion);
                     $respuesta = $gpt['respuesta'];
@@ -640,7 +642,7 @@ class MateriasController extends Controller
                 'fromController'        =>  $temasYValores[0],
                 'respuesta'             =>  $respuesta,
                 'temaSelec'             => $temaSelec ?? '',
-                'subtopicoSelec'        => $subtopicoSelec ?? null,
+                'subtopicoSelec'        => $subtopicoModel ?? null,
                 'usuario'               => $usuario,
                 'materia'               => $materia ?? null,
                 'restarAlToken'         => $restarAlToken,
@@ -658,33 +660,41 @@ class MateriasController extends Controller
         }
     }
 
-    public function actionEQH(Request $request)
-    {
+    public function actionEQH(Request $request) {
         $permissions = Myhelp::EscribirEnLog($this, ' materia');
         $numberPermissions = Myhelp::getPermissionToNumber($permissions);
         $usuario = Auth::user();
         try {
-            $subtopicoSelec = $request->subtopicoSelec;
+            
+            $SubtopicoEsString = is_string($request->subtopicoSelec);
+            if($SubtopicoEsString){
+                $subtopicoModel = Subtopico::Where('nombre', $request->subtopicoSelec)->first();
+            }else{
+                $subtopicoModel = Subtopico::find($request->subtopicoSelec['id']);
+            }
+
             $materia = Materia::find($request->materiaid);
             $unidad = Unidad::where('materia_id', $materia->id)->first();
-            // $temaSelec = $request->temaSelec;
             $respuesta1 = $request->respuesta1;
             $actionEQH = $request->actionEQH;
 
+            
+
             if ($actionEQH === 1) { //Ejemplo
-                $selectedReasonString = 'Explica con al menos 2 ejemplos, '
-                    . 'el subtema: ' . $subtopicoSelec['nombre']
+                $selectedReasonString = 'Explica con al menos 3 ejemplos, '
+                    . 'el subtema: ' . $subtopicoModel->nombre
                     . ' del tema: ' . $unidad->nombre
                     . ' de la asignatura: ' . $materia->nombre;
 
-                $gpt = HelpGPT::gptResolverTema($selectedReasonString, $subtopicoSelec['nombre'], $unidad->nombre, 'Profesional', $materia->nombre, $usuario, env('DEBUGGINGGPT'));
-                $ejemplosRespuesta = $gpt['respuesta'];
+                $gpt = HelpGPT::gptResolverTema($selectedReasonString, $subtopicoModel, $unidad->nombre, 'Profesional', $materia->nombre, $usuario, env('DEBUGGINGGPT'));
+
+                $ejemplosRespuesta = str_replace('\n','<br>',$gpt['respuesta']);
             }
 
             if ($actionEQH === 2) { //quiz
                 $selectedReasonString = 'Genere una pregunta de seleccion multiple sobre [tema] de la asignatura [materia].';
                 $quiz = true;
-                $gpt = HelpGPT::gptQuizEstudiante($selectedReasonString, $subtopicoSelec['nombre'], 'Profesional', $materia->nombre, $usuario, env('DEBUGGINGGPT'));
+                $gpt = HelpGPT::gptQuizEstudiante($selectedReasonString, $subtopicoModel, 'Profesional', $materia->nombre, $usuario, env('DEBUGGINGGPT'));
                 $quizPregunta = $gpt['vectorChuleta'][0];
                 $quizCorrectaString = trim($gpt['vectorChuleta'][$gpt['ArrayRespuestasCorrectas'][0]]);
                 $myhelp = new Myhelp();
@@ -701,25 +711,18 @@ class MateriasController extends Controller
                 $hagapregunta = true;
                 $HacerlaPregunta = $request->HacerlaPregunta;
 
-                $selectedReasonString = 'Responda lo siguiente con el contexto 
-                de la asignatura:' . $materia->nombre . '. 
-                el subtema: ' . $subtopicoSelec['nombre']
-                    . ' del tema: ' . $unidad->nombre . '
-                el objetivo es explicar el tema en términos fáciles de entender. Esto podría incluir proporcionar instrucciones paso a paso para resolver un problema, sugerir recursos en línea para un estudio más profundo. 
-                La pregunta es: ' . $request->HacerlaPregunta . '. En caso que no sea una pregunta para aprender de ' . $materia->nombre
-                    . ', responde un mensaje que le haga entender que esto es un aplicativo para la enseñanza. Debes ser muy restrictivo en si responder a la pregunta o no.' .
-                    'En caso de que te nieges a responder, lista una serie de palabras claves (minimo 5) con las cuales deberia preguntar.';
+                $preguntaAbierta = HelpGPT::GenerarPreguntaAbierta($materia->nombre,$unidad->nombre, $subtopicoModel->nombre,$request->HacerlaPregunta,$numberPermissions);
 
-                $gpt = HelpGPT::gptResolverTema($selectedReasonString, $subtopicoSelec['nombre'], $unidad->nombre, 'Profesional', $materia->nombre, $usuario, env('DEBUGGINGGPT'));
+                $gpt = HelpGPT::gptResolverTema($preguntaAbierta, $subtopicoModel, $unidad->nombre, 'Profesional', $materia->nombre, $usuario, env('DEBUGGINGGPT'));
                 $RespuestaPregunta = $gpt['respuesta'];
             }
 
             if ($actionEQH === 4) { //mas sencilla
                 $selectedReasonString = 'Explica de una manera mas sencilla y simple, '
-                    . 'el subtema: ' . $subtopicoSelec['nombre']
+                    . 'el subtema: ' . $subtopicoModel->nombre
                     . ' del tema: ' . $unidad->nombre
                     . ' de la asignatura: ' . $materia->nombre;
-                $gpt = HelpGPT::gptResolverTema($selectedReasonString, $subtopicoSelec['nombre'], $unidad->nombre, 'Profesional', $materia->nombre, $usuario, env('DEBUGGINGGPT'));
+                $gpt = HelpGPT::gptResolverTema($selectedReasonString, $subtopicoModel, $unidad->nombre, 'Profesional', $materia->nombre, $usuario, env('DEBUGGINGGPT'));
                 $ejemplosRespuesta = $gpt['respuesta'];
             }
 
@@ -733,7 +736,7 @@ class MateriasController extends Controller
                 'materia'               => $materia ?? null,
 
                 'temaSelec'             => $unidad->nombre ?? '',
-                'subtopicoSelec'        => $subtopicoSelec ?? '',
+                'subtopicoSelec'        => $subtopicoModel->nombre ?? '',
                 'respuesta1'            => $respuesta1 ?? '', //la que viene de versionEstudiante
                 'limite'                => $limite,
 
@@ -753,13 +756,73 @@ class MateriasController extends Controller
                 'RespuestaPregunta'     => $RespuestaPregunta ?? null,
             ]);
         } catch (\Throwable $th) {
-            Log::Critical("U -> " . Auth::user()->name . " fallo en en EQH - " . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
+            $everythingError = $th->getMessage().' L:'.$th->getLine(). ' Ubi:' . $th->getFile();
+            dd($everythingError);
+            Log::Critical("U -> " . Auth::user()->name . " fallo en en EQH - " . $everythingError);
 
             $myhelp = new Myhelp();
-            dd($th->getMessage() . ' L:' . $th->getLine());
-            $myhelp->redirect('materias.index', 0)->with('error', 'error: ' . $th->getMessage() . ' L:' . $th->getLine());
-            // return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.materia')]) . $th->getMessage().' L:'.$th->getLine());
+            // $myhelp->redirect('materias.index')->with('error', 'error: ' . $th->getMessage() . ' L:' . $th->getLine(). ' Ubi:' . $th->getFile());
+            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.materia')]) . $everythingError);
         }
     }
-    //fin gpt
+
+    public function Archivosindex($materiaid) {
+        $permissions = Myhelp::EscribirEnLog($this, ' archivos_materia');
+        $numberPermissions = Myhelp::getPermissionToNumber($permissions);
+
+        $titulo = __('app.label.materias');
+
+        $materia = Materia::find($materiaid);
+        if ($permissions === "estudiante") {
+        } else { // not estudiante
+        }
+
+        $archivos = Archivo::where('materia_id',$materiaid)->get();
+        return Inertia::render('materia/docs/ArchivosIndex', [ //carpeta
+            'breadcrumbs'               =>  [
+                ['label' => __('app.label.materias'), 'href' => route('materia.index')],
+                ['label' => __('app.label.archivos'), 'href' => route('materia.Archivos',$materiaid)]
+            ],
+            'title'                     =>  $titulo,
+            'numberPermissions'            =>  $numberPermissions,
+            'archivos'            =>  $archivos,
+            'materia'            =>  $materia,
+        ]);
+    }
+
+    public function storeArchivos(Request $request) {
+        DB::beginTransaction();
+        Myhelp::EscribirEnLog($this, get_called_class(), '', false);
+        $theUser = Auth::user();
+        try {
+            if($request->type == 'application/pdf'){
+
+                $nombreContenido = str_replace(" ","",time() ."_". $request->archivo->getClientOriginalName());
+                $request->archivo->storeAs('public/archivosSubidos',$nombreContenido);
+
+                $archivo = Archivo::create([
+                    'NombreOriginal'    => $nombreContenido,
+                    'nombre'            => $request->nombre ?? '',
+                    'peso'              => $request->peso ?? 0,
+                    'type'              => $request->type,
+                    'user_id'           => $theUser->id,
+                    'materia_id'        => $request->materia_id,
+                ]);
+                
+                DB::commit();
+                Log::info("U -> " . Auth::user()->name . " Guardo archivo " . $request->nombre . " correctamente");
+                return back()->with('success', __('app.label.created_successfully2', ['nombre' => $archivo->nombre]));
+            }
+            
+            DB::rollback();
+            Log::Critical("U -> " . Auth::user()->name . ". El archivo no es un PDF");
+            return back()->with('error', "El archivo no es PDF");
+
+        } catch (\Throwable $th) {
+            DB::rollback();
+            Log::alert("U -> " . Auth::user()->name . " fallo en Guardar el archivo " . $request->nombre . " - " . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
+
+            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.archivo')]) . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
+        }
+    }
 }

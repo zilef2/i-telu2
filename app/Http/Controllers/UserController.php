@@ -47,7 +47,7 @@ class UserController extends Controller
                 $query->where('name', 'LIKE', "%" . $request->search . "%")
                     ->orWhere('email', 'LIKE', "%" . $request->search . "%")
                     ->orWhere('identificacion', 'LIKE', "%" . $request->search . "%")
-                    ->orWhere('pgrado', 'LIKE', "%" . $request->search . "%");
+                    ;
             })
                 ->where('name', '!=', 'admin')
                 ->where('name', '!=', 'Superadmin');
@@ -180,7 +180,6 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         $permissions = Myhelp::EscribirEnLog($this, 'DELETE:users');
-
         try {
             $user->delete();
             Myhelp::EscribirEnLog($this, 'DELETE:users', 'usuario id:' . $user->id . ' | ' . $user->name . ' borrado', false);
@@ -218,39 +217,36 @@ class UserController extends Controller
     }
 
 
-    //todo: Duplicate entry '1152194566' for key 'users_identificacion_unique'
-    private function MensajeWar() {
+    private function MensajeWar($errores) {
         $bandera = false;
         $contares = [
             'contarEmailExistente',
-            'contar2',
+            'contarActualizado',
             'contarNoNumeros',
-            'contar4',
-            'contar5',
-            'contarVacios',
+            'contarSex',
+            'contarCargo'
         ];
         $mensajesWarnings = [
-            '#correos Existentes: ',
-            'Novedad, error interno: ',
+            '# Correos Existentes: ',
+            'Usuarios actualizados: ',
             '# Cedulas no numericas: ',
-            '# Generos distintos(M,F,otro): ',
-            '# Identificaciones repetidas: ',
-            '# Filas con celdas vacias: ',
+            '# Generos mal escrito: ',
+            '# Cargo mal escrito: ',
         ];
 
-        //contamos si hay por lo menos 1 error
-        foreach ($contares as $key => $value) {
-            $$value = session($value, 0);
-            session([$value => 0]);
-            $bandera = $bandera || $$value > 0;
-        }
-        session(['contar2' => -1]);
+        //! errores y contares tienen que tener la misma longuitud
+        foreach ($errores as $key => $elError) {
+            foreach ($elError as $key => $value) {
 
+                ${$contares[$key]} = $value . ' ';
+                $bandera = $bandera || $value > 0;
+            }
+        }
         //en ese caso, imprimimos el valor en $mensajesWarnings
         $mensaje = '';
         if ($bandera) {
             foreach ($mensajesWarnings as $key => $value) {
-                if (${$contares[$key]} > 0) {
+                if (isset(${$contares[$key]}) && count(${$contares[$key]}) > 0) {
                     $mensaje .= $value . ${$contares[$key]} . '. ';
                 }
             }
@@ -260,14 +256,10 @@ class UserController extends Controller
 
     public function uploadestudiantes(Request $request)
     {
-        //? temp aquiiiiiiii
-
-
-
         DB::beginTransaction();
         Myhelp::EscribirEnLog($this, get_called_class(), 'Empezo a importar', false);
         $countfilas = 0;
-        $personalImp = new PersonalImport(); 
+        $personalImp = new PersonalImport();
 
         try {
             if ($request->archivo1) {
@@ -276,20 +268,34 @@ class UserController extends Controller
                 $mensageWarning = $helpExcel->validarArchivoExcel($request->archivo1);
                 if ($mensageWarning != '') return back()->with('warning', $mensageWarning);
 
+                // $result = 
                 Excel::import($personalImp, $request->archivo1);
-
-                $MensajeWarning = self::MensajeWar();
+                $misErrores = [
+                    $personalImp->contarEmailExistente,
+                    $personalImp->contarActualizado,
+                    $personalImp->contarNoNumeros,
+                    $personalImp->contarSex,
+                    $personalImp->contarCargo,
+                ];
+                $MensajeWarning = self::MensajeWar($misErrores);
                 if ($MensajeWarning !== '') {
-                    return back()->with('success', 'Usuarios nuevos: ' . $personalImp->countfilas)
-                        ->with('warning', $MensajeWarning);
+                    return back()->with('success', 
+                        'Usuarios nuevos: ' . $personalImp->countfilas.
+                        ' Usuarios actualizados: ' . $personalImp->countfilasActualizadas
+                    )->with('warning', $MensajeWarning);
                 }
+
 
                 Myhelp::EscribirEnLog($this, 'IMPORT:users', ' finalizo con exito', false);
                 DB::commit();
-                if ($personalImp->countfilas == 0)
-                    return back()->with('success', __('app.label.op_successfully') . ' No hubo cambios');
-                else
-                    return back()->with('success', __('app.label.op_successfully') . ' Se leyeron ' . $personalImp->countfilas . ' filas con exito');
+                if ($personalImp->countfilas == 0 && $personalImp->countfilasActualizadas == 0)
+                    // return back()->with('success', __('app.label.op_successfully') . ' No hubo cambios');
+                    return to_route('user.index')->with('success', __('app.label.op_successfully') . ' No hubo cambios');
+                else{
+                    //happy path
+                    // return back()->with('success', __('app.label.op_successfully') . ' Se leyeron ' . $personalImp->countfilas + $personalImp->countfilasActualizadas . ' filas con exito');
+                    return to_route('user.index')->with('success', __('app.label.op_successfully') . ' Se leyeron ' . $personalImp->countfilas + $personalImp->countfilasActualizadas . ' filas con exito');
+                }
             } else {
                 return back()->with('error', __('app.label.op_not_successfully') . ' archivo no seleccionado');
             }
@@ -304,8 +310,7 @@ class UserController extends Controller
 
 
     //mio
-    public function uploadUniversidad_notusing(Request $request)
-    {
+    public function uploadUniversidad_notusing(Request $request) {
         Myhelp::EscribirEnLog($this, get_called_class(), 'Empezo a importar alumnos de universidades', false);
         $countfilas = 0;
         try {
@@ -349,8 +354,7 @@ class UserController extends Controller
     }
 
 
-    public function uploadUniversidad(Request $request)
-    {
+    public function uploadUniversidad(Request $request) {
         Myhelp::EscribirEnLog($this, get_called_class(), 'Empezo a importar alumnos de universidades', false);
         $countfilas = 0;
         try {
@@ -429,8 +433,7 @@ class UserController extends Controller
     }
 
 
-    public function uploadCarreras(Request $request)
-    {
+    public function uploadCarreras(Request $request) {
         Myhelp::EscribirEnLog($this, get_called_class(), 'Empezo a importar Carreras', false);
         $countfilas = 0;
         try {

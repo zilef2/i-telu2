@@ -140,9 +140,7 @@ const submitToGPT = (ejercicioID) => { //not in leccion estudiante
     })
 }
 
-
-//just for the student, to begin lesson JUST STUDENT!!!
-//here can be simplificar, ejemplos, quiz
+//here can stay  simplificar, ejemplos, quiz o begin lesson JUST STUDENT!!!
 const CallStudent = (subtopicoid) => {
     form.get(route('materia.VistaTema', [props.elid, 0, 1, subtopicoid, null]), {
         preserveScroll: true,
@@ -234,8 +232,7 @@ const submitGPTEQH = (action) => {
                                 <h3 class="block mx-auto text-lg text-gray-900 dark:text-white">Materia: <b>{{
                                     props.materia.nombre }}</b></h3>
 
-                                <p class="text-sky-600 dark:text-white"><b class="text-sky-500">{{ props.limite }}</b> token
-                                    disponibles</p>
+                                <p class="text-sky-600 dark:text-white"><b class="text-sky-500">{{ props.limite }}</b> token disponibles</p>
                             </div>
                         </div>
 
@@ -550,16 +547,17 @@ const submitGPTEQH = (action) => {
     </AuthenticatedLayout>
 </template>
 <style>
-textarea {
-    @apply px-3 py-2 border border-gray-300 rounded-md;
-}
+    textarea {
+        @apply px-3 py-2 border border-gray-300 rounded-md;
+    }
 
-[name="labelSelectVue"],
-.muted {
-    color: #1b416699;
-}
+    [name="labelSelectVue"],
+    .muted {
+        color: #1b416699;
+    }
 
-[name="labelSelectVue"] {
-    font-size: 22px;
-    font-weight: 600;
-}</style>
+    [name="labelSelectVue"] {
+        font-size: 22px;
+        font-weight: 600;
+    }
+</style>

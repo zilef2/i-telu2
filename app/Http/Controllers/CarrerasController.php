@@ -16,13 +16,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
-class CarrerasController extends Controller
-{
+class CarrerasController extends Controller {
 
     private $modelName = 'Carrera';
     //! funciones del index
-    public function MapearClasePP(&$Carreras, $numberPermissions)
-    {
+    public function MapearClasePP(&$Carreras, $numberPermissions) {
         $Carreras = $Carreras->get()->map(function ($carrera) use ($numberPermissions) {
 
             if ($numberPermissions < 5) { //coordinador_academico = 4
@@ -66,8 +64,7 @@ class CarrerasController extends Controller
     }
 
 
-    public function Filtros($request, &$Carreras)
-    {
+    public function Filtros($request, &$Carreras) {
         if ($request->has('selectedUniID') && $request->selectedUniID != 0) {
             $universidadid = Universidad::has('carreras')->where('id', $request->selectedUniID)->pluck('id')->toArray();
             $Carreras->whereIn('universidad_id', $universidadid);
@@ -87,8 +84,7 @@ class CarrerasController extends Controller
             $Carreras->orderBy('nombre');
         }
     }
-    public function losSelect($numberPermissions)
-    {
+    public function losSelect($numberPermissions) {
         if ($numberPermissions < intval(env('PERMISS_VER_FILTROS_SELEC'))) { //coordinador academico, coorPrograma,profe,estudiante
             $UniversidadSelect = Auth::user()->universidades;
         } else {

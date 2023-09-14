@@ -8,6 +8,8 @@ php artisan rm:crud foo --force
 
 //middleware
     php artisan make:middleware IsAdmin
+//only controller
+    php artisan make:controller extraUser
 
 
 # EXPORT AND IMPORTS AND CORREO
@@ -20,7 +22,7 @@ php artisan rm:crud foo --force
 
 
 
-# DESPLIEGUE
+//# -------------------------------------- DESPLIEGUE
 
 composer dump-autoload
 php artisan key:generate
@@ -54,3 +56,9 @@ mkdir /home/aplicativoswebco/public_html/modulonom/storage/framework/cache/data
     composer require mrdebug/crudgen --dev
     composer require smalot/pdfparser
 
+
+
+//# -------------------------------------- migrations
+// 14 sept 2023
+php artisan migrate --path=database/migrations/2023_09_12_143715_create_archivos_table.php
+php artisan migrate --path=database/migrations/2023_07_01_095654_create_medida_controls_table.php

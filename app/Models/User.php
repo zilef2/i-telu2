@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -72,6 +73,10 @@ class User extends Authenticatable
     public function materias(): BelongsToMany {
         return $this->BelongsToMany(Materia::class);
     }
+    public function MedidaControl(): HasMany {
+        return $this->HasMany(MedidaControl::class);
+    }
+
     public function unidads() {
         $result = $this->materias->flatMap(function ($materia) {
             return collect($materia->unidads);

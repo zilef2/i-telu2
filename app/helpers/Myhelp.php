@@ -7,6 +7,7 @@
 
 namespace App\helpers;
 
+use App\Models\Materia;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -35,6 +36,10 @@ class Myhelp {
                 'Models' => $Models,
                 'isSome' => $isSome,
             ];
+        }
+        public static function buscarMaterias($carrera_id_buscar)
+        {
+            return Materia::Where('carrera_id', intval($carrera_id_buscar))->get();
         }
     //JUST THIS PROJECT
 

@@ -2,12 +2,22 @@
 
 return [
     'label' => [
+        //materia
+        'archivo' => 'Archivo',
+        'archivos' => 'Archivos',
+
+        //extra user
+        'verEstudiante' => 'Perfil Estudiante',
+        'extrauser' => 'Estudiantes',
+        'MedidaControl' => 'Tokens usados',
+        'Estudiantes' => 'Estudiantes',
+
         //generando mat
         'totalUT' => 'total',
         'Array_nombre_unidad' => 'Unidad',
         'Array_nombre_tema' => 'Tema',
         'nombre_unidad' => 'Unidad',
-        'nombre_mat' => 'Materia',
+        'nombre_mat' => 'Asignatura',
         'Array_RA' => 'Resultado de aprendizaje',
         'Cuantas_unidades' => 'Cuantas unidades',
         'Cuantas_temas' => 'Cuantos temas',
@@ -28,7 +38,7 @@ return [
 
 
         //asignar - materia
-        'materias' => 'Materias',
+        'materias' => 'Asignaturas',
         'no_permission' => 'Accion no autorizada',
         //ejercicios
         'ejercicios' => 'Ejercicios',
@@ -70,22 +80,22 @@ return [
         'limite_token_lec' => 'limite/leccion',
 
         //universidad
-        'universidad' => 'universidad',
-        'Universidads' => 'universidades',
+        'universidad' => 'Universidad',
+        'Universidads' => 'Universidades',
         //carrera
-        'carrera' => 'carrera',
-        'carreras' => 'carreras',
-        'UnObjetivo' => 'Describa el objetivo de la materia',
-        'otroObjetivo' => 'Puede agregar un objetivo extras a la materia (opcional)',
+        'carrera' => 'Carrera',
+        'carreras' => 'Carreras',
+        'UnObjetivo' => 'Describa el objetivo de la Asignatura',
+        'otroObjetivo' => 'Puede agregar un objetivo extras a la Asignatura (opcional)',
 
         //each rol
         'codigo' => 'Código',
         'coordinador_academico' => 'Coordinador Academico',
         //each model
         'universidadCarreras' => 'Universidad y Carreras',
-        'carrera' => 'carrera',
-        'Carreras' => 'carreras',
-        'materia' => 'Materia',
+        'carrera' => 'Carrera',
+        'Carreras' => 'Carreras',
+        'materia' => 'Asignatura',
         'Unidad' => 'Unidad',
         'subtopico' => 'Tema',
         'ejercicio' => 'ejercicio',
@@ -224,6 +234,8 @@ return [
         'ver' => 'ver',
         'inscribir' => 'inscribir',
         'preguntaria' => 'preguntar a la IA',
+        'archivos' => 'Documentos',
+        'archivo' => 'Documento',
 
         'edit' => 'Editar',
         'delete' => 'borrar',

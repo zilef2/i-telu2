@@ -12,7 +12,7 @@ import pkg from 'lodash';
 import { router, usePage, Link } from '@inertiajs/vue3';
 
 import Pagination from '@/Components/Pagination.vue';
-import { CursorArrowRippleIcon, ChevronUpDownIcon, QuestionMarkCircleIcon, EyeIcon, PencilIcon, TrashIcon, UserCircleIcon } from '@heroicons/vue/24/solid';
+import { CursorArrowRippleIcon, ChevronUpDownIcon, QuestionMarkCircleIcon, EyeIcon, PencilIcon, TrashIcon, UserCircleIcon, BookmarkIcon} from '@heroicons/vue/24/solid';
 
 import Create from '@/Pages/materia/Create.vue';
 import Edit from '@/Pages/materia/Edit.vue';
@@ -23,7 +23,7 @@ import Checkbox from '@/Components/Checkbox.vue';
 import InfoButton from '@/Components/InfoButton.vue';
 import superButton from '@/Components/uiverse/superButton.vue';
 import { useForm } from '@inertiajs/vue3';
-import { PrimerasPalabras, vectorSelect, formatDate, CalcularEdad, CalcularSexo } from '@/global.ts';;
+import { PrimerasPalabras, vectorSelect, formatDate, CalcularEdad, CalcularSexo } from '@/global.ts';
 
 const { _, debounce, pickBy } = pkg
 const props = defineProps({
@@ -61,7 +61,7 @@ const data = reactive({
     editOpen: false,
     deleteOpen: false,
     deleteBulkOpen: false,
-    generico: null,
+    generico: 0,
     dataSet: usePage().props.app.perpage,
 
     UniversidadSelect: [], //para filtro (index)
@@ -82,7 +82,7 @@ watch(() => _.cloneDeep(data.params), debounce(() => {
         preserveState: true,
         preserveScroll: true,
     })
-}, 100))
+}, 10))
 
 watchEffect(() => {
     data.carrerasDeUSel = props.carrerasSelect?.map(
@@ -91,12 +91,7 @@ watchEffect(() => {
         )
     )
     data.carrerasDeUSel.unshift({ label: 'Seleccione carrera', value: 0 })
-    data.MateriasRequisitoSelect = props.MateriasRequisitoSelect?.map(
-        carrera => (
-            { label: carrera.nombre, value: carrera.id }
-        )
-    )
-    data.MateriasRequisitoSelect.unshift({ label: 'Seleccione materia', value: 0 })
+    
 
     if(typeof (data.params.selectedUni) == 'undefined' || typeof (data.params.selectedUni) == 'object'){
         data.params.selectedUni = "0";
@@ -149,7 +144,7 @@ onMounted(() => {
                     </PrimaryButton>
                     <generarTodo :show="data.generarOpen" @close="data.generarOpen = false" :title="props.title"
                         v-if="can(['create materia'])" :carrerasSelect="data.carrerasDeUSel" :ValoresGenerarMateria="props.ValoresGenerarMateria"
-                        :MateriasRequisitoSelect="data.MateriasRequisitoSelect" 
+                        :MateriasRequisitoSelect="props.MateriasRequisitoSelect" 
                         />
 
 
@@ -252,6 +247,18 @@ onMounted(() => {
                                     <div v-else class="flex justify-start items-center">
                                         <div class="rounded-md overflow-hidden">
                                             Sin información
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">
+                                    <div class="flex justify-start items-center">
+                                        <div class="rounded-md overflow-hidden">
+                                            <Link :href="route('materia.Archivos', clasegenerica.id)">
+                                                <InfoButton type="button" class="py-1.5 rounded-none"
+                                                    v-tooltip="lang().tooltip.archivos">
+                                                    <BookmarkIcon class="w-7 h-7 px-0.5" />
+                                                </InfoButton>
+                                            </Link>
                                         </div>
                                     </div>
                                 </td>

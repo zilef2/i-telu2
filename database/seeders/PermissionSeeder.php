@@ -21,6 +21,7 @@ class PermissionSeeder extends Seeder
         Permission::create(['name' => 'isProfesor']);
         Permission::create(['name' => 'isEstudiante']);
 
+
         $crudCompleto = ['delete', 'update', 'read', 'create', 'cambiarNombre'];
         $Models = [
             'user',

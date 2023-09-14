@@ -5,122 +5,151 @@ namespace App\Imports;
 use App\helpers\HelpExcel;
 use App\helpers\Myhelp;
 use App\Models\Parametro;
-use App\Models\Permission;
-use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
+use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithUpserts;
 use Maatwebsite\Excel\Concerns\WithValidation;
-use Spatie\Permission\Traits\HasRoles;
+use Maatwebsite\Excel\Validators\Failure;
 
-class PersonalImport implements
-ToModel,
-WithValidation,
-WithHeadingRow,
-WithUpserts,
-SkipsEmptyRows
-{
-    use Importable,HasRoles;
+class PersonalImport implements ToModel, WithValidation, WithHeadingRow, WithUpserts, SkipsEmptyRows, SkipsOnFailure {
+    use Importable;
 
-    public $countfilas, $contarEmailExistente, $contar2, $contarNoNumeros, $contar4, $contar5, $contarVacios, $larow;
+    public $contarEmailExistente, $contarActualizado, $contarNoNumeros, $contarSex,$contarCargo, $larow;
     public $parametro;
+    public $CorreoYIdentificacionIgual; //notused
+    public $contarVacios; //notused
+    public $filaExcel;//numero de filas en excel
+    public $countfilas;//numero de filas leidas (create )
+    public $countfilasActualizadas;//numero de filas leidas (update)
 
     public function __construct() {
+        $this->larow = [];
+
         $this->countfilas = 0;
-        $this->contarEmailExistente = 0;
-        $this->contar2 = -1;
-        $this->contarNoNumeros = 0;
-        $this->contar4 = 0;
-        $this->contar5 = 0;
-        $this->contarVacios = 0;
+        $this->countfilasActualizadas = 0;
+        $this->filaExcel = 0;
+        $this->contarEmailExistente = []; //exite correo pero no identificacion igual
+        $this->contarActualizado = []; // Usuario actualizado
+        $this->contarNoNumeros = [];
+        $this->contarSex = []; //sexo distintio a   femenino masculino
+        $this->contarCargo = []; 
+
         $this->parametro = Parametro::first();
     }
+    public function chunkSize(): int {
+        return 12;
+    }
 
-    public function uniqueBy() { return 'Correo'; }
-    public function rules(): array
-    {
+    public function uniqueBy() { return 'correo'; }
+    public function rules(): array {
         return [
-            'nombre' => 'required',
+            'Nombre' => 'required',
+            // 'identificacion' => 'required',
+            // 'correo' => 'required'
         ];
     }
-    public function model(array $row) {
+
+    public function model(array $row){
         try {
-            $this->larow = $row;
-            //# validaciones
-                if (User::where('email', $row['correo'])->exists()) {
-                    $this->contarEmailExistente++;
-                    return null;
-                }
+            // foreach ($rows as $key => $row) {
+                
+                $this->filaExcel++;
+                $this->larow = $row;
+                $fechaNacimiento = HelpExcel::getFechaExcel($row['fecha_de_nacimiento'])->format('Y-m-d H:i');
+                $NumTickesDefecto = $this->parametro->NumeroTicketDefecto;
 
-                if (User::where('identificacion', $row['identificacion'])->exists()) {
-                    $this->contar5++;
-                    return null;
-                }
 
-                if (strtolower(trim($row['nombre'])) === 'nombre' || strtolower(trim($row['nombre'])) == '') { //saltar 1 fila
-                    $this->contar2++;
-                    return null;
-                }
-                if (!is_numeric($row['identificacion'])) {
-                    $this->contarNoNumeros++;
+                //# validaciones
+                if (!is_numeric(intval(trim($row['identificacion'])))) {
+                    $this->contarNoNumeros[] = $row['identificacion'] . ' fila '.$this->filaExcel;
                     return null;
                 }
                 if (strtolower($row['sexo']) != 'femenino' && strtolower($row['sexo']) != 'masculino' && strtolower($row['sexo']) != 'otro') {
-                    $this->contar4++;
+                    $this->contarSex = $row['sexo'] . ' fila '.$this->filaExcel;
                     return null;
                 }
 
                 if (strtolower($row['cargo']) != 'estudiante' && strtolower($row['cargo']) != 'profesor') {
-                    $this->contar4++;
+                    $this->contarCargo[] = $row['cargo'] . ' fila '.$this->filaExcel;
                     return null;
                 }
-            //# fin validaciones
 
-            //todo: si encuentra otro (email con la misma identificacion), que actualize la info
-            //todo: si encuentra con la misma identificacion, que actualize la info
-            //todo: Primaria, bachillerato, tecnologia, profesional,especializacion,maestría,doctorado
-            // if(strtolower($row['Sexo']) != 'femenino' && strtolower($row['Sexo']) != 'masculino' && strtolower($row['Sexo']) != 'otro'){
-            //     session(['contar4' => $contar4++]);
-            //     return null;
+
+                //# si tiene Email y correo existentes, actualizar
+                $queryEmail = User::where('email', $row['correo']);
+                    if ($queryEmail->exists()) {
+                        $contarCorreo = $queryEmail->first();
+                        $query = User::where('identificacion', $row['identificacion']);
+                        $user = $query->first();
+                        if ($query->exists() && $contarCorreo->email == $user->email) {
+                            //validar que no exista mas de uno asi
+                            $this->CorreoYIdentificacionIgual[] = $row['nombre'] . ', '. $row['correo'];
+
+                            $user->update([
+                                'name'     => $row['nombre'],
+                                'email'    => $row['correo'],
+                                'identificacion' => intval($row['identificacion']),
+                                'sexo' => ucfirst($row['sexo']),
+                                'fecha_nacimiento' => $fechaNacimiento,
+                                'semestre' => $row['semestre'],
+                                // 'pgrado' => $row['nivel'],
+                                // 'limite_token_general' => $NumTickesDefecto,
+                                // 'limite_token_leccion' => $NumTickesDefecto,
+                                // 'email_verified_at' => now(),
+                            ]);
+                            $this->countfilasActualizadas++;
+
+                            return $user;
+                        }
+                        
+                        $this->contarEmailExistente[] = $row['correo']. ' fila '.$this->filaExcel;
+                        return null;
+                    }
+
+
+                  
+                //# fin validaciones
+                // dd($row);
+
+                //todo: si encuentra otro (email con la misma identificacion), que actualize la info
+                //todo: si encuentra con la misma identificacion, que actualize la info
+                //todo: Primaria, bachillerato, tecnologia, profesional,especializacion,maestría,doctorado
+                // if(strtolower($row['Sexo']) != 'femenino' && strtolower($row['Sexo']) != 'masculino' && strtolower($row['Sexo']) != 'otro'){
+                //     session(['contarSex' => $contarSex++]);
+                //     return null;
+                // }
+                
+                $elUsuario = User::create([
+                    'name'     => $row['nombre'],
+                    'email'    => $row['correo'],
+                    'identificacion' => intval($row['identificacion']),
+                    'sexo' => ucfirst($row['sexo']),
+                    'fecha_nacimiento' => $fechaNacimiento,
+                    'semestre' => $row['semestre'],
+                    'pgrado' => $row['nivel'],
+                    'limite_token_general' => $NumTickesDefecto,
+                    'limite_token_leccion' => $NumTickesDefecto,
+                    'password' => Hash::make($row['identificacion']),
+                    'email_verified_at' => now(),
+                ]);
+                $elUsuario->assignRole('estudiante');
+                $this->countfilas++;
+                //todo: enviar correo a cada estudiante, que ha sido registrado
             // }
-            $fechaNacimiento = HelpExcel::getFechaExcel($row['fecha_de_nacimiento'])->format('Y-m-d H:i');
-            $NumTickesDefecto = $this->parametro->NumeroTicketDefecto;
-            
-            $elUsuario = new User([
-                'name'     => $row['nombre'],
-                'email'    => $row['correo'],
-                'identificacion' => intval($row['identificacion']),
-                'sexo' => ucfirst($row['sexo']),
-                'fecha_nacimiento' => $fechaNacimiento,
-                'semestre' => $row['semestre'],
-                'pgrado' => $row['nivel'],
-                'limite_token_general' => $NumTickesDefecto,
-                'limite_token_leccion' => $NumTickesDefecto,
-                'password' => Hash::make($row['identificacion']),
-                'email_verified_at' => now(),
-            ]);
-            // $user->assignRole('estudiante');
-            $role = Role::where('name', 'estudiante')->first();
-            // $elUsuario->assignRole($role);
-            // $elUsuario->assignRole([$role->id]);
-            // $elUsuario->syncRoles($role);
-            $elUsuario->assignRole([$role->id]);
-            // dd(
-            //     $role,
-            //     $elUsuario->getPermissionNames(),
-            //     $elUsuario->permissions,
-            // );
-            $this->countfilas++;
-            //todo: enviar correo a cada estudiante, que ha sido registrado
 
-            return $elUsuario;
         } catch (\Throwable $th) {
             Myhelp::EscribirEnLog($this, 'IMPORT:users', ' Fallo dentro de la importacion: ' . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile(), false);
             return null;
+        }
+    }
+    public function onFailure(Failure ...$failures) {
+        foreach ($failures as $key => $value) {
+            Myhelp::EscribirEnLog($this, 'IMPORT:users', ' Failures: ' .$value->row(). ' '.$value->errors()[0] , false);
         }
     }
 }

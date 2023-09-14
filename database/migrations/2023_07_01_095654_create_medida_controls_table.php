@@ -15,13 +15,29 @@ class CreateMedidaControlsTable extends Migration
     {
         Schema::create('medida_controls', function (Blueprint $table) {
             $table->id();
+			$table->text('pregunta')->nullable();
+			$table->text('respuesta_guardada')->nullable();
 			$table->string('tokens_usados')->nullable();
-			$table->integer('user_id')->nullable();
+            
+			$table->string('RazonNOSubtopico')->nullable();
+            
+            $table->unsignedBigInteger('user_id')->nullable();
+            $table->foreign('user_id')
+                ->references('id')
+                ->on('users')
+                ->onDelete('restrict');
+
+            $table->unsignedBigInteger('subtopico_id')->nullable();
+            $table->foreign('subtopico_id')
+                ->references('id')
+                ->on('subtopicos')
+                ->onDelete('cascade');
+
             $table->timestamps();
         });
     }
 
-    /**
+    /**b
      * Reverse the migrations.
      *
      * @return void

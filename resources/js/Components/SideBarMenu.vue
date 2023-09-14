@@ -11,7 +11,7 @@ import {
         CheckCircleIcon,
         ClipboardDocumentCheckIcon,
         ClipboardDocumentListIcon,
-        ClipboardDocumentIcon,
+        BookOpenIcon,
         ClipboardIcon,
         CircleStackIcon,
         CpuChipIcon,
@@ -77,6 +77,20 @@ const toggleContent2 = () => {
                 <span class="ml-3">{{ lang().label.user }}</span>
                 </Link>
             </li>
+            <li v-show="
+                can(['isSuper']) || 
+                can(['isAdmin']) || 
+                can(['isCoorAcademico']) || 
+                can(['isCoorPrograma']) || 
+                can(['isProfesor']) 
+                "
+                class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
+                :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('VerTiemposEstudiantes') }">
+                <Link :href="route('VerTiemposEstudiantes')" class="flex items-center py-2 px-4">
+                    <UserIcon class="w-6 h-5" />
+                    <span class="ml-3">{{ lang().label.Estudiantes }}</span>
+                </Link>
+            </li>
             <button v-show="can(['isAdmin'])" @click="toggleContent" class="text-blue-500 underline">
                 {{ data.showContent ? 'Ocultar roles' : 'Mostrar roles' }}
             </button>
@@ -128,8 +142,8 @@ const toggleContent2 = () => {
                 class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
                 :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('universidad.index') }">
                 <Link :href="route('universidad.index')" class="flex items-center py-1 px-4">
-                <BuildingLibraryIcon class="w-6 h-5" />
-                <span class="ml-3">{{ lang().label.universidad }}</span>
+                    <BuildingLibraryIcon class="w-6 h-5" />
+                    <span class="ml-3">{{ lang().label.universidad }}</span>
                 </Link>
             </li>
             <!-- <li  -->
@@ -137,32 +151,32 @@ const toggleContent2 = () => {
                 class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
                 :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('carrera.index') }">
                 <Link :href="route('carrera.index')" class="flex items-center py-1 px-4">
-                <AcademicCapIcon class="w-6 h-5" />
-                <span class="ml-3">{{ lang().label.carrera }}</span>
+                    <AcademicCapIcon class="w-6 h-5" />
+                    <span class="ml-3">{{ lang().label.carrera }}</span>
                 </Link>
             </li>
             <li v-show="can(['read materia'])"
                 class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
                 :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('materia.index') }">
                 <Link :href="route('materia.index')" class="flex items-center py-1 px-4">
-                <ClipboardDocumentIcon class="w-6 h-5" />
-                <span class="ml-3">Matricula</span>
+                    <BookOpenIcon class="w-6 h-5" />
+                    <span class="ml-3">Asignatura</span>
                 </Link>
             </li>
             <li v-show="can(['read Unidad'])"
                 class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
                 :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('Unidad.index') }">
                 <Link :href="route('Unidad.index')" class="flex items-center py-1 px-4">
-                <ClipboardDocumentListIcon class="w-6 h-5" />
-                <span class="ml-3">{{ lang().label.Unidad }}</span>
+                    <ClipboardDocumentListIcon class="w-6 h-5" />
+                    <span class="ml-3">{{ lang().label.Unidad }}</span>
                 </Link>
             </li>
             <li v-show="can(['read subtopico'])"
                 class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
                 :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('subtopico.index') }">
                 <Link :href="route('subtopico.index')" class="flex items-center py-1 px-4">
-                <ClipboardDocumentCheckIcon class="w-6 h-5" />
-                <span class="ml-3">{{ lang().label.subtopico }}</span>
+                    <ClipboardDocumentCheckIcon class="w-6 h-5" />
+                    <span class="ml-3">{{ lang().label.subtopico }}</span>
                 </Link>
             </li>
 

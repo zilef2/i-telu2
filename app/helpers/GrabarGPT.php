@@ -22,20 +22,27 @@ class GrabarGPT {
 
 
     //usado para sacar los ejercicios que traer GPT y ponerlos en un vector
-    public static function EncontroONull($collection){
+    private static function EncontroONull($collection){
         if($collection){
             if(($collection->count()) > 0) return $collection->first()->respuesta;
             else{
-                MedidaControl::create([
-                    'tokens_usados' => 0,
-                    'user_id' => Auth::user()->id
-                ]);
+                // MedidaControl::create([
+                //     'pregunta' => '',
+                //     'respuesta_guardada' => '',
+                //     'RazonNOSubtopico' => 'No encontro ejercicios',
+                //     'subtopico_id' => 0,
+                //     'tokens_usados' => 0,
+                //     'user_id' => Auth::user()->id
+                // ]);
                 return '';
             }
         }else{
             return null;
         }
     }
+
+
+    //# END private zone
 
     public static function BuscarPromp($StringPregunta) {
 

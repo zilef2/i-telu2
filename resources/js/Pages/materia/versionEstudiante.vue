@@ -179,7 +179,7 @@ watchEffect(() => {
                                     <p class="text-justify font-sans">{{ props.respuesta }} </p>
                                     <p class="mb-4 mt-12 text-center text-lg font-sans">
                                         ¡Recuerde que esto es un mensaje generado por Inteligencia artificial, Por favor
-                                        verifique que los resultados son consistentes!
+                                        verifique que los resultados sean consistentes!
                                     </p>
                                 </div>
                                 <div class="flex-none w-14 ..." :class="{'w-44' : props.respuesta.length > 500}"> </div>

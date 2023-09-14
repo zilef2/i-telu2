@@ -1,5 +1,6 @@
 //control
 php artisan make:crud MedidaControl "tokens_usados:string, user_id:integer"
+php artisan make:crud Archivo "nombre:string, peso:integer, nick:string"
 //its donest need a Model -> materia_user
 
 

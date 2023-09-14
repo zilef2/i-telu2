@@ -3,6 +3,7 @@
 use App\helpers\Myhelp;
 use App\Http\Controllers\CarrerasController;
 use App\Http\Controllers\EjerciciosController;
+use App\Http\Controllers\ExtraUser;
 use App\Http\Controllers\LosPrompsController;
 use App\Http\Controllers\MateriasController;
 use App\Http\Controllers\PermissionController;
@@ -17,13 +18,11 @@ use App\Http\Controllers\TemporalPdfReader;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
-use Carbon\Carbon;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 require __DIR__ . '/auth.php';
 
@@ -37,10 +36,6 @@ require __DIR__ . '/auth.php';
 //     ]);
 // });
 Route::get('/', function () { return redirect('/login'); });
-
-
-
-
 
 
 Route::get('/dashboard', function () {
@@ -68,6 +63,7 @@ Route::get('/userAPI',function () {
         // $token->save();
         $token = $token->plainTextToken;
         $token = str_replace(1,'ñ',$token);
+        $token = str_replace(2,'_ñ_',$token);
         
         dd(
             // response()->json(['token' => $token]),
@@ -91,27 +87,22 @@ Route::middleware('auth', 'verified')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    //# user
-    Route::resource('/user', UserController::class)->except('create', 'show', 'edit');
-   
     
-    Route::post('/user/destroy-bulk', [UserController::class, 'destroyBulk'])->name('user.destroy-bulk');
-    // Route::get('/subirexceles', [UserController::class, 'subirexceles'])->name('subirexceles');
-
-
     Route::resource('/role', RoleController::class)->except('create', 'show', 'edit');
     Route::post('/role/destroy-bulk', [RoleController::class, 'destroyBulk'])->name('role.destroy-bulk');
     
     Route::resource('/permission', PermissionController::class)->except('create', 'show', 'edit');
     Route::post('/permission/destroy-bulk', [PermissionController::class, 'destroyBulk'])->name('permission.destroy-bulk');
 
-    Route::resource('/parametro', ParametrosController::class);
-
-
+    
+    
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
+    
+    //# parametro
+    Route::resource('/parametro', ParametrosController::class);
+    
     //# user
     Route::resource('/user', UserController::class)->except('create', 'show', 'edit');
     Route::post('/user/destroy-bulk', [UserController::class, 'destroyBulk'])->name('user.destroy-bulk');
@@ -119,6 +110,15 @@ Route::middleware('auth', 'verified')->group(function () {
     Route::post('/uploadEstudiantes', [UserController::class, 'uploadEstudiantes'])->name('user.uploadEstudiantes');
     Route::post('/uploadUniversidad', [UserController::class, 'uploadUniversidad'])->name('user.uploadUniversidad');
     Route::post('/uploadCarreras', [UserController::class, 'uploadCarreras'])->name('user.uploadCarreras');
+    
+    $rutasUsers = ['VerTiemposEstudiantes'];
+    foreach ($rutasUsers as $key => $value) {
+        Route::get('/'.$value, [ExtraUser::class, $value])->name($value);
+    }
+    $rutasUsersConID = ['verEstudiante'];
+    foreach ($rutasUsersConID as $value) {
+        Route::get('/'.$value.'/{id}', [ExtraUser::class, $value])->name($value);
+    }
 
 
     Route::resource('/role', RoleController::class)->except('create', 'show', 'edit');
@@ -129,6 +129,8 @@ Route::middleware('auth', 'verified')->group(function () {
 
     Route::resource('/universidad', UniversidadsController::class);
     Route::resource('/carrera', CarrerasController::class);
+
+
 
     // #materia
     Route::resource('/materia', MateriasController::class);
@@ -142,10 +144,15 @@ Route::middleware('auth', 'verified')->group(function () {
     
     Route::post('/materiaGenerar', [MateriasController::class, 'materiaGenerar'])->name('materia.Generar');
     Route::post('/materiaguardarGenerado', [MateriasController::class, 'materiaguardarGenerado'])->name('materia.guardarGenerado');
-
+    
     Route::get('/Estudiando', function(){
         return redirect('/materia');
     });
+    
+    Route::get('/Archivos/{materiaid}', [MateriasController::class, 'Archivosindex'])->name('materia.Archivos');
+    Route::post('/storeArchivos', [MateriasController::class, 'storeArchivos'])->name('materia.storeArchivos');
+
+
 
     // #universidad
     Route::get('/AsignaruserUni/{universidadid}', [UniversidadsController::class, 'AsignarUsers'])->name('universidad.AsignarUsers');
@@ -179,7 +186,10 @@ Route::middleware('auth', 'verified')->group(function () {
     // #leyendopdf
     Route::get('/leyendopdf', [TemporalPdfReader::class , 'Index'])->name('leyendopdf');
     Route::post('/leyendopdf', [TemporalPdfReader::class , 'Read'])->name('leyendopdf.read');
+    Route::get('/verPdf/{archivoid}', [TemporalPdfReader::class , 'verPdf'])->name('verPdf');
+    Route::get('/vistaPDF/{archivoid}', [TemporalPdfReader::class , 'vistaPDF'])->name('vistaPDF');
     
+
     // Route::get('/respuestaSub', [SubtopicosController::class , 'respuestaSub'])->name('respuestaSub');
 });
 

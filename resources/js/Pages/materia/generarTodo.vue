@@ -8,9 +8,11 @@ import SecondaryButton from '@/Components/SecondaryButton.vue';
 import GreenButton from '@/Components/GreenButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { router, useForm } from '@inertiajs/vue3';
-import { reactive, watch, watchEffect, ref, onMounted } from 'vue';
+import { reactive, watch, watchEffect, onMounted } from 'vue'; //ref
 import SelectInput from '@/Components/SelectInput.vue';
 
+
+import { PrimerasPalabras, vectorSelect, formatDate } from '@/global.ts';
 
 const props = defineProps({
     show: Boolean,
@@ -28,23 +30,23 @@ const data = reactive({
     contadorRespuesta: 0,
     vacia: '',
     recuerdeCodigo: '',
+    mostrarLoader: false,
 })
+
 const form = useForm({
     // descripcion: '',
     nombre_mat: '',
-    carrera_id: 1,//tempForm
-    materia_id: 1,//tempForm
-    codigo_mat: '',
+    carrera_id: 0,//tempForm
+    materia_id: 0,//tempForm
     objetivo: '',
     nombre_unidad: [[]],
     Cuantas_u: "2",
     Array_nombre_tema: [],
     Cuantas_t: "2",
     Array_RA: [[]],
-    totalUT: 12,
+    totalUT: 11,
 
     //loader
-    mostrarLoader: false,
     errorCarrera: false,
 })
 const create = () => {
@@ -54,8 +56,8 @@ const create = () => {
         form.post(route('materia.guardarGenerado'), {
             preserveScroll: true,
             onSuccess: () => {
-                // emit("close")
-                // form.reset()
+                emit("close")
+                form.reset()
             },
             // onError: () => null,
             onError: () => alert(JSON.stringify(form.errors, null, 4)),
@@ -84,12 +86,18 @@ const generar = async () => {
                 materia_id: form.materia_id,
             },
         })
+        // data.mostrarLoader = false
+
     }
 }
 
 const validar = () => {
     if (form.carrera_id == 0) {
         data.errorCarrera = 'Seleccione una carrera primero';
+        return false
+    }
+    if (form.materia_id == 0) {
+        data.errorCarrera = 'Seleccione una materia primero';
         return false
     }
     let Cunidades = parseInt(form.Cuantas_u);
@@ -104,7 +112,7 @@ const validar = () => {
         return false
     }
     if (total > 35) {
-        data.errorCarrera = 'Demasiadas unidades y temas';
+        data.errorCarrera = 'Los elementos generados deben ser menor a 35.';
         return false
     }
     if (Cunidades < 1 || Ctemas < 1) {
@@ -115,14 +123,17 @@ const validar = () => {
     return true
 }
 
-onMounted(() => { })
+onMounted(() => { 
+
+})
 watchEffect(() => {
     if (props.show) {
         form.errors = {}
 
-        form.totalUT = 2 + parseInt(form.Cuantas_u) * ( 2 * parseInt(form.Cuantas_t) + 1)
-        data.contadorRespuesta = 1
+        form.totalUT = 1 + parseInt(form.Cuantas_u) * ( 2 * parseInt(form.Cuantas_t) + 1)
+        data.contadorRespuesta = 0
         if (props.ValoresGenerarMateria != null) {
+            console.log("🧈 debu props.ValoresGenerarMateria:", props.ValoresGenerarMateria);
             // data.contadorRespuesta = 2
 
             form.nombre_mat = props?.ValoresGenerarMateria['respuesta'][data.contadorRespuesta]
@@ -147,19 +158,64 @@ watchEffect(() => {
                     data.contadorRespuesta++ // 6
                 }
             }
-            console.log("🧈 debu form.Array_nombre_tema:", form.Array_nombre_tema);
 
             setTimeout(() => {
                 data.mostrarLoader = false;
                 data.errorCarrera = ''
-                if (props.ValoresGenerarMateria['funciono'])
-                    data.recuerdeCodigo = 'Recuerde digitar el código de la carrera'
-                else
+                if (props.ValoresGenerarMateria['funciono']){
+                    data.recuerdeCodigo = ''
+                    // data.recuerdeCodigo = 'Recuerde digitar el código de la carrera'
+                    // const inputElement = document.getElementById('codigoCar');
+                    // inputElement.focus();
+                } else{
                     data.recuerdeCodigo = 'Hubo error en la generacion de texto. intente otra vez'
-            }, 800);
+                }
+            }, 900);
         }
     }
 })
+
+let Succes_buscarMats = () =>{
+    if(props.MateriasRequisitoSelect.length > 0){
+        data.MateriasRequisitoSelect = vectorSelect(data.MateriasRequisitoSelect, props.MateriasRequisitoSelect, 'una asignatura')
+    }
+    else
+        data.MateriasRequisitoSelect.unshift({ label: 'No hay asignaturas', value: 0 })
+}
+
+const buscarMateriasSelect = () => {
+    data.errorCarrera = '';
+    if (form.carrera_id) {
+        let isSucces = false
+
+        router.reload({
+            only: [
+                'MateriasRequisitoSelect',
+            ],
+            data: {
+                carrera_id_buscar: form.carrera_id,
+            },
+            onSuccess: () => {
+                isSucces = true
+                data.MateriasRequisitoSelect = []
+            },
+            onError: () => {
+                data.errorCarrera = 'Error al consultar materias';
+                isSucces = false
+            },
+            onFinish: () => {
+                console.log("🧈 debu isSucces:", isSucces);
+                Succes_buscarMats();
+
+            },
+        })
+    }else{
+        data.errorCarrera = 'Seleccione una carrera';
+    }
+}
+
+
+
 </script>
 
 <template>
@@ -181,30 +237,32 @@ watchEffect(() => {
 
                     <div class="sm:col-span-8 md:col-span-3">
                         <InputLabel for="carrera_id" :value="lang().label.carrera" class="my-3" />
-                        <SelectInput name="carrera_id" class="mt-1 block w-full" v-model="form.carrera_id" required
+                        <SelectInput @change="buscarMateriasSelect" name="carrera_id" class="mt-1 block w-full" v-model="form.carrera_id" required
                             :dataSet="props.carrerasSelect"> </SelectInput>
                         <InputError class="mt-2" :message="form.errors.carrera_id" />
                     </div>
                     <div class="sm:col-span-8 md:col-span-3">
                         <InputLabel for="materia_id" :value="lang().label.materia" class="my-3" />
-                        <SelectInput name="materia_id" class="mt-1 block w-full" v-model="form.materia_id" required
-                            :dataSet="props.MateriasRequisitoSelect"> </SelectInput>
+                        <SelectInput  name="materia_id" class="mt-1 block w-full" v-model="form.materia_id" required
+                            :dataSet="data.MateriasRequisitoSelect" />
                         <InputError class="mt-2" :message="form.errors.materia_id" />
                     </div>
+
+
                     <div class="sm:col-span-8 md:col-span-1">
                         <InputLabel for="Cuantas_u" :value="lang().label.Cuantas_unidades" class="text-sm"/>
-                        <TextInput name="Cuantas_u" type="number" min="1" class="mt-1 block w-full"
+                        <TextInput name="Cuantas_u" type="number" min="1" max="9" class="mt-1 block w-full"
                             v-model="form.Cuantas_u"> </TextInput>
                         <InputError class="mt-2" :message="form.errors.Cuantas_u" />
                     </div>
                     <div class="sm:col-span-8 md:col-span-1">
                         <InputLabel for="Cuantas_t" :value="lang().label.Cuantas_temas + ' por unidad'" class="text-sm"/>
-                        <TextInput name="Cuantas_t" type="number" min="1" class="mt-1 block w-full"
+                        <TextInput name="Cuantas_t" type="number" min="1" max="9" class="mt-1 block w-full"
                             v-model="form.Cuantas_t"> </TextInput>
                         <InputError class="mt-2" :message="form.errors.Cuantas_t" />
                     </div>
                 </div>
-                <p class="my-6">{{ form.totalUT }}</p>
+                <p class="my-6">Elementos generados: {{ form.totalUT }}</p>
                 <!-- cosas generadas -->
                 <div v-show="props?.ValoresGenerarMateria" class="my-6 grid grid-cols-1 sm:grid-cols-6 gap-6">
 
@@ -257,13 +315,13 @@ watchEffect(() => {
                     </div>
 
                 </div>
-                <div class="col-span-2 sm:col-span-4 w-full md:w-1/2">
+                <!-- <div class="col-span-2 sm:col-span-4 w-full md:w-1/2">
                     <InputLabel for="codigo_mat" :value="lang().label.codigoCar" />
                     <TextInput id="codigo_mat" type="text" class="mt-1 block w-full border-x-2 border-sky-500"
                         v-model="form.codigo_mat" required placeholder="Por favor escriba el codigo de la materia"
                         :error="form.errors.codigo_mat" />
                     <InputError class="mt-2" :message="form.errors.codigo_mat" />
-                </div>
+                </div> -->
 
                 <p v-if="data.recuerdeCodigo" class="text-lg">{{ data.recuerdeCodigo }}</p>
                 <p v-if="data.errorCarrera" class="text-lg text-red-600 my-4">{{ data.errorCarrera }}</p>
@@ -272,14 +330,14 @@ watchEffect(() => {
                     <SecondaryButton :disabled="form.processing" @click="emit('close'), form.reset(), cerrarForm()"> {{
                         lang().button.close }} </SecondaryButton>
 
-                    <PrimaryButton class="ml-3" :class="{ 'opacity-25': form.processing }" :disabled="form.processing"
+                    <PrimaryButton v-show="props?.ValoresGenerarMateria" class="ml-3" :class="{ 'opacity-25': form.processing }" :disabled="form.processing"
                         @click="create">
                         {{ form.processing ? 'Guardar' + '...' : 'Guardar' }}
                     </PrimaryButton>
 
                     <GreenButton class="ml-3" :class="{ 'opacity-25': data.mostrarLoader }" :disabled="data.mostrarLoader"
                         @click="generar">
-                        {{ data.mostrarLoader ? + '...' : 'Generar' }}
+                        {{ data.mostrarLoader ? 'Pensando...' : 'Generar' }}
                     </GreenButton>
                     <Generando v-if="data.mostrarLoader" />
                 </div>
