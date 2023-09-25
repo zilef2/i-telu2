@@ -61,9 +61,7 @@ class MateriasController extends Controller
         })->filter();
         // dd($materias);
     }
-    public function fNombresTabla($numberPermissions)
-    {
-        
+    public function fNombresTabla($numberPermissions) {
         if ($numberPermissions <= 2) {
             $nombresTabla[2] = [null, null,      "enum",    "nombre",  "codigo", "carrera_id", null     , null,       "descripcion"];
             $nombresTabla[0] = ["IA", "Archivos","Semestre", "Nombre", "Codigo", "Carrera",   "Unidades", "Objetivos", "descripcion"];
@@ -770,8 +768,6 @@ class MateriasController extends Controller
         $permissions = Myhelp::EscribirEnLog($this, ' archivos_materia');
         $numberPermissions = Myhelp::getPermissionToNumber($permissions);
 
-        $titulo = __('app.label.materias');
-
         $materia = Materia::find($materiaid);
         if ($permissions === "estudiante") {
         } else { // not estudiante
@@ -783,10 +779,10 @@ class MateriasController extends Controller
                 ['label' => __('app.label.materias'), 'href' => route('materia.index')],
                 ['label' => __('app.label.archivos'), 'href' => route('materia.Archivos',$materiaid)]
             ],
-            'title'                     =>  $titulo,
-            'numberPermissions'            =>  $numberPermissions,
-            'archivos'            =>  $archivos,
-            'materia'            =>  $materia,
+            'title'                     =>  'Documentos',
+            'numberPermissions'         =>  $numberPermissions,
+            'archivos'                  =>  $archivos,
+            'materia'                   =>  $materia,
         ]);
     }
 

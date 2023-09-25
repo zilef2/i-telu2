@@ -5,6 +5,7 @@ return [
         //materia
         'archivo' => 'Archivo',
         'archivos' => 'Archivos',
+        'Resumen' => 'Resumen',
 
         //extra user
         'verEstudiante' => 'Perfil Estudiante',

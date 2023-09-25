@@ -189,6 +189,11 @@ Route::middleware('auth', 'verified')->group(function () {
     Route::get('/verPdf/{archivoid}', [TemporalPdfReader::class , 'verPdf'])->name('verPdf');
     Route::get('/vistaPDF/{archivoid}', [TemporalPdfReader::class , 'vistaPDF'])->name('vistaPDF');
     
+    
+    Route::get('/generarResumen/{archivoid}', [TemporalPdfReader::class , 'generarResumen'])->name('generarResumen');
+    //# openAI PDF
+    Route::get('/subirPDFOpenAI/{archivoid}', [TemporalPdfReader::class , 'subirPDFOpenAI'])->name('subirPDFOpenAI');
+    
 
     // Route::get('/respuestaSub', [SubtopicosController::class , 'respuestaSub'])->name('respuestaSub');
 });
@@ -208,7 +213,7 @@ Route::middleware('auth', 'verified')->group(function () {
     });
 
     Route::get('/clear-c', function () {
-        Artisan::call('optimize');
+        // Artisan::call('optimize');
         Artisan::call('optimize:clear');
         return "Optimizacion finalizada";
         // throw new Exception('Optimizacion finalizada!');

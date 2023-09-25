@@ -63,24 +63,14 @@ class HelpGPT
                 . " si el numero de temas es " . $temas . " cada unidad tendrá " . $temas . " temas exactamente"
                 . ". Adicionalmente, si el numero de temas es " . $temas . " cada unidad tendrá " . $temas . " resultados de aprendizaje exactamente";
 
-            // dd($elpromp,
-            // $renglonesUnidad,
-            // $renglonesTema
-            // );
-            // for ($i=0; $i < $numero['unidades']; $i++) { 
-            //     $elpromp .= ". En el renglon ".$renglon." genera el nombre de una unidad que pertenesca a dicha asignatura";
-            //     $renglon++;
-            //     for ($j=0; $j < $numero['temas']; $j++) { 
-            //         $elpromp .= ". En el renglon ".$renglon." genera el nombre de un tema que pertenesca a la ultima unidad";
-            //         $renglon++;
-            //         $elpromp .= ". En el renglon ".$renglon." genera un resultado aprendizaje de este tema";
-            //         $renglon++;
-            //     }
-            // }
-
             $client = OpenAI::client(env('GTP_SELECT'));
+
+            // $result = $client->//#completions()->create([
+            // $result = $client->//#chat()->create([
+
             $result = $client->completions()->create([
-                'model' => 'text-davinci-003',
+                // 'model' => 'text-davinci-003',
+                "model" => "gpt-4",
                 'prompt' => $elpromp,
                 'max_tokens' => self::TOKEN_GENERAR_MATERIA
             ]);
@@ -487,6 +477,8 @@ class HelpGPT
         try{
             $longuitudPregunta = strlen($subtopico->nombre) > 3;
             self::contarModificarP($elpromp, $materia_nombre, $subtopico->nombre, $unidad, $nivel);
+            
+            //# buscando el prompt
             $YaEstabaGuardada = GrabarGPT::BuscarPromp($elpromp);
             if ($YaEstabaGuardada && $YaEstabaGuardada !== '') {
                 MedidaControl::create([
@@ -505,22 +497,18 @@ class HelpGPT
 
             if ($longuitudPregunta) {
                 if (!$debug) {
-                    $client = OpenAI::client(env('GTP_SELECT'));
-                    $result = $client->completions()->create([
-                        'model' => 'text-davinci-003',
-                        'prompt' => $elpromp,
-                        'max_tokens' => HelpGPT::maxToken()
-                    ]);
-                    $respuesta = $result['choices'][0]["text"];
-                    $finishReason = $result['choices'][0];
-                    $finishingReason = $finishReason["finish_reason"] ?? '';
+                    
+                    $ChatR = JustChatFunctionGPT::Chat($elpromp);
 
+                    $respuesta = $ChatR[1];
+                    $finishingReason = $ChatR[2];
                     if ($finishingReason == 'stop') {
-                        $usageRespuesta = intval($result['usage']["completion_tokens"]); //~ 260
-                        $usageRespuestaTotal = intval($result['usage']["total_tokens"]); //~ 500
 
-                        $restarAlToken = HelpGPT::CalcularTokenConsumidos($usageRespuesta, $usageRespuestaTotal);
-                        $usuario->update(['limite_token_leccion' => (intval($usuario->limite_token_leccion)) - $restarAlToken]);
+                        $restarAlToken = $ChatR[0];
+                        $TokensRestantes = (intval($usuario->limite_token_leccion)) - $restarAlToken;
+                        $TokensRestantes = $TokensRestantes >= 0 ? $TokensRestantes : 0;
+                        $usuario->update(['limite_token_leccion' => $TokensRestantes]);
+
                         MedidaControl::create([
                             'pregunta' => $elpromp,
                             'respuesta_guardada' => $respuesta,
@@ -528,12 +516,15 @@ class HelpGPT
                             'tokens_usados' => $restarAlToken,
                             'user_id' => $usuario->id
                         ]);
+
                         //todo: si esprofesor tendra mucho mas peso, que si es alumno //todo: deberia guardar, pero si es profesor, sobreescribe //todo: pero por ahora, solo guarda cuando es profesor o mas // if($numberPermission === 1) // $respuesta = 'Solo estudiante. '.$respuesta;
+                        $numberPermissions = Myhelp::getPermissionToNumber(auth()->user()->roles->pluck('name')[0]);
+                        $precisa = $numberPermissions == 3 || $numberPermissions > 8 ? 4 :3;
                         RespuestaEjercicio::create([
                             'guardar_pregunta' => $elpromp,
                             'respuesta' => $respuesta,
                             'nivel' => $nivel,
-                            'precisa' => 3, //todo: 0 (nada preciso) - 5 (muy preciso)
+                            'precisa' => $precisa, //0 (nada preciso) - 5 (muy preciso)
                             'idExistente' => null,
                         ]);
 
@@ -616,17 +607,30 @@ class HelpGPT
         return $restarAlToken;
     }
 
-    public static function maxToken()
-    {
+    public static function maxToken() {
+        $numberPermissions = Myhelp::getPermissionToNumber(auth()->user()->roles->pluck('name')[0]);
+
+        //max 8,192 or | gpt-4-32k 32,768 tokens
         if (config('app.env') === 'production') {
-            return 1400; // Adjust the response length as needed
+            $maxTokens = 1100 + $numberPermissions * 200; //2000 (10.000 caracteres) + $maxtokens
+            return $maxTokens;
         }
-        return 1400;
+        return 3000;
+    }
+    
+    public static function maxTokenPDF() {
+        $numberPermissions = Myhelp::getPermissionToNumber(auth()->user()->roles->pluck('name')[0]);
+
+        //max 8,192 or | gpt-4-32k 32,768 tokens
+        if (config('app.env') === 'production') {
+            $maxTokens = 3100 + $numberPermissions * 200; //2000 (10.000 caracteres) + $maxtokens
+            return $maxTokens;
+        }
+        return 5100;
     }
 
 
-    public static function nivelesAplicativo()
-    {
+    public static function nivelesAplicativo() {
         $niveles = [
             'Primaria',
             'Bachillerato',
@@ -804,4 +808,7 @@ class HelpGPT
 
         return $preguntaAbierta;
     }
+
+
+  
 }

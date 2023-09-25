@@ -5,6 +5,7 @@ import Breadcrumb from '@/Components/Breadcrumb.vue';
 import { reactive, watch, ref, watchEffect, onMounted } from 'vue';
 import { router, usePage, Link } from '@inertiajs/vue3';
 import { PrimerasPalabras, vectorSelect, formatDate, CalcularEdad, CalcularSexo } from '@/global.ts';;
+import Back from '@/Components/uiverse/BackButton.vue';
 
 import { useForm } from '@inertiajs/vue3';
 
@@ -20,7 +21,8 @@ const emit = defineEmits(["close"]);
 
 const data = reactive({
     tamanin: '',
-    TamanoMAX: 0
+    TamanoMAX: 0,
+    sumOfpesos: 0
 
 })
 const form = useForm({
@@ -49,6 +51,9 @@ const create = () => {
 
 onMounted(() =>{ 
     data.TamanoMAX = (1024 * 1024)  * 12; //12MB
+    props.archivos.forEach((value, index, array) => {
+        data.sumOfpesos += value.peso 
+    })
 })
 
 const handleFile =(() => {
@@ -80,16 +85,18 @@ watchEffect(() => { })
     <AuthenticatedLayout>
         <Breadcrumb :title="title" :breadcrumbs="breadcrumbs" />
         <section class="text-gray-600 body-font">
-            <div class="container px-5 mx-auto">
+            <div class="container px-5 mx-auto mb-12">
                 <div class="flex flex-nowrap -m-4 text-center">
                     <div class="px-4 lg:w-full">
                         <div class="h-full bg-gray-100 bg-opacity-75 px-8 pt-8 pb-1 rounded-lg overflow-hidden text-center relative">
-                            <h1 class="title-font sm:text-2xl text-xl font-medium text-gray-900 mb-3">{{ materia.nombre }}</h1>
-                            <h1 class="title-font sm:text-xl text-lg font-medium text-gray-900">Guardar documentos (PDF)</h1>
+                            <!-- <h1 class="title-font sm:text-2xl text-xl font-medium text-gray-900 mb-3"></h1> -->
+                            <h1 class="title-font sm:text-xl text-lg font-medium text-gray-900">Formulario para guardar documentos (PDF)</h1>
                         </div>
                     </div>
                 </div>
                 <form @submit.prevent="create" enctype='multipart/form-data' class="grid  mx-[120px] text-center">
+
+
                     <p class="my-4 w-full">{{ data.tamanin }}</p>
                     <input type="text" v-model="form.nombre" placeholder="Digite el nombre del archivo" class="w-1/2 mx-auto my-4"/>
 
@@ -104,22 +111,39 @@ watchEffect(() => { })
                         Subir archivo
                     </button>
                 </form>
+
+                <Back :ruta="'materia.index'" class="my-8 text-center"/>
+
             </div>
-            <div class="container px-5 py-4 mx-auto">
+
+            <div class="container px-5 my-8 mx-auto border border-y-2 border-x-0 border-black">
+                <div class="text-center">
+
+                    <h1 class="title-font sm:text-xl text-lg my-5 font-medium text-gray-900">Archivos relacionados con {{ materia.nombre }}</h1>
+                    <h1 class="title-font sm:text-lg text-md my-5  text-gray-800">Numero de archivos almacenados {{props.archivos.length}}</h1>
+                    <h1 class="title-font sm:text-lg text-md my-5  text-gray-800">Peso total: {{ data.sumOfpesos }} MB</h1>
+                </div>
                 <div class="flex flex-wrap -m-4">
+
                     <!-- {{ props.archivos }} -->
-                    <div class="p-4 lg:w-1/3">
-                        <div v-for="(archivin, index) in props.archivos" class="h-full bg-gray-100 bg-opacity-75 px-8 pt-16 pb-24 rounded-lg overflow-hidden text-center relative">
+                    <div v-for="(archivin, index) in props.archivos" :key="index" class="p-4 xl:w-1/3 lg:w-1/2 sm:w-full">
+                        <div  class="h-full bg-gray-100 bg-opacity-75 px-8 pt-16 pb-24 rounded-lg overflow-hidden text-center relative">
                             <h2 class="tracking-widest text-xs title-font font-medium text-gray-400 mb-1">Doc {{  (index+1) }}</h2>
                             <h1 class="title-font sm:text-2xl text-xl font-medium text-gray-900 mb-3">{{ archivin.nombre }}</h1>
                             <!-- <p class="leading-relaxed mb-3">Descrip</p> -->
                             <p class="leading-relaxed mb-3">{{ formatDate(archivin.updated_at) }}</p>
 
-                            <Link :href="route('vistaPDF', archivin.id)" class="my-5 pb-20">
-                                <a class="text-indigo-500 inline-flex items-center">Visualizar archivo
-                                    <svg class="w-4 h-4 ml-2" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"> <path d="M5 12h14"></path> <path d="M12 5l7 7-7 7"></path> </svg>
-                                </a>
-                            </Link>
+                            <div class="grid grid-cols-1">
+                                <Link :href="route('vistaPDF', archivin.id)" class="my-1">
+                                    <a class="text-indigo-500 inline-flex items-center">Visualizar archivo
+                                    </a>
+                                </Link>
+                                <Link :href="route('generarResumen', archivin.id)" class="my-2 pb-12">
+                                    <a class="text-indigo-500 inline-flex items-center">Resumir archivo
+                                        <svg class="w-4 h-4 ml-2" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"> <path d="M5 12h14"></path> <path d="M12 5l7 7-7 7"></path> </svg>
+                                    </a>
+                                </Link>
+                            </div>
                             <embed :src="route('verPdf', archivin.id)" type="application/pdf" height="600px" class="w-full mt-8"/>
                             <!-- <div class="text-center mt-2 leading-none flex justify-center absolute bottom-0 left-0 w-full py-4">
                                 <span
@@ -132,7 +156,9 @@ watchEffect(() => { })
                             </div> -->
                         </div>
                     </div>
+                    
                 </div>
+                <Back :ruta="'materia.index'" class="my-12 text-center"/>
             </div>
         </section>
     </AuthenticatedLayout>

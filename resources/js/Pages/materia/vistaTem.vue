@@ -426,10 +426,10 @@ const submitGPTEQH = (action) => {
                                                 <div v-if="props.opcion != 4" class="p-2 w-full h-full">
                                                     <div class="relative h-full">
                                                         <label for="message"
-                                                            class="leading-7 text-sm text-gray-600">Respuesta
+                                                            class="leading-7 text-sm text-gray-600">Respuesta 
                                                         </label>
                                                         <textarea v-model="form.respuestagpt" id="message" name="message"
-                                                            rows="10" cols="35"
+                                                            rows="20" cols="45"
                                                             class="dark:text-white dark:bg-black h-auto resize-none w-full bg-gray-100 bg-opacity-50 rounded border border-gray-300 focus:border-indigo-500 dark:focus:bg-gray-800 focus:bg-white focus:ring-2 focus:ring-indigo-200 
                                                             text-base outline-none text-gray-700 py-1 px-3 leading-6 transition-colors duration-200 ease-in-out"></textarea>
                                                     </div>

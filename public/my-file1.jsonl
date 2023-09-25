@@ -1,0 +1,174 @@
+{"text":"\u00c1LGEBRA DE MATRICES\t \t"}
+{"text":" "}
+{"text":" "}
+{"text":"TRASPUESTA DE UNA MATRIZ\t   \t"}
+{"text":" "}
+{"text":"La  traspuesta  de  una  matriz \tA consiste  en intercambiar  las  filas  por  las  columnas\t (o  las  columnas  por \t"}
+{"text":"las filas)\t y se denota por\t: AT \t"}
+{"text":" "}
+{"text":"As\u00ed, la traspuesta de \t \t"}
+{"text":" \t"}
+{"text":" \t"}
+{"text":" \t"}
+{"text":"En  otras  palabras,  si \tA = \t(aij)  es una \tmatriz\t m\t\uf0b4n,  entonces \tAT =  (\taji) es la  matriz \tn\uf0b4m\t.  La  trasposici\u00f3n \t"}
+{"text":"de una matriz cumple las siguientes propiedades: \t   \t"}
+{"text":"1.  (\tA + \tB)T = \tAT + \tBT.  \t"}
+{"text":"2.  (\tAT)T = \tA.  \t"}
+{"text":"3.  (\tkA\t)T = \tkA\tT (si \tk es un escalar). \t \t"}
+{"text":"4.  (\tAB\t)T = \tBTAT.  \t"}
+{"text":" "}
+{"text":" "}
+{"text":"SUMA Y RESTA DE MATRICES\t \t"}
+{"text":"   "}
+{"text":"Para \tpoder  sumar  o  restar  matrices,  \u00e9stas  deben  tener  el  mismo  n\u00famero  de  filas  y  de  columnas.  Es \t"}
+{"text":"decir,  si  una  matriz  es  de  orden  3\t\uf0b42  y  otra  de  3\t\uf0b43,  no  se  pueden  sumar  ni  restar.  Esto  es  as\u00ed  ya  que, \t"}
+{"text":"tanto  para la  suma  como  para la  resta,  se  suman  o  se  restan  lo\ts  t\u00e9rminos  que  ocupan  el mismo  lugar \t"}
+{"text":"en las matrices.\t \t"}
+{"text":" "}
+{"text":"Ejemplo: \t \t"}
+{"text":"   \t"}
+{"text":" \t  \t"}
+{"text":" \t"}
+{"text":" \t"}
+{"text":" \t"}
+{"text":" \t"}
+{"text":" "}
+{"text":"Para  sumar  o  restar  m\u00e1s  de  dos  matrices  se  procede  igual. \tNo\t necesariamente  para  poder  sumar  o \t"}
+{"text":"restar matrices, \u00e9stas tienen que ser cuadradas."}
+{"text":""}
+{"text":"Ejemplo:\t  \t"}
+{"text":" \t"}
+{"text":" \t \t   \t"}
+{"text":" \t"}
+{"text":" \t"}
+{"text":" \t"}
+{"text":" \t"}
+{"text":" \t"}
+{"text":"PRODUCTO DE MATRICES\t \t"}
+{"text":" "}
+{"text":"Para  poder  multiplicar  dos  matrices,  la  primera  debe  tener  el  mismo  n\u00famero  de  columnas  que  filas  la "}
+{"text":"segunda. La matriz resultante del producto quedar\u00e1 con el mismo n\u00famero de filas de la primera y con \tel \t"}
+{"text":"mismo n\u00famero de columnas de la\t segunda.\t \t"}
+{"text":" "}
+{"text":"Es decir, si tenemos una  matriz 2\t\uf0b43 y la multiplicamos por otra de orden 3\t\uf0b45, la matriz resultante ser\u00e1 \t"}
+{"text":"de orden 2\t\uf0b45. \t"}
+{"text":" \t"}
+{"text":"(2\t\uf0b43)\t \uf0b4 (3\t\uf0b45) = (2\t\uf0b45)\t \t"}
+{"text":" "}
+{"text":"Se  puede  observar  que  el  producto  de  matrices  no  cumple  la  propiedad  conmutativa,  ya  que  en  el "}
+{"text":"ejemplo \tanterior,  si  multiplicamos  la  segunda  por  la  primera,  no  podr\u00edamos  efectuar  la  operaci\u00f3n\t 3\uf0b45 \t"}
+{"text":"por \t2\uf0b43, puesto que la primera matriz no tiene el mismo n\u00famero de columnas que filas la segunda.\t \t"}
+{"text":" "}
+{"text":"Supongamos  que \tA \t= (\taij)  y \tB =  (\tbij)  son  matrices  tales  que  el  n\u00famero  de  columnas  de \tA coincide  con \t"}
+{"text":"el n\u00famero de filas de \tB; es decir, \tA es una matriz\t m\t\uf0b4p y B una matriz \tp\uf0b4n. Entonces el producto \tAB\t es \t"}
+{"text":"la matriz\t m\t\uf0b4n cuya entrada \tij se obtiene multiplicando la fila \ti de \tA por la columna \tj de\t B. \t"}
+{"text":"Esto es, \t \t"}
+{"text":" \t"}
+{"text":" \t"}
+{"text":" \t"}
+{"text":" \t"}
+{"text":" "}
+{"text":"Ejemplo\ts: \t"}
+{"text":" "}
+{"text":"1.\t \t"}
+{"text":" \t"}
+{"text":" "}
+{"text":"2."}
+{"text":""}
+{"text":"PRODUCTO DE \tUNA \tMATRI\tZ POR UN ESCALAR\t \t"}
+{"text":"\uf020"}
+{"text":"El  producto  de  un  escalar \tk por  la  matriz \tA,  escrito \tk\u00b7A\t o  simplemente \tkA\t,  es  la  matriz  obtenida \t"}
+{"text":"multiplicando cada entrada de \tA por \tk: \t"}
+{"text":" \t"}
+{"text":" \t"}
+{"text":" "}
+{"text":"Ejemplo\t:  \t"}
+{"text":" \t"}
+{"text":" \t"}
+{"text":" "}
+{"text":"Entonces:\t \t"}
+{"text":" \t"}
+{"text":" \t"}
+{"text":" "}
+{"text":" "}
+{"text":"MATRICES INVERTIBLES\t \t"}
+{"text":" "}
+{"text":"Se dice que una matriz cuadrada \tA es invertible, si existe una matriz \tB con la propiedad de que\t \t"}
+{"text":" \t"}
+{"text":"AB = BA = I\t \t"}
+{"text":" \t"}
+{"text":"siendo \tI la matriz identidad. Denominamos a la matriz \tB la inversa de \tA y la denotamos por \tA-1. \t"}
+{"text":" "}
+{"text":"Ejemplo:\t \t"}
+{"text":" \t"}
+{"text":"   \t"}
+{"text":" \t"}
+{"text":" \t"}
+{"text":" \t"}
+{"text":" \t"}
+{"text":" "}
+{"text":"Puesto que  \tAB = BA = I,  A\t y B son invertibles, siendo cada una la inversa de la otra\t \t"}
+{"text":" "}
+{"text":" "}
+{"text":"M\u00c9TODO DE GAUSS\t PARA INVERTIR UNA MATRIZ\t \t"}
+{"text":" "}
+{"text":"Sea \tA =  (\taij)  una  matriz  cuadrada  de  orden \tn.  Para  calcular  la  matriz  inversa  de \tA,  que  denotaremos \t"}
+{"text":"como \tA-1, seguiremos los siguientes pasos: \t \t"}
+{"text":" "}
+{"text":"Paso  1\t.  Construir  la  matriz \tn\uf0b42n  M \t=  (A\tI)  esto  es, \tA est\u00e1  en  la  mitad  izquierda  de \tM y  la  matriz \t"}
+{"text":"identidad \tI en la derecha."}
+{"text":""}
+{"text":"Paso  2.\t Se  deja  tal  y  como  est\u00e1  la  primera  fila  de \tM\t,  y  debajo  del  primer  t\u00e9rmino  de  la  diagonal \t"}
+{"text":"principal, \ta11,  que  llamaremos \tpivote\t,  ponemos  ceros.  Luego  se  opera  como  se  indica  en  el  siguiente \t"}
+{"text":"ejemplo\t: \t"}
+{"text":" "}
+{"text":"Consideremos una matriz 3\t\uf0b43 arbitraria\t \t"}
+{"text":" \t"}
+{"text":" \t"}
+{"text":" \tPaso 1\t.  \t"}
+{"text":" \t"}
+{"text":" \tPaso 2\t.  \t"}
+{"text":" \t"}
+{"text":" \t"}
+{"text":" "}
+{"text":"El siguiente paso es igual que el\t anterior, pero esta vez se coge como pivote el segundo t\u00e9rmino de la \t"}
+{"text":"diagonal principal.\t \t"}
+{"text":" "}
+{"text":"Al  llegar al \u00faltimo  t\u00e9rmino  de la  diagonal,  se procede igual  que antes,  pero  poniendo  los  ceros  enci\tma \t"}
+{"text":"del nuevo pivote. Se observa que al coger como pivote el \u00faltim\to t\u00e9rmino de la diagonal, la  matriz \tA se \t"}
+{"text":"transforma en una matriz triangular.\t \t"}
+{"text":" "}
+{"text":"Una  vez  realizados  todos  los  pasos,  la  mitad  izquierda  de  la  matriz \tM\t se  convierte  en  una  matriz \t"}
+{"text":"diagonal. En este momento hay que proceder a transformar, si es que no lo est\u00e1, la mitad izquierda e\tn \t"}
+{"text":"la matriz identidad, dividiendo si fuera necesario las filas de \tM\t por un escalar.\t \t"}
+{"text":" "}
+{"text":"Ejemplo\t: \t"}
+{"text":" "}
+{"text":"Supongamos que q\tueremos encontrar\t la inversa de\t \t"}
+{"text":" \t"}
+{"text":" \t"}
+{"text":" "}
+{"text":"Primero construimos la matriz \tM\t = (\tA\tI),"}
+{"text":""}
+{"text":"La mitad izquierda de \tM\t est\u00e1 en forma triangular, por consiguiente, \tA es invertible. Si hubiera quedado \t"}
+{"text":"toda una fila con ceros en la mitad \tA de \tM\t, la operaci\u00f3n habr\u00eda terminado (\tA no es invertible). \t \t"}
+{"text":"A continuaci\u00f3n, cogemos como pivote \ta33, ponemos ceros encima de \u00e9ste y seguimos operando hasta \t"}
+{"text":"que nos quede una matriz diagonal.\t \t"}
+{"text":" \t"}
+{"text":" \t"}
+{"text":" \t"}
+{"text":"Ya que la matriz colocada en la mitad izquierda es diagonal, no hay que operar m\u00e1s. Transformamos la\t \t"}
+{"text":"matriz diagonal en una matriz identidad; para ello hay que dividir la segunda fila entre \t-1: \t"}
+{"text":" \t"}
+{"text":" \t"}
+{"text":" "}
+{"text":"La matriz que ha quedado en la mitad derecha de \tM\t es precisamente la matriz inversa de \tA: \t"}
+{"text":" \t"}
+{"text":" \t"}
+{"text":" \t"}
+{"text":"Para  comprobar  si  el  resultado  es  correcto,  se  procede  a  multiplicar \tAA\t-1,  teniendo  que  dar  como \t"}
+{"text":"resultado la matriz identidad \tI. \t"}
+{"text":" "}
+{"text":"Comprobaci\u00f3n\t: \t"}
+{"text":" \t"}
+{"text":"AA\t-1 = I"}

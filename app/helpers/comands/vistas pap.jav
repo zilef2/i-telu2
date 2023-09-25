@@ -4,6 +4,8 @@ php artisan make:crud Archivo "nombre:string, peso:integer, nick:string"
 //its donest need a Model -> materia_user
 
 
+
+
 // no yet
 php artisan make:crud clasificacionUser "nombre:string, descripcion:string"
 php artisan make:crud clasificacionMateria "nombre:string, descripcion:string"
@@ -20,3 +22,7 @@ php artisan make:import PersonalUniversidadImport --model=User
 
 //smalot pdfparser
 php artisan make:controller TemporalPdfReader
+
+
+//model for save pdf average
+php artisan make:crud RespuestaPDf " guardar_pdf:string, resumen:string, nivel:string, precisa:string, idExistente:string"

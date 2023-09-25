@@ -36,6 +36,7 @@ class CreateMedidaControlsTable extends Migration
             $table->timestamps();
         });
     }
+//php artisan migrate --path=/database\migrations\2023_09_12_143715_create_archivos_table.php
 
     /**b
      * Reverse the migrations.
