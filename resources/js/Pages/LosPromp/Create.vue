@@ -126,13 +126,14 @@ watchEffect(() => {
 
                             <textarea v-model="form.principal" id="message" name="message" rows="10" cols="35"
                                 class="dark:text-white dark:bg-black h-auto resize-none w-full bg-gray-100 bg-opacity-50 rounded border border-gray-300 focus:border-indigo-500 dark:focus:bg-gray-800 focus:bg-white focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-6 transition-colors duration-200 ease-in-out"
-                                placeholder="Genere 3 preguntas del [tema]"></textarea>
+                                placeholder="Realize un resumen sobre el tema de [tema] de la asignatura (asignatura) para un estudiante de (carrera), siguiendo una estructura pedagógica adecuada. Incluye información esencial, puntos clave y detalles relevantes que faciliten la comprensión y el aprendizaje del tema."></textarea>
                         </div>
                     </div>
                     <div class="px-2 w-full col-span-2 xl:col-span-3">
                         <div class="relative">
                             <label for="message" class="leading-7 my-1 text-lg text-gray-900">La instruccion necesita un [Tema], las siguientes variables son opcionales</label>
                             <ul class="list-decimal ml-8">
+                                <li class="font-medium font-sans text-lg ">[Carrera]</li>
                                 <li class="font-medium font-sans text-lg ">[Asignatura]</li>
                                 <li class="font-medium font-sans text-lg ">[Unidad]</li>
                             </ul>

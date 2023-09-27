@@ -15,17 +15,15 @@ use Inertia\Inertia;
 
 class LosPrompsController extends Controller
 {
-    const LIMITE_DE_PROMPS_PER_USER = 10;
+    const LIMITE_DE_PROMPS_PER_USER = 5;
     // - MapearClasePP, Filtros
 
     //no necesita esto?
-    public function MapearClasePP(&$LosPromps, $numberPermissions)
-    {
+    public function MapearClasePP(&$LosPromps, $numberPermissions) {
         $LosPromps = $LosPromps->get();
     }
 
-    public function Filtros($request, &$LosPromps)
-    {
+    public function Filtros($request, &$LosPromps) {
         if ($request->has('search')) {
             $LosPromps->where('principal', 'LIKE', "%" . $request->search . "%");
             // $LosPromps->whereMonth('teoricaOpractica', $request->search);
@@ -40,8 +38,7 @@ class LosPrompsController extends Controller
         }
     }
 
-    public function index(Request $request)
-    {
+    public function index(Request $request) {
         $permissions = Myhelp::EscribirEnLog($this, 'LosPromp');
         $numberPermissions = Myhelp::getPermissionToNumber($permissions);
         $titulo = __('app.label.LosPromps');
@@ -81,17 +78,15 @@ class LosPrompsController extends Controller
     } //fin index
 
 
-    public function LimiteDePromps($numberPermissions)
-    {
+    public function LimiteDePromps($numberPermissions) {
         if ($numberPermissions < 5) {
             $prompsUser = Auth::user()->LimiteDePromps()->get()->count();
-            return $prompsUser < self::LIMITE_DE_PROMPS_PER_USER;
+            return $prompsUser < intval(self::LIMITE_DE_PROMPS_PER_USER + $numberPermissions * 2);
         }
         return true;
     }
 
-    public function store(Request $request)
-    {
+    public function store(Request $request) {
         DB::beginTransaction();
         $permissions = Myhelp::EscribirEnLog($this, 'LosPromp');
         $numberPermissions = Myhelp::getPermissionToNumber($permissions);

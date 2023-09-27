@@ -15,8 +15,7 @@ use Illuminate\Support\Facades\Log;
 class Myhelp {
 
     //JUST THIS PROJECT
-        public static function CargosYModelos()
-        {
+        public static function CargosYModelos() {
             //otros cargos NO_ADMIN
             $nombresDeCargos = [
                 'estudiante',
@@ -37,8 +36,7 @@ class Myhelp {
                 'isSome' => $isSome,
             ];
         }
-        public static function buscarMaterias($carrera_id_buscar)
-        {
+        public static function buscarMaterias($carrera_id_buscar) {
             return Materia::Where('carrera_id', intval($carrera_id_buscar))->get();
         }
     //JUST THIS PROJECT

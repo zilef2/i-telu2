@@ -129,12 +129,9 @@ class subtopicosController extends Controller
         ]);
     } //fin index
 
-    public function create()
-    {
-    }
+    public function create() { }
 
-    public function store(SubtopicoRequest $request)
-    {
+    public function store(SubtopicoRequest $request) {
         DB::beginTransaction();
         $ListaControladoresYnombreClase = (explode('\\', get_class($this)));
         $nombreC = end($ListaControladoresYnombreClase);

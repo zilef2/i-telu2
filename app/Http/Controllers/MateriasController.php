@@ -30,51 +30,17 @@ use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
 // use OpenAI\Exceptions\ErrorException;
 
-class MateriasController extends Controller
-{
+class MateriasController extends Controller {
     public $muyFrecuente = 'Espere un poco para usar GPT de nuevo';
     public $respuestaLimite = 'Limite de tokens';
     public $respuestaLarga = 'La respuesta es demasiado extensa';
     public $MAX_USAGE_RESPUESTA = 550;
     public $MAX_USAGE_TOTAL = 600;
-
     private $modelName = 'Materia';
 
 
-    //! index functions ()
-    public function MapearClasePP(&$materias, $numberPermissions) {
-        $materias = $materias->get()->map(function ($materia) use ($numberPermissions) {
-
-            if ($numberPermissions < 2) {
-                $carreraUser = Auth::user()->carreras()->pluck('carreras.id')->toArray();
-                if (!in_array($materia->carrera_id, $carreraUser)) return null;
-            }
-
-            $materia->papa = $materia->carrera_nombre();
-            $materia->cuantoshijos = count($materia->unidads);
-
-            $materia->muchos = $materia->users_nombres();
-
-            $materia->objetivs = ($materia->objetivos()->count());
-            $materia->objetivos = ($materia->objetivos);
-            return $materia;
-        })->filter();
-        // dd($materias);
-    }
-    public function fNombresTabla($numberPermissions) {
-        if ($numberPermissions <= 2) {
-            $nombresTabla[2] = [null, null,      "enum",    "nombre",  "codigo", "carrera_id", null     , null,       "descripcion"];
-            $nombresTabla[0] = ["IA", "Archivos","Semestre", "Nombre", "Codigo", "Carrera",   "Unidades", "Objetivos", "descripcion"];
-        } else { //not estudiante
-            $nombresTabla[2] = [null, null, null, null,                     "enum",     "nombre", "codigo", "carrera_id", null,      null,       null, "descripcion"];
-            $nombresTabla[0] = ["Edicion", "Matricular", "IA", "Archivos",  "Semestre", "Nombre", "Codigo", "Carrera",  "Unidades", "usuarios", "Objetivos", "descripcion"];
-        }
-
-        return $nombresTabla;
-    }
-
-    public function Filtros($request, &$materias)
-    {
+    //! index functions () los filtros van primero ome
+    public function Filtros($request, &$materias) {
         if ($request->has('selectedUni') && $request->selectedUni != 0) {
             // dd($request->selectedUni);
             $carrerasid = Carrera::has('materias')->where('universidad_id', $request->selectedUni)->pluck('id')->toArray();
@@ -96,8 +62,42 @@ class MateriasController extends Controller
             $materias->orderBy('nombre');
         }
     }
-    public function losSelect($numberPermissions, &$carrerasSelect, &$MateriasRequisitoSelect, &$UniversidadSelect, $request, &$materias)
-    {
+    //todo: aquiiii poner editables las materias para los profes
+    public function MapearClasePP(&$materias, $numberPermissions) {
+
+
+        $materias = $materias->get()->map(function ($materia) use ($numberPermissions) {
+
+            if ($numberPermissions < 8) {
+                $materiasUser = Auth::user()->materias()->pluck('materias.id')->toArray();
+                if (!in_array($materia->id, $materiasUser)) return null;
+            }
+
+            $materia->papa = $materia->carrera_nombre();
+            $materia->cuantoshijos = count($materia->unidads);
+
+            $materia->muchos = $materia->users_nombres();
+
+            $materia->objetivs = ($materia->objetivos()->count());
+            $materia->objetivos = ($materia->objetivos);
+            return $materia;
+        })->filter();
+        // dd($materias);
+    }
+    public function fNombresTabla($numberPermissions) {
+        if ($numberPermissions <= 1) {
+            $nombresTabla[2] = [null, null,      "enum",    "nombre",  "codigo", "carrera_id", null     , null,       "descripcion"];
+            $nombresTabla[0] = ["IA", "Archivos","Semestre", "Nombre", "Codigo", "Carrera",   "Unidades", "Objetivos", "descripcion"];
+        } else { //not estudiante
+            $nombresTabla[2] = [null, null, null, null,                     "enum",     "nombre", "codigo", "carrera_id", null,      null,       null, "descripcion"];
+            $nombresTabla[0] = ["Edicion", "Matricular", "IA", "Archivos",  "Semestre", "Nombre", "Codigo", "Carrera",  "Unidades", "usuarios", "Objetivos", "descripcion"];
+        }
+
+        return $nombresTabla;
+    }
+
+    
+    public function losSelect($numberPermissions, &$carrerasSelect, &$MateriasRequisitoSelect, &$UniversidadSelect, $request, &$materias) {
         if ($request->has('selectedUni') &&  $request->selectedUni != 0) {
             $carrerasSelect = Carrera::where('universidad_id', $request->selectedUni)->get();
         } else {
@@ -120,7 +120,6 @@ class MateriasController extends Controller
             $MateriasRequisitoSelect = Materia::all();
         }
     }
-
 
     public function index(Request $request) {
         $permissions = Myhelp::EscribirEnLog($this, ' materia');
@@ -157,6 +156,8 @@ class MateriasController extends Controller
         );
         $errorMessage = '';
 
+
+
         //# generarTodo.vue :> generar
 
         // $listaMaterias = Materia::where('carrera_id',$request->carrera_id)->pluck('nombre') ?? [];
@@ -167,10 +168,7 @@ class MateriasController extends Controller
             'temas' => $request->temas,
             'unidades' => $request->unidades,
         ]));
-        // dd(
-        //     $request->temas,
-        //     $request->unidades,
-        // );
+        
 
         //# generarTodo.vue :> buscarMateriasSelect
         if ($request->has('carrera_id_buscar') && $request->carrera_id_buscar != 0) {
@@ -239,6 +237,7 @@ class MateriasController extends Controller
     }
 
     //usefull
+    //generar materia
     public function materiaguardarGenerado(IA_MateriaRequest $request) {
         DB::beginTransaction();
         Myhelp::EscribirEnLog($this, get_called_class(), '', false);
@@ -266,7 +265,7 @@ class MateriasController extends Controller
                 ]);
 
                 for ($i=0; $i < intval($request->Cuantas_t); $i++) { 
-                    Subtopico::create([
+                    $ArraySubtopicosModels[] = Subtopico::create([
                         'nombre' => $request->Array_nombre_tema[$contadorUnidad][$i],
                         'descripcion' => '',
                         'unidad_id' => $unid->id,
@@ -277,6 +276,7 @@ class MateriasController extends Controller
                 }
                 $contadorUnidad++;
             }
+           HelpGPT::MedidaGenerarMateria($materia,$ArraySubtopicosModels);
 
             DB::commit();
             Log::info("U -> " . Auth::user()->name . " Generar la materia " . $request->nombre_mat . " correctamente");
@@ -677,7 +677,6 @@ class MateriasController extends Controller
             $actionEQH = $request->actionEQH;
 
             
-
             if ($actionEQH === 1) { //Ejemplo
                 $selectedReasonString = 'Explica con al menos 3 ejemplos, '
                     . 'el subtema: ' . $subtopicoModel->nombre
@@ -709,7 +708,7 @@ class MateriasController extends Controller
                 $hagapregunta = true;
                 $HacerlaPregunta = $request->HacerlaPregunta;
 
-                $preguntaAbierta = HelpGPT::GenerarPreguntaAbierta($materia->nombre,$unidad->nombre, $subtopicoModel->nombre,$request->HacerlaPregunta,$numberPermissions);
+                $preguntaAbierta = HelpGPT::GenerarPreguntaAbierta($materia->nombre,$unidad->nombre, $subtopicoModel->nombre,$request->HacerlaPregunta,$numberPermissions,$subtopicoModel->Find_carrera_nombre);
 
                 $gpt = HelpGPT::gptResolverTema($preguntaAbierta, $subtopicoModel, $unidad->nombre, 'Profesional', $materia->nombre, $usuario, env('DEBUGGINGGPT'));
                 $RespuestaPregunta = $gpt['respuesta'];

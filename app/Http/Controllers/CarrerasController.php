@@ -81,7 +81,7 @@ class CarrerasController extends Controller {
             // dd($request->field);
             $Carreras->orderBy(($request->field), $request->order);
         } else {
-            $Carreras->orderBy('nombre');
+            $Carreras->orderBy('universidad_id')->orderBy('enum')->orderBy('nombre');
         }
     }
     public function losSelect($numberPermissions) {

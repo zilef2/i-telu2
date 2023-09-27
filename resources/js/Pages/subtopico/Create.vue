@@ -63,6 +63,13 @@ watchEffect(() => {
                 </h2>
                 <div class="my-6 grid xs:grid-cols-1 sm:grid-cols-2 gap-6">
                     <div>
+                        <InputLabel for="unidad_id" :value="lang().label.materia" />
+                        <SelectInput name="unidad_id" class="mt-1 block w-full" v-model="form.unidad_id" required
+                        :dataSet="UnidadsSelect"> </SelectInput>
+                        <InputError class="mt-2" :message="form.errors.unidad_id" />
+                    </div>
+                    
+                    <div>
                         <InputLabel for="enum" :value="lang().label.enumTema" />
                         <TextInput id="enum" type="number" class="mt-1 block w-full" v-model="form.enum" required
                             :placeholder="lang().placeholder.enum" :error="form.errors.enum" />
@@ -74,24 +81,19 @@ watchEffect(() => {
                             :placeholder="lang().placeholder.nombre" :error="form.errors.nombre" />
                         <InputError class="mt-2" :message="form.errors.nombre" />
                     </div>
-                    <div>
+                    <!-- <div>
                         <InputLabel for="codigo" :value="lang().label.codigo" />
                         <TextInput id="codigo" type="text" class="mt-1 block w-full" v-model="form.codigo" required
                             :placeholder="lang().placeholder.codigo" :error="form.errors.codigo" />
                         <InputError class="mt-2" :message="form.errors.codigo" />
-                    </div>
+                    </div> -->
                     <div>
                         <InputLabel for="resultado_aprendizaje" :value="lang().label.resultado_aprendizaje" />
                         <TextInput id="resultado_aprendizaje" type="text" class="mt-1 block w-full" v-model="form.resultado_aprendizaje"
                             required :placeholder="lang().placeholder.resultado_aprendizaje" :error="form.errors.resultado_aprendizaje" />
                         <InputError class="mt-2" :message="form.errors.resultado_aprendizaje" />
                     </div>
-                    <div>
-                        <InputLabel for="unidad_id" :value="lang().label.materia" />
-                        <SelectInput name="unidad_id" class="mt-1 block w-full" v-model="form.unidad_id" required
-                        :dataSet="UnidadsSelect"> </SelectInput>
-                        <InputError class="mt-2" :message="form.errors.unidad_id" />
-                    </div>
+                    
                     <div>
                         <InputLabel for="descripcion" :value="lang().label.descripcion" />
                         <TextInput id="descripcion" type="text" class="mt-1 block w-full" v-model="form.descripcion"

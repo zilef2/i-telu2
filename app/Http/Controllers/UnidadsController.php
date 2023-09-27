@@ -20,8 +20,7 @@ use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use OpenAI;
 
-class UnidadsController extends Controller
-{
+class UnidadsController extends Controller {
     public $respuestaLimite = 'Limite de tokens';
     public $respuestaLarga = 'La respuesta es demasiado extensa';
     public $MAX_USAGE_RESPUESTA = 550;
@@ -29,40 +28,8 @@ class UnidadsController extends Controller
     private $modelName = 'Unidad';
 
 
-    public function MapearClasePP(&$unidads, $numberPermissions)
-    {
-        $MateriasUser = Auth::user()->materias()->pluck('materias.id')->toArray();
-        $unidads = $unidads->get()->map(function ($Unidad) use ($numberPermissions, $MateriasUser) {
-            if ($numberPermissions < 2) {
-                if (!in_array($Unidad->materia_id, $MateriasUser)) return null;
-            }
-            $Unidad->hijo = $Unidad->materia_nombre();
-            $Unidad->cuantosTemas = $Unidad->subtopicos()->count();
-            return $Unidad;
-        })->filter();
-    }
-
-    public function fNombresTabla($numberPermissions)
-    {
-        if ($numberPermissions > 1)
-            $nombresTabla = [ //0: como se ven //1 como es la BD //2orden
-                ["Acciones"],
-                [],
-                [null]
-            ];
-        else {
-            $nombresTabla = [ //0: como se ven //1 como es la BD //2orden
-                [],
-                [],
-                []
-            ];
-        }
-        $nombresTabla[2] = array_merge($nombresTabla[2], ["enum", "nombre", "materia_id"]);
-        $nombresTabla[0] = array_merge($nombresTabla[0], ["#", "nombre", "materia"]);
-        return $nombresTabla;
-    }
-    public function Filtros($request, &$unidads, $numberPermissions)
-    {
+    //! index functions () los filtros van primero ome
+    public function Filtros($request, &$unidads, $numberPermissions) {
         if ($numberPermissions < intval(env('PERMISS_VER_FILTROS_SELEC'))) { //coorPrograma,profe,estudiante
             $MateriasSelect = Auth::user()->materias->pluck('id');
 
@@ -88,14 +55,47 @@ class UnidadsController extends Controller
             // dd($request->field);
             $unidads->orderBy($request->field, $request->order);
         } else {
-            $unidads->orderBy('nombre');
+            $unidads->orderBy('materia_id')->orderBy('enum')->orderBy('nombre');
         }
 
         return $showCarrera;
     }
-    public function losSelect($numberPermissions)
-    {
-        if ($numberPermissions < intval(env('PERMISS_VER_FILTROS_SELEC'))) { //coorPrograma,profe,estudiante
+
+    public function MapearClasePP(&$unidads, $numberPermissions) {
+        $MateriasUser = Auth::user()->materias()->pluck('materias.id')->toArray();
+        $unidads = $unidads->get()->map(function ($Unidad) use ($numberPermissions, $MateriasUser) {
+            if ($numberPermissions < 2) {
+                if (!in_array($Unidad->materia_id, $MateriasUser)) return null;
+            }
+            $Unidad->hijo = $Unidad->materia_nombre();
+            $Unidad->cuantosTemas = $Unidad->subtopicos()->count();
+            return $Unidad;
+        })->filter();
+    }
+
+    public function fNombresTabla($numberPermissions) {
+        if ($numberPermissions > 1)
+            $nombresTabla = [ //0: como se ven //1 como es la BD //2orden
+                ["Acciones"],
+                [],
+                [null]
+            ];
+        else {
+            $nombresTabla = [ //0: como se ven //1 como es la BD //2orden
+                [],
+                [],
+                []
+            ];
+        }
+        $nombresTabla[2] = array_merge($nombresTabla[2], ["enum", "nombre", "materia_id"]);
+        $nombresTabla[0] = array_merge($nombresTabla[0], ["#", "nombre", "materia"]);
+        return $nombresTabla;
+    }
+
+    
+    public function losSelect($numberPermissions) {
+        // coordinador_academico = 4 | coorPrograma = 3 , profe ,estudiante
+        if ($numberPermissions < intval(env('PERMISS_VER_FILTROS_SELEC'))) { //5 
             $MateriasSelect = Auth::user()->materias;
         } else {
             $MateriasSelect = Materia::all();
@@ -106,8 +106,7 @@ class UnidadsController extends Controller
     }
 
 
-    public function index(Request $request)
-    {
+    public function index(Request $request) {
         $permissions = Myhelp::EscribirEnLog($this, ' unidads', '');
         $numberPermissions = Myhelp::getPermissionToNumber($permissions);
 

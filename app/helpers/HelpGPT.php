@@ -69,8 +69,8 @@ class HelpGPT
             // $result = $client->//#chat()->create([
 
             $result = $client->completions()->create([
-                // 'model' => 'text-davinci-003',
-                "model" => "gpt-4",
+                'model' => 'text-davinci-003',
+                // "model" => "gpt-4",
                 'prompt' => $elpromp,
                 'max_tokens' => self::TOKEN_GENERAR_MATERIA
             ]);
@@ -211,7 +211,7 @@ class HelpGPT
         return ($Lapromt);
     }
 
-    public static function contarModificarP(&$Lapromt, $materia_nombre = '', $subtopico = '', $Unidad = '', $nivel = '')
+    public static function contarModificarP(&$Lapromt, $materia_nombre = '', $subtopico = '', $Unidad = '', $nivel = '',$carrera_nombre = '')
     {
 
         $Lapromt = strtolower($Lapromt);
@@ -224,26 +224,47 @@ class HelpGPT
         }
 
         $remplazarPofavo = [
-            'Asignatura' => $materia_nombre,
+            // 'Asignatura' => $materia_nombre,
             'asignatura' => $materia_nombre,
             'materia_nombre' => $materia_nombre,
             'materia' => $materia_nombre,
-            'Materia' => $materia_nombre,
+            // 'Materia' => $materia_nombre,
 
             'concepto que se enseña' => $Unidad,
-            'Concepto que se enseña' => $Unidad,
+            // 'Concepto que se enseña' => $Unidad,
 
-            'Tema' => $subtopico,
+            // 'Tema' => $subtopico,
             'tema' => $subtopico,
 
-            'Unidad' => $Unidad,
+            // 'Unidad' => $Unidad,
             'unidad' => $Unidad,
 
             'nivel' => $nivel,
+
+            'carrera_nombre' => $carrera_nombre,
+            'carrera' => $carrera_nombre,
         ];
 
         foreach ($remplazarPofavo as $key => $value) {
             $keyflexible = strtolower($key);
+            $corchetes = "[" . $keyflexible . "]";
+            $parentesis = "(" . $keyflexible . ")";
+
+            $ArrayCorche = $myhelp->EncontrarEnString($Lapromt, $corchetes);
+            $contadorC += count($ArrayCorche);
+            $ArrayParent = $myhelp->EncontrarEnString($Lapromt, $parentesis);
+            $contadorP += count($ArrayParent);
+
+            if ($contadorC !== 0) {
+                $Lapromt = str_replace($corchetes, strtolower($value), strtolower($Lapromt));
+            }
+            if ($contadorP !== 0) {
+                $Lapromt = str_replace($parentesis, strtolower($value), strtolower($Lapromt));
+            }
+        }
+
+        foreach ($remplazarPofavo as $key => $value) {
+            $keyflexible = ucfirst(strtolower($key));
             $corchetes = "[" . $keyflexible . "]";
             $parentesis = "(" . $keyflexible . ")";
 
@@ -318,11 +339,12 @@ class HelpGPT
         return ['respuesta' => self::PreguntaCorta, 'restarAlToken' => 0];
     }
 
-    public static function gptResolverQuiz(&$elpromp, $subtopico, $nivel, $materia_nombre, $usuario, $debug = false)
-    {
+    public static function gptResolverQuiz(&$elpromp, $subtopico, $nivel, $materia_nombre, $usuario, $debug = false) {
 
         //contarModificarP cambia [tema] = el tema seleccionado
-        $corchetesYparentesis = self::contarModificarP($elpromp, $materia_nombre, $subtopico, $nivel);
+        $carrera_Nombre = $subtopico->Find_carrera_nombre();
+
+        $corchetesYparentesis = self::contarModificarP($elpromp, $materia_nombre, $subtopico, $nivel,$carrera_Nombre);
         //todo: si corchetesYparentesis estan en cero, no debe continuar
 
         $elpromp .= ". Al final de las opciones, imprime la respuesta correcta por cada pregunta con este formato: RESPUESTA=A";
@@ -472,11 +494,11 @@ class HelpGPT
             'restarAlToken' => 0,
         ];
     }
-    public static function gptResolverTema(&$elpromp, $subtopico, $unidad, $nivel, $materia_nombre, $usuario, $debug = false)
-    {
+    public static function gptResolverTema(&$elpromp, $subtopico, $unidad, $nivel, $materia_nombre, $usuario, $debug = false) {
         try{
             $longuitudPregunta = strlen($subtopico->nombre) > 3;
-            self::contarModificarP($elpromp, $materia_nombre, $subtopico->nombre, $unidad, $nivel);
+            $carrera_Nombre = $subtopico->Find_carrera_nombre();
+            self::contarModificarP($elpromp, $materia_nombre, $subtopico->nombre, $unidad, $nivel,$carrera_Nombre);
             
             //# buscando el prompt
             $YaEstabaGuardada = GrabarGPT::BuscarPromp($elpromp);
@@ -681,7 +703,8 @@ class HelpGPT
     //quiz de actionEQH
     public static function gptQuizEstudiante(&$elpromp, $subtopico, $nivel, $materia_nombre, $usuario, $debug = false) {
         //contarModificarP cambia [tema] = el tema seleccionado
-        $corchetesYparentesis = self::contarModificarP($elpromp, $materia_nombre, $subtopico->nombre, $nivel);
+        $carrera_Nombre = $subtopico->Find_carrera_nombre();
+        $corchetesYparentesis = self::contarModificarP($elpromp, $materia_nombre, $subtopico->nombre, $nivel,$carrera_Nombre);
         //todo: si corchetesYparentesis estan en cero, no debe continuar
 
         $elpromp .= ". Al final, imprime la respuesta correcta con este formato: RESPUESTA=A";
@@ -780,7 +803,7 @@ class HelpGPT
     }
 
     //13/09/2023
-    public static function GenerarPreguntaAbierta($materia,$unidad,$tema,$pregunta,$numberPermissions){
+    public static function GenerarPreguntaAbierta($materia,$unidad,$tema,$pregunta,$numberPermissions,$carrera_nombre){
 
         $preguntaAbierta =
         'Actua como un Profesional, experto en la asignatura: ' . $materia . ', el subtema: ' . $tema . ' del tema: ' . $unidad
@@ -807,6 +830,19 @@ class HelpGPT
         $preguntaAbierta .= " Al final, lista una serie de palabras claves (minimo 5).";
 
         return $preguntaAbierta;
+    }
+
+    public function MedidaGenerarMateria($materia,$ArraySubtopicosModels){
+        $user = auth()->user();
+        $user->decrement([ 'limite_token_general' ]);
+        MedidaControl::create([
+            'pregunta' => 'generarMateria',
+            'respuesta_guardada' => $materia->id.'',
+            'RazonNOSubtopico' => 'Solicitó generarMateria',
+            'subtopico_id' => $ArraySubtopicosModels[0]->id,
+            'tokens_usados' => count($ArraySubtopicosModels),
+            'user_id' => $user->id
+        ]);
     }
 
 

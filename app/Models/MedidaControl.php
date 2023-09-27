@@ -26,6 +26,5 @@ class MedidaControl extends Model
     public function subtopico_nombre(): string {
         return $this->Subtopico ? $this->Subtopico->nombre : '';
     }
-
 }
 //php artisan migrate --path=/database\migrations\2023_07_01_095654_create_medida_controls_table.php

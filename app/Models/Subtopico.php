@@ -28,4 +28,8 @@ class Subtopico extends Model
     public function tema_nombre(): string {
         return $this->Unidad->nombre;
     }
+
+    public function Find_carrera_nombre(): string {
+        return $this->Unidad->materia->carrera->nombre;
+    }
 }

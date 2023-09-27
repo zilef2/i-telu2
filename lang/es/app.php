@@ -76,7 +76,7 @@ return [
         'fecha_nacimiento' => 'fecha de nacimiento',
         'semestre' => 'semestre',
         'semestre_mas_bajo' => 'semestre mas bajo',
-        'limite_token_general' => 'limite general',
+        'limite_token_general' => 'limite generar',
         'limite_token_leccion' => 'limite de tokens por leccion',
         'limite_token_lec' => 'limite/leccion',
 

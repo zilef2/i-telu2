@@ -11,25 +11,22 @@ class SubtopicoRequest extends FormRequest
      *
      * @return bool
      */
-    public function authorize()
-    {
-        return true;
-    }
+    public function authorize() { return true; }
 
     /**
      * Get the validation rules that apply to the request.
      *
      * @return array<string, mixed>
      */
-    public function rules()
-    {
-        return
-        [
+    public function rules() {
+        return [
 			'enum' => 'nullable',
 			'nombre' => 'required',
-			'codigo' => 'required', //todo: unique
+			'codigo' => 'nullable', //todo: unique
+
 			'unidad_id' => 'required|integer|min:1',
-			// 'descripcion' => 'required',
+			'descripcion' => 'nullable',
+			'resultado_aprendizaje' => 'nullable',
         ];
     }
 }

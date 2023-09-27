@@ -49,7 +49,7 @@ class EjerciciosController extends Controller
         if ($request->has(['field', 'order'])) {
             $ejercicios->orderBy($request->field, $request->order);
         } else {
-            $ejercicios->orderBy('nombre');
+            $ejercicios->orderBy('subtopico_id')->orderBy('enum')->orderBy('nombre');
         }
     }
 

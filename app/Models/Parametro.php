@@ -15,5 +15,6 @@ class Parametro extends Model
         'pMejoraContinua',
         'prompExplicarTema',
         'NumeroTicketDefecto',
+
     ];
 }

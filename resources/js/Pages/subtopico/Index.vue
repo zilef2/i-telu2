@@ -173,7 +173,7 @@ onMounted(() =>{
                                         <ChevronUpDownIcon class="w-4 h-4" />
                                     </div>
                                 </th>
-                                <th v-on:click="order('codigo')"
+                                <!-- <th v-on:click="order('codigo')"
                                     class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
                                     <div class="flex justify-between items-center">
                                         <span>
@@ -181,23 +181,23 @@ onMounted(() =>{
                                         </span>
                                         <ChevronUpDownIcon class="w-4 h-4" />
                                     </div>
-                                </th>
-
-                                <th v-on:click="order('nombre')"
-                                    class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
-                                    <div class="flex justify-between items-center">
-                                        <span>
-                                            {{ lang().label.Unidad }}
-                                        </span>
-                                        <ChevronUpDownIcon class="w-4 h-4" />
-                                    </div>
-                                </th>
+                                </th> -->
+                                
                                 <th v-if = "props.numberPermissions > 1" 
                                     v-on:click="order('resultado_aprendizaje')"
                                     class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
                                     <div class="flex justify-between items-center">
                                         <span>
                                             Resultado aprendizaje
+                                        </span>
+                                        <ChevronUpDownIcon class="w-4 h-4" />
+                                    </div>
+                                </th>
+                                <th v-on:click="order('nombre')"
+                                    class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
+                                    <div class="flex justify-between items-center">
+                                        <span>
+                                            {{ lang().label.Unidad }}
                                         </span>
                                         <ChevronUpDownIcon class="w-4 h-4" />
                                     </div>
@@ -239,10 +239,9 @@ onMounted(() =>{
                                 </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.enum) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.nombre) }} </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.codigo) }} </td>
+                                <!-- <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.codigo) }} </td> -->
+                                <td v-if = "props.numberPermissions > 1" class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.resultado_aprendizaje) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.hijo) }} </td>
-                                <td v-if = "props.numberPermissions > 1" class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.resultado_aprendizaje) }}
-                                </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.descripcion) }} </td>
                             </tr>
                         </tbody>
