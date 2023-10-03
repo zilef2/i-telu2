@@ -20,6 +20,9 @@ class DatabaseSeeder extends Seeder {
             SubtopicoSeeder::class,
             LosPrompsSeeder::class,
             EjercicioSeeder::class,
+
+            //2oct
+            ArticuloSeeder::class,
         ]);
     }
 }

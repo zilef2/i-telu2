@@ -8,8 +8,6 @@ class JustChatFunctionGPT {
     public static function Chat($promp){
         $client = OpenAI::client(env('GTP_SELECT'));
         $result = $client->chat()->create([
-            // 'model' => 'text-davinci-003',
-            // 'prompt' => $promp,
             "model" => "gpt-4",
             'messages' => [
                 ['role' => 'system', 'content' => 'Eres un profesor universitario'],

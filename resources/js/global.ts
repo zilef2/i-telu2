@@ -22,6 +22,7 @@
  PrimerosCaracteres
  PrimerasPalabras
  textoSinEspaciosLargos
+ slugTOhumano
 
  --ARRAY
 
@@ -230,6 +231,9 @@ export function LookForValueInArray(arrayOfObjects:Object[] , searchValue): Stri
 
     export function textoSinEspaciosLargos(texto){
         return texto.replace(/\s+/g, ' ');
+    }
+    export function slugTOhumano(texto: string): string{
+        return texto.replace(/_/g, ' ');
     }
 
 

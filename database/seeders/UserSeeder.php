@@ -49,6 +49,18 @@ class UserSeeder extends Seeder
         ]);
         $admin->assignRole('admin');
 
+        $admin = User::create([
+            'name'              => "Emerson Giraldo",
+            'email'             => "emerson.giraldo@consult-ing.com.co",
+            'password'          => bcrypt('Emerson Giraldo+*'),
+            'email_verified_at' => date('Y-m-d H:i'),
+            'sexo' => 'Masculino',
+            'identificacion' => '1235566',
+            'limite_token_general' => $NumTickesDefecto,
+            'limite_token_leccion' => $NumTickesDefecto,
+        ]);
+        $admin->assignRole('admin');
+
         $nombresGenericos= [ 
             'estudiante' => '1231567899',
             'alejo' => '1232567899',

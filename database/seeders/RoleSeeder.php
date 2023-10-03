@@ -36,6 +36,7 @@ class RoleSeeder extends Seeder
             'subtopico',
             'ejercicio',
             'LosPromp',
+            'Articulo',
         ];
         $crudCompleto = ['delete', 'update', 'read', 'create'];
 
@@ -59,6 +60,7 @@ class RoleSeeder extends Seeder
             'read universidad', 'update universidad', 'inscribirUs universidad',
             'read carrera', 'update carrera', 'create carrera', 'inscribirUs carrera',
             'read materia', 'update materia', 'create materia', 'inscribirUs materia',
+            'read Articulo', 'update Articulo', 'create Articulo','delete Articulo',
             'read Unidad', 'update Unidad', 'create Unidad',
             'read subtopico', 'update subtopico', 'create subtopico',
             'read ejercicio', 'update ejercicio', 'create ejercicio',
@@ -70,6 +72,7 @@ class RoleSeeder extends Seeder
             'read Unidad', 'update Unidad', 'create Unidad', 'inscribirUs materia',
             'read subtopico', 'update subtopico', 'create subtopico',
             'read ejercicio', 'update ejercicio', 'create ejercicio', 'delete ejercicio',
+            'read Articulo', 'update Articulo', 'create Articulo',
         ]);
 
         $profesor->givePermissionTo([
@@ -78,10 +81,12 @@ class RoleSeeder extends Seeder
             'read Unidad', 'cambiarNombre Unidad', 'create Unidad',
             'read subtopico', 'update subtopico', 'create subtopico',
             'read ejercicio', 'update ejercicio', 'create ejercicio',
+            'read Articulo', 'update Articulo', 'create Articulo',
         ]);
 
         $estudiante->givePermissionTo([
             // 'read carrera',
+            'read Articulo', 'update Articulo', 'create Articulo',
             'read materia',
             // 'read Unidad',
             // 'read subtopico',

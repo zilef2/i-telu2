@@ -12,7 +12,7 @@ import pkg from 'lodash';
 import { router, usePage, Link } from '@inertiajs/vue3';
 
 import Pagination from '@/Components/Pagination.vue';
-import { CursorArrowRippleIcon, ChevronUpDownIcon, QuestionMarkCircleIcon, EyeIcon, PencilIcon, TrashIcon, UserCircleIcon, BookmarkIcon} from '@heroicons/vue/24/solid';
+import { ArrowSmallRightIcon, ChevronUpDownIcon, QuestionMarkCircleIcon, EyeIcon, PencilIcon, TrashIcon, UserCircleIcon, BookmarkIcon} from '@heroicons/vue/24/solid';
 
 import Create from '@/Pages/materia/Create.vue';
 import Edit from '@/Pages/materia/Edit.vue';
@@ -24,6 +24,15 @@ import InfoButton from '@/Components/InfoButton.vue';
 import superButton from '@/Components/uiverse/superButton.vue';
 import { useForm } from '@inertiajs/vue3';
 import { PrimerasPalabras, vectorSelect, formatDate, CalcularEdad, CalcularSexo } from '@/global.ts';
+
+
+import {
+    TransitionRoot,
+    TransitionChild,
+    Dialog,
+    DialogPanel,
+    DialogTitle,
+} from '@headlessui/vue'
 
 const { _, debounce, pickBy } = pkg
 const props = defineProps({
@@ -54,6 +63,9 @@ const data = reactive({
         selectedcarr: props.filters.selectedcarr
 
     },
+    params2: {//ir al hijo
+        selectedMatID: 0
+    },
     selectedId: [],
     multipleSelect: false,
     generarOpen: false,
@@ -68,7 +80,26 @@ const data = reactive({
     carrerasDeUSel: [], //para filtro (index) y carrera_id (create)
     MateriasRequisitoSelect: [],
     numeroCarreras: 0,
+    MessageNoHijos: false,
 })
+
+// MessageNoHijos: controla el modal que advierte al usuario que no tiene hijos
+function closeModal() { data.MessageNoHijos = false }
+const IrTemas = (materiaid, cuantas) => {
+    console.log("🧈 debu cuantas:", cuantas);
+    if (cuantas > 0) {
+
+        data.params2.selectedMatID = materiaid
+        let params = pickBy(data.params2)
+        router.get(route("Unidad.index"), params, {
+            replace: true,
+            preserveState: true,
+            preserveScroll: true,
+        })
+    } else {
+        data.MessageNoHijos = true
+    }
+}
 
 const order = (field) => {
     data.params.field = field.replace(/ /g, "_")
@@ -143,17 +174,19 @@ onMounted(() => {
                         Generar Materia
                     </PrimaryButton>
                     <generarTodo :show="data.generarOpen" @close="data.generarOpen = false" :title="props.title"
-                        v-if="can(['create materia'])" :carrerasSelect="data.carrerasDeUSel" :ValoresGenerarMateria="props.ValoresGenerarMateria"
+                        v-if="can(['create materia'])" :carrerasSelect="data.carrerasDeUSel" 
+                        :ValoresGenerarMateria="props.ValoresGenerarMateria"
                         :MateriasRequisitoSelect="props.MateriasRequisitoSelect" 
                         />
-
 
                     <Create :show="data.createOpen" @close="data.createOpen = false" :title="props.title"
                         v-if="can(['create materia'])" :carrerasSelect="data.carrerasDeUSel"
                         :MateriasRequisitoSelect="props.MateriasRequisitoSelect" />
                     <Edit :show="data.editOpen" @close="data.editOpen = false" :materia="data.generico" :title="props.title"
                         v-if="can(['update materia'])" :carrerasSelect="data.carrerasDeUSel"
-                        :MateriasRequisitoSelect="props.MateriasRequisitoSelect" />
+                        :MateriasRequisitoSelect="props.MateriasRequisitoSelect"
+                        :numberPermissions="props.numberPermissions"
+                         />
                     <Delete :show="data.deleteOpen" @close="data.deleteOpen = false" :materia="data.generico"
                         v-if="can(['delete materia'])" :title="props.title" />
                 </div>
@@ -206,7 +239,7 @@ onMounted(() => {
                                         v-model="data.selectedId"
                                         class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-primary dark:text-primary shadow-sm focus:ring-primary/80 dark:focus:ring-primary dark:focus:ring-offset-gray-800 dark:checked:bg-primary dark:checked:border-primary" />
                                 </td> -->
-                                <td v-if="numberPermissions > 2" class="whitespace-nowrap py-4 px-2 sm:py-3">
+                                <td v-if="numberPermissions > 1" class="whitespace-nowrap py-4 px-2 sm:py-3">
                                     <div class="flex justify-start items-center">
                                         <div class="rounded-md overflow-hidden">
                                             <InfoButton type="button"
@@ -219,6 +252,11 @@ onMounted(() => {
                                                 class="px-2 py-1.5 rounded-none" v-tooltip="lang().tooltip.delete">
                                                 <TrashIcon class="w-4 h-4" />
                                             </DangerButton>
+                                            <InfoButton type="button"
+                                                @click="IrTemas(clasegenerica.id, clasegenerica.cuantoshijos)"
+                                                class="px-2 py-1.5 rounded-none" v-tooltip="'Ver temas'">
+                                                <ArrowSmallRightIcon class="w-4 h-4" />
+                                            </InfoButton>
                                         </div>
                                     </div>
                                 </td>
@@ -265,20 +303,17 @@ onMounted(() => {
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-sm text-gay-600">{{ (clasegenerica.enum) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3 underline text-sky-700">
                                     <Link :href="route('materia.show', clasegenerica.id)">
-                                    {{ (clasegenerica.nombre) }}
+                                        <small v-if="clasegenerica.activa">♻️</small>
+                                        {{ (clasegenerica.nombre) }}
                                     </Link>
                                 </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-sm text-gay-600">{{
-                                    (clasegenerica.codigo) }} </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-sm text-gay-600">{{ (clasegenerica.codigo) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-sm text-gay-600">{{ (clasegenerica.papa) }} </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-sm text-gay-600">{{
-                                    (clasegenerica.cuantoshijos) }} </td>
-                                <td v-if="props.numberPermissions > 2" class="whitespace-nowrap py-4 px-2 sm:py-3">{{
-                                    (clasegenerica.muchos) }} </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-sm text-gay-600">{{ (clasegenerica.cuantoshijos) }} </td>
+                                <td v-if="props.numberPermissions > 2" class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.muchos) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.objetivs) }} </td>
 
-                                <td class="whitespace-wrap break-words text-sm py-4 px-0">{{
-                                    PrimerasPalabras(clasegenerica.descripcion, 11) }} </td>
+                                <td class="whitespace-wrap break-words text-sm py-4 px-0">{{ PrimerasPalabras(clasegenerica.descripcion, 11) }} </td>
                             </tr>
                         </tbody>
                     </table>
@@ -291,6 +326,43 @@ onMounted(() => {
 
 
 
+        <template>
+            <TransitionRoot appear :show="data.MessageNoHijos" as="template">
+                <Dialog as="div" @close="closeModal" class="relative z-10">
+                    <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0"
+                        enter-to="opacity-100" leave="duration-200 ease-in" leave-from="opacity-100" leave-to="opacity-0">
+                        <div class="fixed inset-0 bg-black bg-opacity-25" />
+                    </TransitionChild>
 
+                    <div class="fixed inset-0 overflow-y-auto">
+                        <div class="flex min-h-full items-center justify-center p-4 text-center">
+                            <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95"
+                                enter-to="opacity-100 scale-100" leave="duration-200 ease-in"
+                                leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
+                                <DialogPanel
+                                    class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                                    <DialogTitle as="h3" class="text-lg font-medium leading-6 text-gray-900">
+                                        Sin Unidades
+                                    </DialogTitle>
+                                    <div class="mt-2">
+                                        <p class="text-sm text-gray-500">
+                                            Esta asignatura no tiene unidades
+                                        </p>
+                                    </div>
+
+                                    <div class="mt-4">
+                                        <button type="button"
+                                            class="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                                            @click="closeModal">
+                                            Listo
+                                        </button>
+                                    </div>
+                                </DialogPanel>
+                            </TransitionChild>
+                        </div>
+                    </div>
+                </Dialog>
+            </TransitionRoot>
+        </template>
     </AuthenticatedLayout>
 </template>

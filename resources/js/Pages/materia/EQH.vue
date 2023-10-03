@@ -49,10 +49,6 @@ const data = reactive({
         //E
         ejemplosRespuesta: '',
         //Q
-        // quiz: false,
-        // quizPregunta: '',
-        // quizCorrecta: '',
-        // quizRespuestas: [],
         //H
         hagapregunta: '',
         HacerlaPregunta: '',
@@ -176,7 +172,7 @@ const paAbajo = () => { window.scrollTo(0, document.body.scrollHeight); }
                             <!-- Quiz -->
                             <div v-if="props.quiz " class="flex items-center justify-center p-2">
                                 <div class="mx-auto w-full max-w-[850px]">
-                                    <form action="" method="POST">
+                                    <form action=""  method="POST">
                                         <div class="mb-5">
                                             <label class="mb-3 block text-lg font-medium text-gray-800">
                                                 {{ props.quizPregunta }}
@@ -185,8 +181,12 @@ const paAbajo = () => { window.scrollTo(0, document.body.scrollHeight); }
                                                 <div v-for="(respuesta, index) in quizRespuestas" :key="index"
                                                     class="items-start">
                                                     <div class="my-1">
-                                                        <input v-if="!data.Yarespondio" :value="index" v-model="data.chosenRespuesta" type="radio"
-                                                            name="respuestas" id="respuestasButton" class="h-5 w-5" />
+                                                        <input v-if="!data.Yarespondio" :value="index" 
+                                                            v-model="data.chosenRespuesta" type="radio"
+                                                            name="respuestas" id="respuestasButton" class="h-5 w-5"
+                                                            
+                                                            />
+                                                            <!-- todo: guardar si respondio bien la respuesta del quiz -->
                                                         <label for="radioButton1" class="pl-3 text-base font-medium text-gray-800">
                                                             {{ respuesta }}
                                                         </label>

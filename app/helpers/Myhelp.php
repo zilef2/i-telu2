@@ -37,11 +37,11 @@ class Myhelp {
             ];
         }
         public static function buscarMaterias($carrera_id_buscar) {
-            return Materia::Where('carrera_id', intval($carrera_id_buscar))->get();
+            return Materia::Where('carrera_id', intval($carrera_id_buscar))
+                ->Where('activa',1)
+                ->get();
         }
     //JUST THIS PROJECT
-
-
 
 
 

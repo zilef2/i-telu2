@@ -36,7 +36,6 @@ class UnidadsController extends Controller {
             $unidads->WhereIn('materia_id', $MateriasSelect);
         }
 
-
         $showCarrera = null;
         if ($request->has('selectedMatID') && $request->selectedMatID != 0) {
             $showCarrera = Carrera::find(Materia::find($request->selectedMatID)->carrera_id);
@@ -141,6 +140,7 @@ class UnidadsController extends Controller {
             'fromController' =>  $paginated,
             'breadcrumbs'    =>  [['label' => __('app.label.unidads'), 'href' => route('Unidad.index')]],
             'nombresTabla'   =>  $nombresTabla,
+            'selectedMatID'   =>  $request->selectedMatID,
             'MateriasSelect'   =>  $Select['MateriasSelect'],
             'numberPermissions'   =>  $numberPermissions,
             'showCarrera'   =>  $showCarrera,

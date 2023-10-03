@@ -26,7 +26,7 @@ const data = reactive({
     HayMaterias: 0
 })
 const form = useForm({
-    enum: '',
+    enum: '1',
     codigo: '',
     nombre: '',
     descripcion: '',
@@ -65,21 +65,31 @@ watchEffect(() => {
                 <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
                     {{ lang().label.add }} {{ props.title }}
                 </h2>
+                <h2 class="font-serif text-gray-800 dark:text-gray-100">
+                    {{ lang().LongTexts.markObligatory }}
+                </h2>
                 <div class="my-6 grid grid-cols-2 gap-6">
                     <div>
-                        <InputLabel for="enum" :value="lang().label.enum" />
+                        <InputLabel for="carrera_id" :value="lang().label.carrera + '*'" />
+                        <SelectInput name="carrera_id" class="mt-1 block w-full" v-model="form.carrera_id" required
+                         :dataSet="props.carrerasSelect"> </SelectInput>
+                        <InputError class="mt-2" :message="form.errors.carrera_id" />
+                    </div>
+                    
+                    <div>
+                        <InputLabel for="enum" :value="lang().label.enum + '*'" />
                         <TextInput id="enum" type="number" class="mt-1 block w-full" v-model="form.enum" required
                             :placeholder="lang().placeholder.enum" :error="form.errors.enum" />
                         <InputError class="mt-2" :message="form.errors.enum" />
                     </div>
                     <div>
-                        <InputLabel for="nombre" :value="lang().label.name" />
+                        <InputLabel for="nombre" :value="lang().label.name + '*'" />
                         <TextInput id="nombre" type="text" class="mt-1 block w-full" v-model="form.nombre" required
                             :placeholder="lang().placeholder.nombre" :error="form.errors.nombre" />
                         <InputError class="mt-2" :message="form.errors.nombre" />
                     </div>
                     <div>
-                        <InputLabel for="codigo" :value="lang().label.codigo" />
+                        <InputLabel for="codigo" :value="lang().label.codigo + '*'" />
                         <TextInput id="codigo" type="text" class="mt-1 block w-full" v-model="form.codigo" required
                             :placeholder="lang().placeholder.codigo" :error="form.errors.codigo" />
                         <InputError class="mt-2" :message="form.errors.codigo" />
@@ -90,12 +100,7 @@ watchEffect(() => {
                             :placeholder="lang().placeholder.descripcion" :error="form.errors.descripcion" />
                         <InputError class="mt-2" :message="form.errors.descripcion" />
                     </div>
-                    <div>
-                        <InputLabel for="carrera_id" :value="lang().label.carrera" />
-                        <SelectInput name="carrera_id" class="mt-1 block w-full" v-model="form.carrera_id" required
-                         :dataSet="props.carrerasSelect"> </SelectInput>
-                        <InputError class="mt-2" :message="form.errors.carrera_id" />
-                    </div>
+                    
                     
 
                     <!-- objetivos -->

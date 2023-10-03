@@ -443,9 +443,9 @@ const submitGPTEQH = (action) => {
                                                         <div class="w-full mx-auto py-6">
                                                             <h1 class="text-xl text-center font-bold mb-6"> Aprender más </h1>
                                                             <div
-                                                                class="bg-white dark:bg-gray-600 px-6 py-4 my-3 w-3/4 mx-auto shadow rounded-md flex items-center">
+                                                                class="bg-white dark:bg-gray-600 px-6 py-4 my-3 w-3/4 mx-auto shadow text-center rounded-md items-center">
                                                                 <div class="w-full text-center mx-auto">
-                                                                    <button type="button" @click="submitGPTEQH(4)"
+                                                                    <button type="button" @click="submitGPTEQH(4)" 
                                                                         class="border border-sky-500 bg-sky-500 text-white rounded-md px-4 py-2 m-2 transition duration-500 ease select-none hover:bg-blue-300 focus:outline-none focus:shadow-outline">
                                                                         Simplificar
                                                                     </button>
@@ -461,6 +461,8 @@ const submitGPTEQH = (action) => {
                                                                         class="border border-teal-500 bg-teal-500 text-white rounded-md px-4 py-2 m-2 transition duration-500 ease select-none hover:bg-teal-600 focus:outline-none focus:shadow-outline">
                                                                         Hacer una pregunta
                                                                     </button> -->
+                                                                </div>
+                                                                <div class="w-full text-center my-3">
                                                                     <Link :href="route('materia.index')"
                                                                         class="my-4 border text-left border-sky-700  bg-black text-white rounded-md px-4 py-2 m-2 transition duration-500 ease select-none hover:bg-sky-600 focus:outline-none focus:shadow-outline">
                                                                         Regresar

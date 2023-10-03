@@ -31,7 +31,7 @@ const justNames = [
     'descripcion',
     'unidad_id',
     'enum',
-    'codigo',
+    // 'codigo',
     'resultado_aprendizaje',
 ]
 const form = useForm({ ...Object.fromEntries(justNames.map(field => [field, ''])) });
@@ -39,7 +39,7 @@ const form = useForm({ ...Object.fromEntries(justNames.map(field => [field, ''])
 const printForm = [
     { idd: 'enum', label: 'enumTema', type: 'number', value: form.enum },
     { idd: 'nombre', label: 'nombre', type: 'text', value: form.nombre },
-    { idd: 'codigo', label: 'codigo', type: 'text', value: form.codigo },
+    // { idd: 'codigo', label: 'codigo', type: 'text', value: form.codigo },
     { idd: 'resultado_aprendizaje', label: 'resultado_aprendizaje', type: 'text', value: form.resultado_aprendizaje },
     { idd: 'descripcion', label: 'descripcion', type: 'text', value: form.descripcion },
 ];
@@ -64,7 +64,7 @@ watchEffect(() => {
         form.descripcion = props.subtopico?.descripcion
         form.unidad_id = props.subtopico?.unidad_id
         form.enum = props.subtopico?.enum
-        form.codigo = props.subtopico?.codigo
+        // form.codigo = props.subtopico?.codigo
     }
 })
 </script>
@@ -77,6 +77,12 @@ watchEffect(() => {
                     {{ lang().label.edit }} {{ props.title }}
                 </h2>
                 <div class="my-6 grid grid-cols-2 gap-6">
+                    <div>
+                        <InputLabel for="unidad_id" :value="lang().label.Unidad" />
+                        <SelectInput name="unidad_id" class="mt-1 block w-full" v-model="form.unidad_id" required
+                            :dataSet="UnidadsSelect"> </SelectInput>
+                        <InputError class="mt-2" :message="form.errors.unidad_id" />
+                    </div>
                     <div v-for="(atributosform, indice) in printForm" :key="indice">
                         <InputLabel :for="atributosform.label" :value="lang().label[atributosform.label]" />
 
@@ -85,12 +91,6 @@ watchEffect(() => {
                             :error="form.errors[atributosform.idd]" />
                     </div>
 
-                    <div>
-                        <InputLabel for="unidad_id" :value="lang().label.Unidad" />
-                        <SelectInput name="unidad_id" class="mt-1 block w-full" v-model="form.unidad_id" required
-                            :dataSet="UnidadsSelect"> </SelectInput>
-                        <InputError class="mt-2" :message="form.errors.unidad_id" />
-                    </div>
                 </div>
                 <div class="flex justify-end">
                     <SecondaryButton :disabled="form.processing" @click="emit('close')"> {{ lang().button.close }}

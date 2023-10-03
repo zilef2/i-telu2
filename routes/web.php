@@ -1,6 +1,7 @@
 <?php
 
 use App\helpers\Myhelp;
+use App\Http\Controllers\ArticulosController;
 use App\Http\Controllers\CarrerasController;
 use App\Http\Controllers\EjerciciosController;
 use App\Http\Controllers\ExtraUser;
@@ -18,7 +19,6 @@ use App\Http\Controllers\TemporalPdfReader;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -26,18 +26,7 @@ use Illuminate\Support\Facades\Session;
 use Inertia\Inertia;
 require __DIR__ . '/auth.php';
 
-
-// Route::get('/', function () {
-//     return Inertia::render('Welcome', [
-//         'canLogin' => Route::has('login'),
-//         'canRegister' => Route::has('register'),
-//         'laravelVersion' => Application::VERSION,
-//         'phpVersion' => PHP_VERSION,
-//     ]);
-// });
 Route::get('/', function () { return redirect('/login'); });
-
-
 Route::get('/dashboard', function () {
     $permissions = auth()->user()->roles->pluck('name')[0];
     if($permissions == "estudiante") return redirect('/materia');
@@ -51,30 +40,30 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 
-Route::get('/userAPI',function () {
-    $user = Auth::user();
-    $permissions = Myhelp::EscribirEnLog($this, ' Se genero un token');
-    $numberPermissions = Myhelp::getPermissionToNumber($permissions);
-    if($numberPermissions > 8){
+// Route::get('/userAPI',function () {
+//     $user = Auth::user();
+//     $permissions = Myhelp::EscribirEnLog($this, ' Se genero un token');
+//     $numberPermissions = Myhelp::getPermissionToNumber($permissions);
+//     if($numberPermissions > 8){
 
-        $expiration = now()->addHour(4);
-        $token = $user->createToken('Token Name');
-        $token->expires_at = $expiration;
-        // $token->save();
-        $token = $token->plainTextToken;
-        $token = str_replace(1,'ñ',$token);
-        $token = str_replace(2,'_ñ_',$token);
+//         $expiration = now()->addHour(4);
+//         $token = $user->createToken('Token Name');
+//         $token->expires_at = $expiration;
+//         // $token->save();
+//         $token = $token->plainTextToken;
+//         $token = str_replace(1,'ñ',$token);
+//         $token = str_replace(2,'_ñ_',$token);
         
-        dd(
-            // response()->json(['token' => $token]),
-            $token,
-            'Vencimiento: '. $expiration,
-            'Cierre esta ventana tan pronto como sea posible'
-        );
-    }else{
-        Myhelp::EscribirEnLog($this, 'API', 'no valid user trying to get token', false,true);
-    }
-})->middleware(['auth', 'verified']);
+//         dd(
+//             // response()->json(['token' => $token]),
+//             $token,
+//             'Vencimiento: '. $expiration,
+//             'Cierre esta ventana tan pronto como sea posible'
+//         );
+//     }else{
+//         Myhelp::EscribirEnLog($this, 'API', 'no valid user trying to get token', false,true);
+//     }
+// })->middleware(['auth', 'verified']);
 
 
 Route::get('/setLang/{locale}', function ($locale) {
@@ -180,6 +169,7 @@ Route::middleware('auth', 'verified')->group(function () {
     Route::resource('/parametro', ParametrosController::class);
 
 
+    
     // #promps
     Route::resource('/LosPromp', LosPrompsController::class)->except('create', 'show', 'edit');
 
@@ -195,7 +185,8 @@ Route::middleware('auth', 'verified')->group(function () {
     Route::get('/subirPDFOpenAI/{archivoid}', [TemporalPdfReader::class , 'subirPDFOpenAI'])->name('subirPDFOpenAI');
     
 
-    // Route::get('/respuestaSub', [SubtopicosController::class , 'respuestaSub'])->name('respuestaSub');
+    // #Articulo
+    Route::resource('/Articulo', ArticulosController::class)->except('create', 'show', 'edit');
 });
 
 
@@ -219,7 +210,7 @@ Route::middleware('auth', 'verified')->group(function () {
         // throw new Exception('Optimizacion finalizada!');
     });
 
-    Route::get('/tmantenimiento', function () {
+    Route::get('/tmantenimiento-intel', function () {
         echo Artisan::call('down --secret="token-it"');
         return "Aplicación abajo: token-it";
     });

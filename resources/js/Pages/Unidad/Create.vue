@@ -104,6 +104,9 @@ watchEffect(() => {
                 <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
                     {{ lang().label.add }} {{ props.title }}
                 </h2>
+                <h2 class="font-serif text-gray-800 dark:text-gray-100">
+                    {{ lang().LongTexts.markObligatory }}
+                </h2>
                 <p v-if="form.errors.length">
                     <b>Por favor, corrija el(los) siguiente(s) error(es):</b>
                 <ul>
@@ -112,7 +115,7 @@ watchEffect(() => {
                 </p>
                 <div class="my-6 grid sm:grid-cols-5 xs:grid-cols-1 gap-6">
                     <div class="col-span-2">
-                        <InputLabel for="materia_id" :value="lang().label.materia" />
+                        <InputLabel for="materia_id" :value="lang().label.materia + '*'" />
                         <SelectInput name="materia_id" class="mt-1 block w-full" v-model="form.materia_id" required
                             :dataSet="MateriasSelect"> </SelectInput>
                         <InputError class="mt-2" :message="form.errors.materia_id" />
@@ -124,7 +127,7 @@ watchEffect(() => {
                         <InputError class="mt-2" :message="form.errors.enum" />
                     </div>
                     <div class="col-span-2">
-                        <InputLabel for="nombre" :value="lang().label.name" />
+                        <InputLabel for="nombre" :value="lang().label.name + '*'" />
                         <TextInput id="nombre" type="text" class="mt-1 block w-full" v-model="form.nombre" required
                             :placeholder="lang().placeholder.nombre" :error="form.errors.nombre" />
                         <InputError class="mt-2" :message="form.errors.nombre" />

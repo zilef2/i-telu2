@@ -11,15 +11,15 @@ class CreateMateriasTable extends Migration
      *
      * @return void
      */
-    public function up()
-    {
+    public function up() {
         Schema::create('materias', function (Blueprint $table) {
             $table->id();
 			$table->string('nombre');
 			$table->string('codigo')->nullable();
 			$table->integer('enum')->default(1);
 			$table->text('descripcion')->nullable();
-
+            
+			$table->integer('activa')->default(1);
 
             $table->unsignedBigInteger('carrera_id');
             $table->foreign('carrera_id')
@@ -35,8 +35,5 @@ class CreateMateriasTable extends Migration
      *
      * @return void
      */
-    public function down()
-    {
-        Schema::dropIfExists('materias');
-    }
+    public function down() { Schema::dropIfExists('materias'); }
 }

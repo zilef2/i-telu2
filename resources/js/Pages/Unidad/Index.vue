@@ -59,7 +59,7 @@ const data = reactive({
         selectedMatID: props.filters.selectedMatID,
 
     },
-    params2: {
+    params2: {//ir al hijo
         selectedUnidadID: 0
     },
     selectedId: [],
@@ -123,7 +123,9 @@ const select = () => {
     }
 }
 onMounted(() =>{
-    if(typeof data.params.selectedMatID === 'undefined') data.params.selectedMatID = 0
+    if(typeof props.selectedMatID === 'undefined') data.params.selectedMatID = 0
+    else data.params.selectedMatID = props.selectedMatID
+    
     if(data.params.selectedMatID === null) data.params.selectedMatID = 0
 
     data.MateriasSelect = vectorSelect(data.MateriasSelect,props.MateriasSelect,'una materia')

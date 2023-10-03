@@ -93,7 +93,6 @@ const select = () => {
 }
 
 onMounted(() =>{
-    //aquiiiii : como mostrar 'seleccione' sin que se comprometa la funcion de irTEmas
     if(typeof data.params.selectedUnidadID === 'undefined' || data.params.selectedUnidadID === null) data.params.selectedUnidadID = 0
     // if(typeof data.params.selectedUnidadID === 'undefined') data.params.selectedUnidadID = 0
 

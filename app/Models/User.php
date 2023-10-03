@@ -76,12 +76,14 @@ class User extends Authenticatable
     public function MedidaControl(): HasMany {
         return $this->HasMany(MedidaControl::class);
     }
+    public function articulos(): HasMany {
+        return $this->HasMany(Articulo::class);
+    }
 
     public function unidads() {
         $result = $this->materias->flatMap(function ($materia) {
             return collect($materia->unidads);
         });
-        // dd($result);
         return $result;
     }
 

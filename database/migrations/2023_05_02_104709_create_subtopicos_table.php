@@ -17,7 +17,7 @@ class CreateSubtopicosTable extends Migration {
             $table->string('nombre');
 			$table->string('enum')->default(1);
             $table->string('descripcion')->nullable();
-            $table->string('resultado_aprendizaje')->nullable();
+            $table->text('resultado_aprendizaje')->nullable();
             $table->unsignedBigInteger('unidad_id');
 
             $table->foreign('unidad_id')

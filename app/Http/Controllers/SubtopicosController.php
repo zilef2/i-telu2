@@ -16,15 +16,14 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 
-class subtopicosController extends Controller
-{
+class subtopicosController extends Controller {
     private $modelName = 'Subtopico';
+    private $yaEstaFiltrada = false;
 
     // - MapearClasePP, Filtros, losSelect
 
-    public function MapearClasePP(&$subtopicos, $numberPermissions)
-    {
-        if ($numberPermissions < 4) {
+    public function MapearClasePP(&$subtopicos, $numberPermissions) {
+        if ($numberPermissions < 4 && !$this->yaEstaFiltrada) {
             $subtopicos = Auth::user()->materias->flatMap(function ($materia) {
                 return collect($materia->Tsubtemas);
             });
@@ -43,13 +42,13 @@ class subtopicosController extends Controller
         // }
         // dd($subtopicos);
     }
-    public function Filtros($request, &$subtopicos, &$showMateria)
-    {
+    public function Filtros($request, &$subtopicos, &$showMateria) {
         if ($request->has('selectedUnidadID') && $request->selectedUnidadID != 0) {
             $showMateria = Materia::find(Unidad::find($request->selectedUnidadID)->materia_id);
             // dd($request->selectedUni);
             $unidadsid = Unidad::has('subtopicos')->where('id', $request->selectedUnidadID)->pluck('id')->toArray();
             $subtopicos->whereIn('unidad_id', $unidadsid);
+            $this->yaEstaFiltrada = true;
         }
 
         if ($request->has('search')) {
@@ -67,8 +66,7 @@ class subtopicosController extends Controller
                 ->orderBy('enum');
         }
     }
-    public function losSelect($numberPermissions)
-    {
+    public function losSelect($numberPermissions) {
         if ($numberPermissions < intval(env('PERMISS_VER_FILTROS_SELEC'))) { //coorPrograma,profe,estudiante
             $UnidadsSelect = Auth::user()->unidads();
         } else {
@@ -88,8 +86,7 @@ class subtopicosController extends Controller
 
     // -fin : MapearClasePP, Filtros
 
-    public function index(Request $request)
-    {
+    public function index(Request $request) {
         $permissions = Myhelp::EscribirEnLog($this, 'subtopico');
         $numberPermissions = Myhelp::getPermissionToNumber($permissions);
 
@@ -159,14 +156,9 @@ class subtopicosController extends Controller
         }
     }
 
-    public function show(subtopico $subtopico)
-    {
-    }
-    public function edit(subtopico $subtopico)
-    {
-    }
-    public function update(Request $request, $id)
-    {
+    public function show(subtopico $subtopico) { } public function edit(subtopico $subtopico) { }
+
+    public function update(Request $request, $id) {
         $subtopico = Subtopico::find($id);
         DB::beginTransaction();
         $ListaControladoresYnombreClase = (explode('\\', get_class($this)));
@@ -179,7 +171,7 @@ class subtopicosController extends Controller
                 'descripcion' => $request->descripcion,
                 'unidad_id' => $request->unidad_id,
                 'enum' => $request->enum,
-                'codigo' => $request->codigo
+                // 'codigo' => $request->codigo
             ]);
             DB::commit();
             Log::info("U -> " . Auth::user()->name . " actualizo subtopico " . $request->nombre . " correctamente");
@@ -230,9 +222,4 @@ class subtopicosController extends Controller
         }
     }
     
-    public function respuestaSub()
-    {
-        // Código para obtener el string que necesitas
-        return "Hola desde PHP";
-    }
 }

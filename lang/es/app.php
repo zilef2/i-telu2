@@ -2,6 +2,12 @@
 
 return [
     'label' => [
+        //articulos
+        'Articulos' => 'Articulos',
+        'Articulo' => 'Articulo',
+        //sidebar
+        'ResolucionMejora' => 'Resolucion y Mejora',
+
         //materia
         'archivo' => 'Archivo',
         'archivos' => 'Archivos',
@@ -56,6 +62,7 @@ return [
         'enumUnidad' => 'Consecutivo de la unidad',
         'resultAprendizaje' => 'Resultado de Aprendizaje',
         //materia
+        'activar' => 'Activar materia',
         'preguntaria' => 'Preguntar a la IA',
         'cuantosObj' => 'Cuantos Objetivos?',
         'objetivo' => 'Objetivo',
@@ -261,5 +268,8 @@ return [
         'delete_account_modal_title' => '¿Estás seguro de que deseas eliminar tu cuenta?',
         'delete_account_modal_caption' => 'Una vez que se elimine tu cuenta, todos sus recursos e información se borrarán permanentemente. Ingresa tu contraseña para confirmar que deseas eliminar permanentemente tu cuenta.'
 
+    ],
+    'LongTexts' => [
+        'markObligatory' => 'Los campos con * son obligatorios',
     ],
 ];

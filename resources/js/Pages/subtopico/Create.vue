@@ -61,9 +61,12 @@ watchEffect(() => {
                 <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
                     {{ lang().label.add }} {{ props.title }}
                 </h2>
+                <h2 class="font-serif text-gray-800 dark:text-gray-100">
+                    {{ lang().LongTexts.markObligatory }}
+                </h2>
                 <div class="my-6 grid xs:grid-cols-1 sm:grid-cols-2 gap-6">
                     <div>
-                        <InputLabel for="unidad_id" :value="lang().label.materia" />
+                        <InputLabel for="unidad_id" :value="lang().label.materia + '*'" />
                         <SelectInput name="unidad_id" class="mt-1 block w-full" v-model="form.unidad_id" required
                         :dataSet="UnidadsSelect"> </SelectInput>
                         <InputError class="mt-2" :message="form.errors.unidad_id" />
@@ -76,17 +79,11 @@ watchEffect(() => {
                         <InputError class="mt-2" :message="form.errors.enum" />
                     </div>
                     <div>
-                        <InputLabel for="nombre" :value="lang().label.name" />
+                        <InputLabel for="nombre" :value="lang().label.name + '*'" />
                         <TextInput id="nombre" type="text" class="mt-1 block w-full" v-model="form.nombre" required
                             :placeholder="lang().placeholder.nombre" :error="form.errors.nombre" />
                         <InputError class="mt-2" :message="form.errors.nombre" />
                     </div>
-                    <!-- <div>
-                        <InputLabel for="codigo" :value="lang().label.codigo" />
-                        <TextInput id="codigo" type="text" class="mt-1 block w-full" v-model="form.codigo" required
-                            :placeholder="lang().placeholder.codigo" :error="form.errors.codigo" />
-                        <InputError class="mt-2" :message="form.errors.codigo" />
-                    </div> -->
                     <div>
                         <InputLabel for="resultado_aprendizaje" :value="lang().label.resultado_aprendizaje" />
                         <TextInput id="resultado_aprendizaje" type="text" class="mt-1 block w-full" v-model="form.resultado_aprendizaje"

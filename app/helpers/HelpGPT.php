@@ -65,18 +65,23 @@ class HelpGPT
 
             $client = OpenAI::client(env('GTP_SELECT'));
 
-            // $result = $client->//#completions()->create([
-            // $result = $client->//#chat()->create([
+            // $result = $client->chat()->create([
+            //     "model" => "gpt-4",
+            //     'messages' => [
+            //         ['role' => 'system', 'content' => 'Eres un profesor universitario con 20 años de experiencia'],
+            //         ['role' => 'user', 'content' => $elpromp],
+            //     ],
+            //     'max_tokens' => HelpGPT::maxTokenPDF()
+            // ]);
 
             $result = $client->completions()->create([
                 'model' => 'text-davinci-003',
-                // "model" => "gpt-4",
                 'prompt' => $elpromp,
                 'max_tokens' => self::TOKEN_GENERAR_MATERIA
             ]);
 
             $usuario = Auth::user();
-            $ArrayRespuesta = Help_2GPT::PostRespuestaIA($result,$usuario);
+            $ArrayRespuesta = Help_2GPT::PostRespuestaIADavinci($result, $usuario);
             if ($ArrayRespuesta['funciono']) {
 
                 MedidaControl::create([
@@ -84,7 +89,7 @@ class HelpGPT
                     'respuesta_guardada' => '',
                     'subtopico_id' => null, // 1 ocasion en la que el subtopico es null
                     'RazonNOSubtopico' => 'Generó unidades y temas',
-    
+
                     'tokens_usados' => $ArrayRespuesta['restarAlToken'],
                     'user_id' => $usuario->id
                 ]);
@@ -211,7 +216,7 @@ class HelpGPT
         return ($Lapromt);
     }
 
-    public static function contarModificarP(&$Lapromt, $materia_nombre = '', $subtopico = '', $Unidad = '', $nivel = '',$carrera_nombre = '')
+    public static function contarModificarP(&$Lapromt, $materia_nombre = '', $subtopico = '', $Unidad = '', $nivel = '', $carrera_nombre = '')
     {
 
         $Lapromt = strtolower($Lapromt);
@@ -285,7 +290,8 @@ class HelpGPT
 
 
     //EXCLUSIVO se usa para resolver ejercicios
-    public static function gptPart1($ModelEjercicio, $nivel, $materia_nombre, $usuario, &$soloEjercicios, $debug = false) {
+    public static function gptPart1($ModelEjercicio, $nivel, $materia_nombre, $usuario, &$soloEjercicios, $debug = false)
+    {
         $pregunta = $ModelEjercicio->nombre;
 
         $longuitudPregunta = strlen($pregunta) > 7;
@@ -339,12 +345,13 @@ class HelpGPT
         return ['respuesta' => self::PreguntaCorta, 'restarAlToken' => 0];
     }
 
-    public static function gptResolverQuiz(&$elpromp, $subtopico, $nivel, $materia_nombre, $usuario, $debug = false) {
+    public static function gptResolverQuiz(&$elpromp, $subtopico, $nivel, $materia_nombre, $usuario, $debug = false)
+    {
 
         //contarModificarP cambia [tema] = el tema seleccionado
         $carrera_Nombre = $subtopico->Find_carrera_nombre();
 
-        $corchetesYparentesis = self::contarModificarP($elpromp, $materia_nombre, $subtopico, $nivel,$carrera_Nombre);
+        $corchetesYparentesis = self::contarModificarP($elpromp, $materia_nombre, $subtopico, $nivel, $carrera_Nombre);
         //todo: si corchetesYparentesis estan en cero, no debe continuar
 
         $elpromp .= ". Al final de las opciones, imprime la respuesta correcta por cada pregunta con este formato: RESPUESTA=A";
@@ -379,7 +386,7 @@ class HelpGPT
                     $tokensAntes = intval($usuario->limite_token_leccion);
                     $usuario->update(['limite_token_leccion' => ($tokensAntes) - $restarAlToken]);
 
-                    $respuestaImplode = implode(':|:',$chuleta['ArrayPreguntas']);
+                    $respuestaImplode = implode(':|:', $chuleta['ArrayPreguntas']);
 
                     MedidaControl::create([
                         'pregunta' => $elpromp,
@@ -473,7 +480,7 @@ class HelpGPT
 
             MedidaControl::create([
                 'pregunta' => $elpromp,
-                'respuesta_guardada' => 'RESPUESTA_DEBUG | '.$respuesta,
+                'respuesta_guardada' => 'RESPUESTA_DEBUG | ' . $respuesta,
                 'subtopico_id' => $subtopico->id,
                 'tokens_usados' => 0, 'user_id' => $usuario->id
             ]);
@@ -494,12 +501,13 @@ class HelpGPT
             'restarAlToken' => 0,
         ];
     }
-    public static function gptResolverTema(&$elpromp, $subtopico, $unidad, $nivel, $materia_nombre, $usuario, $debug = false) {
-        try{
+    public static function gptResolverTema(&$elpromp, $subtopico, $unidad, $nivel, $materia_nombre, $usuario, $debug = false)
+    {
+        try {
             $longuitudPregunta = strlen($subtopico->nombre) > 3;
             $carrera_Nombre = $subtopico->Find_carrera_nombre();
-            self::contarModificarP($elpromp, $materia_nombre, $subtopico->nombre, $unidad, $nivel,$carrera_Nombre);
-            
+            self::contarModificarP($elpromp, $materia_nombre, $subtopico->nombre, $unidad, $nivel, $carrera_Nombre);
+
             //# buscando el prompt
             $YaEstabaGuardada = GrabarGPT::BuscarPromp($elpromp);
             if ($YaEstabaGuardada && $YaEstabaGuardada !== '') {
@@ -519,7 +527,7 @@ class HelpGPT
 
             if ($longuitudPregunta) {
                 if (!$debug) {
-                    
+
                     $ChatR = JustChatFunctionGPT::Chat($elpromp);
 
                     $respuesta = $ChatR[1];
@@ -541,7 +549,7 @@ class HelpGPT
 
                         //todo: si esprofesor tendra mucho mas peso, que si es alumno //todo: deberia guardar, pero si es profesor, sobreescribe //todo: pero por ahora, solo guarda cuando es profesor o mas // if($numberPermission === 1) // $respuesta = 'Solo estudiante. '.$respuesta;
                         $numberPermissions = Myhelp::getPermissionToNumber(auth()->user()->roles->pluck('name')[0]);
-                        $precisa = $numberPermissions == 3 || $numberPermissions > 8 ? 4 :3;
+                        $precisa = $numberPermissions == 3 || $numberPermissions > 8 ? 4 : 3;
                         RespuestaEjercicio::create([
                             'guardar_pregunta' => $elpromp,
                             'respuesta' => $respuesta,
@@ -575,7 +583,6 @@ class HelpGPT
                                 'restarAlToken' => 0
                             ];
                         }
-                        
                     }
                 } //debug
                 $respuesta = "La energía cinética es un tipo de energía mecánica que se genera cuando un cuerpo se encuentra en movimiento. Esta energía se manifiesta en forma de calor, luz, sonido y movimiento. La energía cinética también se conoce como energía del movimiento, ya que el movimiento mismo es energía que se genera cuando un cuerpo se desplaza.
@@ -586,7 +593,7 @@ class HelpGPT
                 $usageRespuestaTotal = 500;
                 MedidaControl::create([
                     'pregunta' => $elpromp,
-                    'respuesta_guardada' => 'RESPUESTA_DEBUG | '.$respuesta,
+                    'respuesta_guardada' => 'RESPUESTA_DEBUG | ' . $respuesta,
                     'subtopico_id' => $subtopico->id,
                     'tokens_usados' => 0, 'user_id' => $usuario->id
                 ]);
@@ -606,9 +613,9 @@ class HelpGPT
                 'restarAlToken' => 0
             ];
         } catch (\Throwable $th) {
-            $errores = 
+            $errores =
                 $th->getMessage() .
-                 ' L:' . $th->getLine() . ' Ubi:' . $th->getFile();
+                ' L:' . $th->getLine() . ' Ubi:' . $th->getFile();
             dd($errores);
             Log::alert("U -> " . Auth::user()->name . " fallo en preguntar la IA:  " . $errores);
             return back()->with('error', 'fallo en preguntar la IA: ' . $errores);
@@ -629,7 +636,8 @@ class HelpGPT
         return $restarAlToken;
     }
 
-    public static function maxToken() {
+    public static function maxToken()
+    {
         $numberPermissions = Myhelp::getPermissionToNumber(auth()->user()->roles->pluck('name')[0]);
 
         //max 8,192 or | gpt-4-32k 32,768 tokens
@@ -639,8 +647,9 @@ class HelpGPT
         }
         return 3000;
     }
-    
-    public static function maxTokenPDF() {
+
+    public static function maxTokenPDF()
+    {
         $numberPermissions = Myhelp::getPermissionToNumber(auth()->user()->roles->pluck('name')[0]);
 
         //max 8,192 or | gpt-4-32k 32,768 tokens
@@ -652,7 +661,8 @@ class HelpGPT
     }
 
 
-    public static function nivelesAplicativo() {
+    public static function nivelesAplicativo()
+    {
         $niveles = [
             'Primaria',
             'Bachillerato',
@@ -701,10 +711,11 @@ class HelpGPT
 
 
     //quiz de actionEQH
-    public static function gptQuizEstudiante(&$elpromp, $subtopico, $nivel, $materia_nombre, $usuario, $debug = false) {
+    public static function gptQuizEstudiante(&$elpromp, $subtopico, $nivel, $materia_nombre, $usuario, $debug = false)
+    {
         //contarModificarP cambia [tema] = el tema seleccionado
         $carrera_Nombre = $subtopico->Find_carrera_nombre();
-        $corchetesYparentesis = self::contarModificarP($elpromp, $materia_nombre, $subtopico->nombre, $nivel,$carrera_Nombre);
+        $corchetesYparentesis = self::contarModificarP($elpromp, $materia_nombre, $subtopico->nombre, $nivel, $carrera_Nombre);
         //todo: si corchetesYparentesis estan en cero, no debe continuar
 
         $elpromp .= ". Al final, imprime la respuesta correcta con este formato: RESPUESTA=A";
@@ -723,7 +734,7 @@ class HelpGPT
                     'prompt' => $elpromp,
                     'max_tokens' => HelpGPT::maxToken()
                 ]);
-                
+
                 $respuesta = $result['choices'][0]["text"];
                 $finishReason = $result['choices'][0];
                 $finishingReason = $finishReason["finish_reason"] ?? '';
@@ -738,7 +749,7 @@ class HelpGPT
                     $usuario->update(['limite_token_leccion' => ($tokensAntes) - $restarAlToken]);
 
 
-                    $guardarPreguntas = implode(':|:',$chuleta['vectorChuleta']);
+                    $guardarPreguntas = implode(':|:', $chuleta['vectorChuleta']);
                     MedidaControl::create([
                         'pregunta' => $elpromp,
                         'respuesta_guardada' => $guardarPreguntas,
@@ -803,48 +814,54 @@ class HelpGPT
     }
 
     //13/09/2023
-    public static function GenerarPreguntaAbierta($materia,$unidad,$tema,$pregunta,$numberPermissions,$carrera_nombre){
+    public static function GenerarPreguntaAbierta($materia, $unidad, $tema, $pregunta, $numberPermissions, $carrera_nombre)
+    {
 
         $preguntaAbierta =
-        'Actua como un Profesional, experto en la asignatura: ' . $materia . ', el subtema: ' . $tema . ' del tema: ' . $unidad
-        .'Responda la siguiente pregunta de una manera fácil de entender: '.$pregunta
-        ;
+            'Actua como un Profesional, experto en la asignatura: ' . $materia . ', el subtema: ' . $tema . ' del tema: ' . $unidad
+            . 'Responda la siguiente pregunta de una manera fácil de entender: ' . $pregunta;
 
         // 'Niégate a responder si la pregunta no esta relacionada con '. $tema .' o ' . $materia . '
         // En caso que te niegues, hazle entender que esto es un aplicativo para la enseñanza académica.
-        
+
         // 'Responda lo siguiente con el contexto de la asignatura:' . $materia . '. el subtema: ' . $tema . ' del tema: ' . $unidad 
         // . 'el objetivo es explicar el tema en términos fáciles de entender. Esto podría incluir proporcionar instrucciones paso a paso para resolver un problema, sugerir recursos en línea para un estudio más profundo. '
         // . 'La pregunta es: ' . $pregunta . '.'
         // ;
 
-        if($numberPermissions < 9){
-            $preguntaAbierta .= 
-            " Si la pregunta no esta relacionada con el tema $tema o con la unidad $unidad o con la asignatura $materia"
-            . "Responde un mensaje que le haga entender que esto es un aplicativo para la enseñanza academica.";
-        }else{
+        if ($numberPermissions < 9) {
+            $preguntaAbierta .=
+                " Si la pregunta no esta relacionada con el tema $tema o con la unidad $unidad o con la asignatura $materia"
+                . "Responde un mensaje que le haga entender que esto es un aplicativo para la enseñanza academica.";
+        } else {
             $preguntaAbierta .= " Recuerda que solo debes responder preguntas relacionadas con el tema $tema. Pero no seas tan restrictivo";
         }
-
 
         $preguntaAbierta .= " Al final, lista una serie de palabras claves (minimo 5).";
 
         return $preguntaAbierta;
     }
 
-    public function MedidaGenerarMateria($materia,$ArraySubtopicosModels){
+    public static function MedidaGenerarMateria($materia, $ArraySubtopicosModels) {
         $user = auth()->user();
-        $user->decrement([ 'limite_token_general' ]);
-        MedidaControl::create([
-            'pregunta' => 'generarMateria',
-            'respuesta_guardada' => $materia->id.'',
-            'RazonNOSubtopico' => 'Solicitó generarMateria',
-            'subtopico_id' => $ArraySubtopicosModels[0]->id,
-            'tokens_usados' => count($ArraySubtopicosModels),
-            'user_id' => $user->id
+        foreach ($ArraySubtopicosModels as $key => $value) {
+            // $user->decrement(['limite_token_general']);
+            MedidaControl::create([
+                'pregunta' => 'generar Materia '.$materia->nombre,
+                'respuesta_guardada' => $materia->id . '',
+                'RazonNOSubtopico' => 'Solicitó generarMateria',
+                'subtopico_id' => $value->id,
+                'tokens_usados' => 1,
+                // 'tokens_usados' => count($ArraySubtopicosModels),
+                'user_id' => $user->id
+            ]);
+        }
+
+        $tokensConsumidos = $user->limite_token_general - count($ArraySubtopicosModels);
+        $tokensConsumidos = $tokensConsumidos < 0 ? 0 : $tokensConsumidos;
+        $user->update([
+            'limite_token_general' => $tokensConsumidos
         ]);
+
     }
-
-
-  
 }
