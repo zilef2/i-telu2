@@ -22,7 +22,16 @@ class ArticuloSeeder extends Seeder {
             'Agradecimientos' => 'Agradecimientos asd9',
             'Referencias' => 'Referencias asd10',
             'Anexos_o_Apendices' => 'Anexos_o_Apendices asd11',
-            'user_id' => 2
+            'user_id' => 2,
+            'universidad_id' => 1,
+            'carrera_id' => 1,
+            'materia_id' => 1,
+            'Resumen_critica' => 3,
+            'Introduccion_critica' => 3,
+            'Discusion_critica' => 3,
+            'Conclusiones_critica' => 3,
+            'Metodologia_critica' => 3,
+
         ]);
     }
 }

@@ -98,4 +98,14 @@ class Materia extends Model {
         else
             return $usuarios;
     }
+
+    public function usuarios($materiaid, $elrol) {
+        $result = $this->belongsToMany(User::class, 'materia_user')
+            ->wherePivot('materia_id',$materiaid)
+            ->WhereHas('roles',function ($query) use ($elrol){
+                $query->where('name', $elrol );
+            });
+
+        return $result;
+    }
 }

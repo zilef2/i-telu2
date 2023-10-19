@@ -10,6 +10,8 @@ import InputError from '@/Components/InputError.vue';
     // import Checkbox from '@/Components/Checkbox.vue';
     import { reactive, watchEffect } from 'vue';
     import SelectInput from '@/Components/SelectInput.vue';
+    import "vue-select/dist/vue-select.css";
+
 
 const props = defineProps({
     show: Boolean,

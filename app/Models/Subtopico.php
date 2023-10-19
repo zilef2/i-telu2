@@ -18,18 +18,23 @@ class Subtopico extends Model
         'codigo',
         'enum',
     ];
-    public function ejercicios(): HasMany {
+    public function ejercicios(): HasMany
+    {
         return $this->hasMany(Ejercicio::class, 'subtopico_id');
     }
 
-    public function Unidad(): BelongsTo {
+    public function Unidad(): BelongsTo
+    {
         return $this->belongsTo(Unidad::class, 'unidad_id');
     }
-    public function tema_nombre(): string {
+    public function tema_nombre(): string
+    {
         return $this->Unidad->nombre;
     }
 
-    public function Find_carrera_nombre(): string {
+    public function find_carrera_nombre(): string
+    {
+        // return $this->Unidad->nombre;
         return $this->Unidad->materia->carrera->nombre;
     }
 }

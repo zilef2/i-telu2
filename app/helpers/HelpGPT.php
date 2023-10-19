@@ -151,8 +151,7 @@ class HelpGPT
 
     //todo: strpos(stringGrande, buscado) -> $buscando = strpos
 
-    private static function ApartarChuleta($respuestaGPT, $plantillaPracticar)
-    {
+    private static function ApartarChuleta($respuestaGPT, $plantillaPracticar) {
         $vectorChuleta = explode("\n", $respuestaGPT);
 
         //asegurar que el primer renglon, sea el titulo
@@ -349,7 +348,7 @@ class HelpGPT
     {
 
         //contarModificarP cambia [tema] = el tema seleccionado
-        $carrera_Nombre = $subtopico->Find_carrera_nombre();
+        $carrera_Nombre = $subtopico->find_carrera_nombre();
 
         $corchetesYparentesis = self::contarModificarP($elpromp, $materia_nombre, $subtopico, $nivel, $carrera_Nombre);
         //todo: si corchetesYparentesis estan en cero, no debe continuar
@@ -505,7 +504,7 @@ class HelpGPT
     {
         try {
             $longuitudPregunta = strlen($subtopico->nombre) > 3;
-            $carrera_Nombre = $subtopico->Find_carrera_nombre();
+            $carrera_Nombre = $subtopico->find_carrera_nombre();
             self::contarModificarP($elpromp, $materia_nombre, $subtopico->nombre, $unidad, $nivel, $carrera_Nombre);
 
             //# buscando el prompt
@@ -714,7 +713,7 @@ class HelpGPT
     public static function gptQuizEstudiante(&$elpromp, $subtopico, $nivel, $materia_nombre, $usuario, $debug = false)
     {
         //contarModificarP cambia [tema] = el tema seleccionado
-        $carrera_Nombre = $subtopico->Find_carrera_nombre();
+        $carrera_Nombre = $subtopico->find_carrera_nombre();
         $corchetesYparentesis = self::contarModificarP($elpromp, $materia_nombre, $subtopico->nombre, $nivel, $carrera_Nombre);
         //todo: si corchetesYparentesis estan en cero, no debe continuar
 
@@ -832,7 +831,7 @@ class HelpGPT
         if ($numberPermissions < 9) {
             $preguntaAbierta .=
                 " Si la pregunta no esta relacionada con el tema $tema o con la unidad $unidad o con la asignatura $materia"
-                . "Responde un mensaje que le haga entender que esto es un aplicativo para la enseñanza academica.";
+                . "Responde un mensaje que le haga entender que se encuentra en un aplicativo para la enseñanza academica.";
         } else {
             $preguntaAbierta .= " Recuerda que solo debes responder preguntas relacionadas con el tema $tema. Pero no seas tan restrictivo";
         }
@@ -842,12 +841,13 @@ class HelpGPT
         return $preguntaAbierta;
     }
 
-    public static function MedidaGenerarMateria($materia, $ArraySubtopicosModels) {
+    public static function MedidaGenerarMateria($materia, $ArraySubtopicosModels)
+    {
         $user = auth()->user();
         foreach ($ArraySubtopicosModels as $key => $value) {
             // $user->decrement(['limite_token_general']);
             MedidaControl::create([
-                'pregunta' => 'generar Materia '.$materia->nombre,
+                'pregunta' => 'generar Materia ' . $materia->nombre,
                 'respuesta_guardada' => $materia->id . '',
                 'RazonNOSubtopico' => 'Solicitó generarMateria',
                 'subtopico_id' => $value->id,
@@ -862,6 +862,5 @@ class HelpGPT
         $user->update([
             'limite_token_general' => $tokensConsumidos
         ]);
-
     }
 }

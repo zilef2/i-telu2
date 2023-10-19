@@ -12,8 +12,7 @@ class RoleSeeder extends Seeder
      *
      * @return void
      */
-    public function run()
-    {
+    public function run() {
 
         $superadmin = Role::create(['name' => 'superadmin']);
         $admin = Role::create(['name' => 'admin']);
@@ -37,6 +36,7 @@ class RoleSeeder extends Seeder
             'ejercicio',
             'LosPromp',
             'Articulo',
+            'Plan',
         ];
         $crudCompleto = ['delete', 'update', 'read', 'create'];
 
@@ -64,6 +64,7 @@ class RoleSeeder extends Seeder
             'read Unidad', 'update Unidad', 'create Unidad',
             'read subtopico', 'update subtopico', 'create subtopico',
             'read ejercicio', 'update ejercicio', 'create ejercicio',
+            'read Plan', 'update Plan', 'create Plan',
         ]);
 
         $coordinador_de_programa->givePermissionTo([
@@ -73,6 +74,7 @@ class RoleSeeder extends Seeder
             'read subtopico', 'update subtopico', 'create subtopico',
             'read ejercicio', 'update ejercicio', 'create ejercicio', 'delete ejercicio',
             'read Articulo', 'update Articulo', 'create Articulo',
+            'read Plan', 'update Plan', 'create Plan',
         ]);
 
         $profesor->givePermissionTo([
@@ -82,18 +84,17 @@ class RoleSeeder extends Seeder
             'read subtopico', 'update subtopico', 'create subtopico',
             'read ejercicio', 'update ejercicio', 'create ejercicio',
             'read Articulo', 'update Articulo', 'create Articulo',
+            'read Plan', 'update Plan', 'create Plan',
         ]);
 
         $estudiante->givePermissionTo([
-            // 'read carrera',
             'read Articulo', 'update Articulo', 'create Articulo',
             'read materia',
-            // 'read Unidad',
-            // 'read subtopico',
-            // 'read ejercicio', // 'update ejercicio', // 'create ejercicio', // 'delete ejercicio',
+            'read Plan', 'update Plan', 'create Plan',
         ]);
 
-        // $role->revokePermissionTo($permission);
-        // $permission->removeRole($role);
-    }
+        // $role->revokePermissionTo($permission); // $permission->removeRole($role);
+    
+    
+    } // php artisan db:seed --class=RoleSeeder
 }

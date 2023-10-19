@@ -18,7 +18,7 @@ const form = useForm({
 })
 
 const destory = () => {
-    form.post(route('articulo.destroy-bulk'), {
+    form.post(route('Articulo.destroy-bulk'), {
         preserveScroll: true,
         onSuccess: () => {
             emit("close")

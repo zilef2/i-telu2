@@ -35,6 +35,7 @@ class User extends Authenticatable
         'pgrado', //bachiller, pregrado, postgrado
         
         'email_verified_at',
+        'plan',
     ];
     /**
      * The attributes that should be hidden for serialization.
@@ -97,5 +98,16 @@ class User extends Authenticatable
 
     public function LosPromps() {
         return $this->belongsToMany(LosPromps::class);
+    }
+
+    public function EstudiantesDelProfe() {
+
+        $materias = $this->materias;
+
+        foreach ($materias as $key => $value) {
+            $matrizMateriasEstudiantes[$value->id] = $value->usuarios($value->id,'estudiante')->get();
+        }
+        
+        return $matrizMateriasEstudiantes;
     }
 }

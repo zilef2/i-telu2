@@ -12,21 +12,15 @@ class SendZipFile extends Command
     protected $signature = 'send:zip';
     protected $description = 'Enviar archivo ZIP por correo diariamente';
 
-    public function handle()
-    {
+    public function handle() {
         try {
             $zip = new ZipArchive;
-            $zipFileName = public_path('inteluBD.zip');
+            $zipFileName = public_path(env('APP_NAME').'BD.zip');
             
             if ($zip->open($zipFileName, ZipArchive::CREATE) === true) {
                 $zip->setCompressionIndex(0, ZipArchive::CM_DEFLATE, 9);
                 
-                // Lógica para agregar archivos al ZIP
-                // $pato = storage_path('app\IntelU\2023-08-17-20-28-56.zip');
-                
-                
-
-                $directory = storage_path('app/IntelU'); 
+                $directory = storage_path('app/'.env('APP_NAME')); 
                 $pattern = '2023*';
             
                 $matchingFiles = glob($directory . DIRECTORY_SEPARATOR . $pattern);
@@ -47,12 +41,12 @@ class SendZipFile extends Command
                     $thedate = Carbon::parse($dateString);
                     if ($thedate->isSameDay($greatestDate)) {
                         $archivosListos[] = $file;
-                        $zip->addFile(($file), 'backup IntelU');
+                        $zip->addFile(($file), 'backup '.env('APP_NAME'));
                     }
                     $thedate->addDay(-1);
                     if ($thedate->isSameDay($greatestDate)) {
                         $archivosListos[] = $file;
-                        $zip->addFile(($file), 'backup IntelU');
+                        $zip->addFile(($file), 'backup '.env('APP_NAME'));
                     }
                 }
                 $zip->close();
@@ -60,7 +54,7 @@ class SendZipFile extends Command
                 // // Envío del correo electrónico
                 Mail::send([], [], function ($message) use ($zipFileName) {
                     $message->to('ajelof2@gmail.com')
-                            ->subject('Respaldo IntelU')
+                            ->subject('Respaldo '.env('APP_NAME'))
                             ->attach($zipFileName);
                 });
                 $this->info('Archivo ZIP enviado por correo.');

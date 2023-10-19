@@ -269,7 +269,7 @@ const paAbajo = () => { window.scrollTo(0, document.body.scrollHeight); }
                                                         </div>
                                                     </div>
                                                     <div class="mx-5 text-center">
-                                                        <button @click="PreguntarGPT(3) , data.thinking = true" v-if="!data.thinking"
+                                                        <button @click="PreguntarGPT(3) "
                                                             class="hover:shadow-form rounded-md bg-[#6A64F1] py-2 px-8 text-center text-base font-semibold text-white outline-none">
                                                             Preguntar
                                                         </button>

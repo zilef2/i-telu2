@@ -20,8 +20,7 @@ import Delete from '@/Pages/carrera/Delete.vue';
 import Checkbox from '@/Components/Checkbox.vue';
 import InfoButton from '@/Components/InfoButton.vue';
 import GroupButtonsIndex from '@/Components/uiverse/GroupButtonsIndex.vue';
-
-import { PrimerasPalabras, vectorSelect, formatDate, CalcularEdad, CalcularSexo } from '@/global.ts';;
+import { NoUnderLines, PrimerasPalabras, vectorSelect, formatDate, CalcularEdad, CalcularSexo } from '@/global.ts';;
 import {
     TransitionRoot,
     TransitionChild,

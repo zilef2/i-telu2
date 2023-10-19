@@ -27,6 +27,7 @@ return new class extends Migration
             $table->string ('semestre_mas_bajo')->nullable();
             $table->string ('limite_token_general')->nullable();
             $table->string ('limite_token_leccion')->nullable();
+            $table->integer('plan')->default(0);
             
             $table->timestamp('email_verified_at')->nullable();
             $table->timestamps();

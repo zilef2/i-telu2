@@ -39,6 +39,8 @@ class PermissionSeeder extends Seeder
             'LosPromp',
             //2octubre2023
             'Articulo',
+            //15 octubre
+            'Plan',
         ];
         foreach ($Models as $model) {
             foreach ($crudCompleto as $crud) {

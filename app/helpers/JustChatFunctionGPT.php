@@ -10,7 +10,7 @@ class JustChatFunctionGPT {
         $result = $client->chat()->create([
             "model" => "gpt-4",
             'messages' => [
-                ['role' => 'system', 'content' => 'Eres un profesor universitario'],
+                ['role' => 'system', 'content' => 'Eres una eminencia universitaria'],
                 ['role' => 'user', 'content' => $promp],
             ],
             'max_tokens' => HelpGPT::maxTokenPDF()

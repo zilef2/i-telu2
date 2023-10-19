@@ -3,20 +3,18 @@
 namespace App\helpers;
 
 use App\Models\Archivo;
-// use App\Models\MedidaControl;
-// use App\Models\Parametro;
-// use App\Models\RespuestaEjercicio;
-// use Illuminate\Support\Facades\Auth;
-// use Illuminate\Support\Facades\Log;
-// use OpenAI;
 use Smalot\PdfParser\Parser;
 
 class HelpPDF {
 
-//usado en temporalPdfReader: para procesar un archivo
+//usado en temporalPdfReader y en GuardarResumirArchivoPDF: para procesar un archivo
     public static function ParserPDF($archivoid){
         $parser = new Parser();
-        $archivo = Archivo::find($archivoid);
+        if(is_int($archivoid)){
+            $archivo = Archivo::find($archivoid);
+        }else{
+            $archivo = $archivoid;
+        }
 
         $file = storage_path('app/public/archivosSubidos/'.$archivo->NombreOriginal);
 

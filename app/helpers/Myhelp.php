@@ -1,7 +1,7 @@
 <?php
 
 // JUST THIS PROJECT
-// STRING
+// STRING S
 // LARAVEL
 // dates
 
@@ -15,6 +15,31 @@ use Illuminate\Support\Facades\Log;
 class Myhelp {
 
     //JUST THIS PROJECT
+        public static function NEW_turnInSelectID($theArrayofStrings,$selecc,$theName = null) {
+            if($theName == null) $theName = 'nombre';
+            if(count($theArrayofStrings) == 0) 
+                return [
+                [  'title' => 'No hay registros ', 'value' => 0,]
+                    // 'filtro' => 'General'
+                ];
+
+            $result = [
+                [
+                    'title' => 'Selecciona un '.$selecc,
+                    'value' => 0,
+                    // 'filtro' => 'General'
+                ]
+            ];
+            foreach ($theArrayofStrings as $value) {
+                $result[] = 
+                [
+                    'title' => $value->{$theName},
+                    'value' => $value->id,
+                    // 'filtro' => $value->teoricaOpractica
+                ];
+            }
+            return $result;
+        }
         public static function CargosYModelos() {
             //otros cargos NO_ADMIN
             $nombresDeCargos = [
@@ -47,6 +72,18 @@ class Myhelp {
 
 
     //STRING S
+        public function SePuedeConvertirAEntero($texto): int {
+
+            $entero = intval(trim($texto));
+            $respuesta = is_int($entero);
+
+            if($respuesta){
+                return $entero;
+            }else{
+                return -1;
+            }
+            
+        }
         public function EncontrarEnString($frase, $busqueda): array {
             $Resultado = [];
             $NuevaPos = strlen($frase);

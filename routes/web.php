@@ -15,6 +15,7 @@ use App\Http\Controllers\UnidadsController;
 use App\Http\Controllers\UniversidadsController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ParametrosController;
+use App\Http\Controllers\PlansController;
 use App\Http\Controllers\TemporalPdfReader;
 use App\Models\Permission;
 use App\Models\Role;
@@ -134,9 +135,7 @@ Route::middleware('auth', 'verified')->group(function () {
     Route::post('/materiaGenerar', [MateriasController::class, 'materiaGenerar'])->name('materia.Generar');
     Route::post('/materiaguardarGenerado', [MateriasController::class, 'materiaguardarGenerado'])->name('materia.guardarGenerado');
     
-    Route::get('/Estudiando', function(){
-        return redirect('/materia');
-    });
+    Route::get('/Estudiando', function(){ return redirect('/materia'); });
     
     Route::get('/Archivos/{materiaid}', [MateriasController::class, 'Archivosindex'])->name('materia.Archivos');
     Route::post('/storeArchivos', [MateriasController::class, 'storeArchivos'])->name('materia.storeArchivos');
@@ -186,7 +185,12 @@ Route::middleware('auth', 'verified')->group(function () {
     
 
     // #Articulo
-    Route::resource('/Articulo', ArticulosController::class)->except('create', 'show', 'edit');
+    Route::resource('/Articulo', ArticulosController::class);
+    Route::get('/Articulo/revisar/{id}', [ArticulosController::class,'RevisarArticulo'])->name('Articulo.revisar');
+    Route::post('/Articulo/destroy-bulk', [ArticulosController::class, 'destroyBulk'])->name('Articulo.destroy-bulk');
+
+    //#plan
+    Route::resource('/Plan', PlansController::class);
 });
 
 

@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder {
 
             //2oct
             ArticuloSeeder::class,
+            PlanSeeder::class,
         ]);
     }
 }

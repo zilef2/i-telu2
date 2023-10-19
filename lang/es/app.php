@@ -2,6 +2,12 @@
 
 return [
     'label' => [
+        //Plan
+        'Plan' => 'Plan',
+        'Planes' => 'Planes',
+        'Plans' => 'Planes',
+
+        
         //articulos
         'Articulos' => 'Articulos',
         'Articulo' => 'Articulo',
@@ -106,7 +112,7 @@ return [
         'materia' => 'Asignatura',
         'Unidad' => 'Unidad',
         'subtopico' => 'Tema',
-        'ejercicio' => 'ejercicio',
+        'ejercicio' => 'Ejercicio',
 
         'cliente' => 'Cliente',
         'valor_tentativo' => 'Valor tentativo',

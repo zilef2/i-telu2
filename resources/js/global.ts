@@ -228,6 +228,12 @@ export function LookForValueInArray(arrayOfObjects:Object[] , searchValue): Stri
             return texto
         }
     }
+    export function ContarPalabras(texto){
+        if(texto){
+            return texto.split(" ").length;
+        }
+        return texto
+    }
 
     export function textoSinEspaciosLargos(texto){
         return texto.replace(/\s+/g, ' ');

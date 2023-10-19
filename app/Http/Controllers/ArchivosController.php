@@ -36,8 +36,7 @@ class ArchivosController extends Controller
      * @param  ArchivoRequest  $request
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function store(ArchivoRequest $request)
-    {
+    public function store(ArchivoRequest $request) {
         $archivo = new Archivo;
 		$archivo->nombre = $request->input('nombre');
 		$archivo->peso = $request->input('peso');

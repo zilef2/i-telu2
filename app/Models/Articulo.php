@@ -13,25 +13,68 @@ class Articulo extends Model
         'nick',
         'version',
         'Portada',
-        'Resumen',
+        'Resumen', // Revisar sujerencias
+        'Resumen_ia', 
+        'Resumen_final', 
         'Palabras_Clave',
-        'Introduccion',
+        'Introduccion',// Revisar sujerencias
+        'Introduccion_ia',
+        'Introduccion_final',
         'Revision_de_la_Literatura',
-        'Metodologia',
+        'Metodologia',// Revisar sujerencias
+        'Metodologia_ia',// Revisar sujerencias
+        'Metodologia_final',// Revisar sujerencias
         'Resultados',
-        'Discusion',
-        'Conclusiones',
+        'Discusion',// Revisar sujerencias
+        'Discusion_ia',// Revisar sujerencias
+        'Discusion_final',// Revisar sujerencias
+        'Conclusiones',// Revisar sujerencias
+        'Conclusiones_ia',// Revisar sujerencias
+        'Conclusiones_final',// Revisar sujerencias
         'Agradecimientos',
         'Referencias',
         'Anexos_o_Apendices',
-        'user_id' //user_id
+        'user_id',
+        'universidad_id',
+        'carrera_id',
+        'materia_id',
+        'libre_id',
+
+        'Resumen_integer',
+        'Introduccion_integer',
+        'Discusion_integer',
+        'Conclusiones_integer',
+        'Metodologia_integer',
+
+        'Resumen_critica',
+        'Introduccion_critica',
+        'Discusion_critica',
+        'Conclusiones_critica',
+        'Metodologia_critica',
     ];
 
+    protected $totalPreguntas = ['total'];
+
+    public function calculateTotal()
+    {
+        $this->attributes['total'] = 
+            $this->Resumen_integer +
+            $this->Introduccion_integer +
+            $this->Discusion_integer +
+            $this->Conclusiones_integer +
+            $this->Metodologia_integer;
+    }
+
     public function user() { return $this->belongsTo(User::class, 'user_id'); }
-
-
     public function user_name(): string {
         return $this->user->name;
     }
-
+    public function calificacion() { return $this->hasMany(Calificacion::class, 'libre_id'); }
+    public function calificacion_name(): string {
+        $calif = $this->calificacion->Where('Modelo_de_libre_id',"articulo_id");
+        if($calif && $calif->count() > 0) {
+            return $calif->first()->valor;
+        }
+        return 0;
+    }
 }

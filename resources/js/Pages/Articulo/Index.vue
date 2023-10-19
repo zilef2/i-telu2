@@ -1,6 +1,5 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head } from '@inertiajs/vue3';
 import Breadcrumb from '@/Components/Breadcrumb.vue';
 import TextInput from '@/Components/TextInput.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
@@ -8,19 +7,20 @@ import SelectInput from '@/Components/SelectInput.vue';
 import { reactive, watch, onMounted } from 'vue';
 import DangerButton from '@/Components/DangerButton.vue';
 import pkg from 'lodash';
-import { router, usePage } from '@inertiajs/vue3';
+import { Head, router, usePage, Link } from '@inertiajs/vue3';
 
 import Pagination from '@/Components/Pagination.vue';
-import { ChevronUpDownIcon, PencilIcon, TrashIcon } from '@heroicons/vue/24/solid';
+import { ChevronUpDownIcon, PencilIcon, TrashIcon, CheckBadgeIcon } from '@heroicons/vue/24/solid';
 
-import Create from '@/Pages/articulo/Create.vue';
-import Edit from '@/Pages/articulo/Edit.vue';
-import Delete from '@/Pages/articulo/Delete.vue';
-import DeleteBulk from '@/Pages/articulo/DeleteBulk.vue';
+import Toast from '@/Components/Toast.vue';
+
+import Edit from '@/Pages/Articulo/Edit.vue';
+import Delete from '@/Pages/Articulo/Delete.vue';
+import DeleteBulk from '@/Pages/Articulo/DeleteBulk.vue';
 
 import Checkbox from '@/Components/Checkbox.vue';
 import InfoButton from '@/Components/InfoButton.vue';
-import { Inertia } from '@inertiajs/inertia';
+import { XMarkIcon, CheckCircleIcon, ExclamationCircleIcon, InformationCircleIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
 
 import { slugTOhumano }from '@/global.ts';
 
@@ -30,10 +30,10 @@ const props = defineProps({
     filters: Object,
     breadcrumbs: Object,
     perPage: Number,
-    fromController: Object,
 
-    HijoSelec: Object,
+    fromController: Object,
     numberPermissions: Number,
+
 })
 
 const data = reactive({
@@ -50,6 +50,7 @@ const data = reactive({
     deleteOpen: false,
     deleteBulkOpen: false,
     dataSet: usePage().props.app.perpage,
+    isVisible:false,
 })
 
 
@@ -89,8 +90,20 @@ const select = () => {
 onMounted(() =>{
     // if(typeof data.params.selectedUnidadID === 'undefined' || data.params.selectedUnidadID === null) data.params.selectedUnidadID = 0
     // data.UnidadsSelect = vectorSelect(data.UnidadsSelect, props.UnidadsSelect, 'una Unidad',true)
+    notification()
+});
 
-})
+function toggle() {
+    data.isVisible = false;
+}
+
+function notification(newVal) {
+    data.isVisible = true;
+
+    setTimeout(() => {
+        data.isVisible = false;
+    }, 3000);
+}
 
 </script>
 
@@ -98,18 +111,43 @@ onMounted(() =>{
     <Head :title="props.title"></Head>
     <AuthenticatedLayout>
         <Breadcrumb :title="title" :breadcrumbs="breadcrumbs" />
+
+        <transition name="slide-fade">
+            <div v-if="$page.props.flash && $page.props.flash.success != '' && $page.props.flash.success != null && data.isVisible" class="fixed top-4 right-4 w-8/12 md:w-7/12 lg:w-3/12 z-[100]">
+                <div class="flex p-4 justify-between items-center bg-green-600 rounded-lg">
+                    <div>
+                        <CheckCircleIcon class="h-8 w-8 text-white" fill="currentColor" />
+                    </div>
+                    <div class="mx-3 text-sm font-medium text-white" v-html="$page.props.flash.success">
+                    </div>
+                    <button @click="toggle" type="button"
+                        class="ml-auto bg-white/20 text-white rounded-lg focus:ring-2 focus:ring-white/50 p-1.5 hover:bg-white/30 h-8 w-8">
+                        <span class="sr-only">Close</span>
+                        <XMarkIcon class="w-5 h-5" />
+                    </button>
+                </div>
+            </div>
+        </transition>
+
         <div class="space-y-4">
             <div class="px-4 sm:px-0">
                 <div class="rounded-lg overflow-hidden w-fit">
-                    <PrimaryButton class="rounded-none" @click="data.createOpen = true" v-show="can(['create articulo'])">
-                        {{ lang().button.add }}
-                    </PrimaryButton>
-                    <Create :show="data.createOpen" @close="data.createOpen = false" :title="props.title"
-                        v-if="can(['create articulo'])" :UnidadsSelect="data.UnidadsSelect" />
-                    <Edit :show="data.editOpen" @close="data.editOpen = false" :articulo="data.generico"
-                        v-if="can(['update articulo'])" :title="props.title" :UnidadsSelect="data.UnidadsSelect" />
+                    <div class="flex-inline">
+                        <Link :href="route('Articulo.create')" class="items-center py-2 px-4 rounded-lg">
+                            <PrimaryButton class="rounded-lg" >
+                                {{ lang().button.add }}
+                            </PrimaryButton>
+                        </Link>
+                        <!-- <Link :href="route('Articulo.edit')" class="items-center py-2 px-4 rounded-lg">
+                            <PrimaryButton class="rounded-lg" >
+                                {{ lang().button.edit }}
+                            </PrimaryButton>
+                        </Link> -->
+                    </div>
+                    <!-- <Edit :show="data.editOpen" @close="data.editOpen = false" :articulo="data.generico"
+                        v-if="can(['update Articulo'])" :title="props.title" /> -->
                     <Delete :show="data.deleteOpen" @close="data.deleteOpen = false" :articulo="data.generico"
-                        v-if="can(['delete articulo'])" :title="props.title" />
+                        v-if="can(['delete Articulo'])" :title="props.title" />
                     <DeleteBulk :show="data.deleteBulkOpen"
                         @close="data.deleteBulkOpen = false, data.multipleSelect = false, data.selectedId = []"
                         :selectedId="data.selectedId" :title="props.title" />
@@ -128,8 +166,8 @@ onMounted(() =>{
                             <SelectInput v-model="data.params.selectedUnidadID" id="uni" :dataSet="data.UnidadsSelect" />
                         </div> -->
                     </div>
-                    <TextInput v-if="props.numberPermissions > 1" v-model="data.params.search" type="text"
-                        class="block w-3/6 md:w-2/6 lg:w-1/6 rounded-lg" :placeholder="lang().placeholder.search" />
+                    <!-- <TextInput v-if="props.numberPermissions > 1" v-model="data.params.search" type="text"
+                        class="block w-3/6 md:w-2/6 lg:w-1/6 rounded-lg" :placeholder="lang().placeholder.search" /> -->
                 </div>
                 <div class="overflow-x-auto scrollbar-table">
                     <table class="w-full">
@@ -141,21 +179,25 @@ onMounted(() =>{
                                 <th v-if="props.numberPermissions > 1"
                                     class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
                                     <div class="flex justify-between items-center">
-                                        <span>
-                                            Acciones
-                                        </span>
+                                        <span> Acciones </span>
                                         <ChevronUpDownIcon class="w-4 h-4" />
                                     </div>
                                 </th>
                                 <th v-on:click="order('nick')" class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
-                                    <div class="flex justify-between items-center"> <span> Nick </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>
+                                    <div class="flex justify-between items-center"> <span> Nombre </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>
                                 </th>
 
                                 <th v-on:click="order('version')" class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
                                     <div class="flex justify-between items-center"> <span> {{slugTOhumano('version')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>
                                 </th>
-                                <th v-on:click="order('Portada')" class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
+                                <th v-on:click="order('Portada')" class="px-2 py-4 w-64 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
                                     <div class="flex justify-between items-center"> <span> {{slugTOhumano('Portada')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>
+                                </th>
+                                <th v-on:click="order('user_id')" class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
+                                    <div class="flex justify-between items-center"> <span> {{slugTOhumano('Autor')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>
+                                </th>
+                                <th  class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
+                                    <div class="flex justify-between items-center"> <span> {{slugTOhumano('Calificacion')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>
                                 </th>
                                 <th v-on:click="order('Resumen')" class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
                                     <div class="flex justify-between items-center"> <span> {{slugTOhumano('Resumen')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>
@@ -190,9 +232,7 @@ onMounted(() =>{
                                 <th v-on:click="order('Anexos_o_Apendices')" class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
                                     <div class="flex justify-between items-center"> <span> {{slugTOhumano('Anexos_o_Apendices')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>
                                 </th>
-                                <th v-on:click="order('user_id')" class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
-                                    <div class="flex justify-between items-center"> <span> {{slugTOhumano('Autor')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>
-                                </th>
+                                
 
                                 <!-- <th v-if="props.numberPermissions > 1" v-on:click="order('resultado_aprendizaje')"
                                     class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
@@ -216,14 +256,21 @@ onMounted(() =>{
                                 <td v-if="props.numberPermissions > 1" class="whitespace-nowrap py-4 px-2 sm:py-3">
                                     <div class="flex justify-start items-center">
                                         <div class="rounded-md overflow-hidden">
-                                            <InfoButton type="button"
-                                                @click="(data.editOpen = true), (data.generico = clasegenerica)"
-                                                class="px-2 py-1.5 rounded-none" v-tooltip="lang().tooltip.edit">
+                                            <a type="button"
+                                                :href="route('Articulo.edit', clasegenerica.id)"
+                                                class="inline-flex items-center px-3 py-2 mx-1 bg-primary dark:bg-primary border border-transparent rounded-md font-semibold text-xs text-white dark:text-white uppercase tracking-widest hover:bg-primary/80 dark:hover:bg-primary/90 focus:bg-primary/80 dark:focus:bg-primary/80 active:bg-primary dark:active:bg-primary/80 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-primary transition ease-in-out duration-150 disabled:bg-primary/80"
+                                                 v-tooltip="lang().tooltip.edit">
                                                 <PencilIcon class="w-4 h-4" />
-                                            </InfoButton>
+                                            </a>
+                                            <a type="button"
+                                                :href="route('Articulo.revisar', clasegenerica.id)"
+                                                class="inline-flex items-center px-3 py-2 mx-1 bg-green-600 dark:bg-primary border border-transparent rounded-md font-semibold text-xs text-white dark:text-white uppercase tracking-widest hover:bg-primary/80 dark:hover:bg-primary/90 focus:bg-primary/80 dark:focus:bg-primary/80 active:bg-primary dark:active:bg-primary/80 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-primary transition ease-in-out duration-150 disabled:bg-primary/80"
+                                                 v-tooltip="'Revisar'">
+                                                <CheckBadgeIcon class="w-4 h-4" />
+                                            </a>
                                             <DangerButton type="button"
                                                 @click="(data.deleteOpen = true), (data.generico = clasegenerica)"
-                                                class="px-2 py-1.5 rounded-none" v-tooltip="lang().tooltip.delete">
+                                                class="px-2 py-1.5 rounded-none mx-1" v-tooltip="lang().tooltip.delete">
                                                 <TrashIcon class="w-4 h-4" />
                                             </DangerButton>
                                         </div>
@@ -231,19 +278,20 @@ onMounted(() =>{
                                 </td>
                                     <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.nick) }} </td>
                                     <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.version) }} </td>
-                                    <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.Portada) }} </td>
-                                    <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.Resumen) }} </td>
-                                    <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.Palabras_Clave) }} </td>
-                                    <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.Introduccion) }} </td>
-                                    <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.Revision_de_la_Literatura) }} </td>
-                                    <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.Metodologia) }} </td>
-                                    <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.Resultados) }} </td>
-                                    <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.Discusion) }} </td>
-                                    <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.Conclusiones) }} </td>
-                                    <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.Agradecimientos) }} </td>
-                                    <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.Referencias) }} </td>
-                                    <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.Anexos_o_Apendices) }} </td>
-                                    <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.user_id) }} </td>
+                                    <td class="whitespace-nowrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabra(clasegenerica.Portada) }} </td>
+                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ (clasegenerica.hijo) }} </td>
+                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ (clasegenerica.cal) }} </td>
+                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabra(clasegenerica.Resumen) }} </td>
+                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ (clasegenerica.Palabras_Clave) }} </td>
+                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabra(clasegenerica.Introduccion) }} </td>
+                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabra(clasegenerica.Revision_de_la_Literatura) }} </td>
+                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabra(clasegenerica.Metodologia) }} </td>
+                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabra(clasegenerica.Resultados) }} </td>
+                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabra(clasegenerica.Discusion) }} </td>
+                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabra(clasegenerica.Conclusiones) }} </td>
+                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabra(clasegenerica.Agradecimientos) }} </td>
+                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabra(clasegenerica.Referencias) }} </td>
+                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabra(clasegenerica.Anexos_o_Apendices) }} </td>
                                 <!-- <td v-if="props.numberPermissions > 1" class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.resultado_aprendizaje) }} </td> -->
                             </tr>
                         </tbody>
@@ -256,3 +304,24 @@ onMounted(() =>{
         </div>
     </AuthenticatedLayout>
 </template>
+
+
+<style>
+/*
+    Enter and leave animations can use different
+    durations and timing functions.
+    */
+.slide-fade-enter-active {
+    transition: all 0.9s ease-out;
+}
+
+.slide-fade-leave-active {
+    transition: all 2.8s cubic-bezier(1, 0.5, 0.8, 1);
+}
+
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+    transform: translateX(15px);
+    opacity: 0;
+}
+</style>
