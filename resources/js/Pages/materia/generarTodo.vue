@@ -50,7 +50,7 @@ const form = useForm({
     errorCarrera: false,
 })
 const create = () => {
-    if (form.codigo_mat != '') {
+    if (form.codigo_mat !== '') {
         data.errorCarrera = '';
 
         form.post(route('materia.guardarGenerado'), {
@@ -123,7 +123,7 @@ const validar = () => {
     return true
 }
 
-onMounted(() => { 
+onMounted(() => {
 
 })
 watchEffect(() => {

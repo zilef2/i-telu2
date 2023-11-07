@@ -1,0 +1,1 @@
+import{c,k as n}from"./app-8190fc74.js";const s=["src"],i={__name:"pdfview",props:{archivinid:Number,resumen:String},setup(e){return(r,t)=>(n(),c("embed",{src:r.route("verPdf",e.archivinid),type:"application/pdf",class:"w-full h-screen"},null,8,s))}};export{i as default};

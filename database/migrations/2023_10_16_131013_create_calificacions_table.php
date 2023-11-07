@@ -13,12 +13,15 @@ class CreateCalificacionsTable extends Migration
      */
     public function up()
     {
+        Schema::dropIfExists('calificacions');
+
         Schema::create('calificacions', function (Blueprint $table) {
             $table->id();
 			$table->string('TipoPrueba')->nullable();
 			$table->text('prompUsado')->nullable();
 			$table->float('valor')->nullable();
-			
+			$table->float('valorIA')->nullable();
+
             $table->float('valor_Resumen')->nullable();
             $table->float('valor_Introduccion')->nullable();
             $table->float('valor_Discusion')->nullable();
@@ -28,19 +31,21 @@ class CreateCalificacionsTable extends Migration
 			$table->integer('tokens')->nullable();
 
 			$table->bigInteger('libre_id')->nullable();
-			$table->string('Modelo_de_libre_id')->nullable();
+			$table->string('Modelo_de_libre')->nullable();
 
-            $table->unsignedBigInteger('user_id')->nullable();//quien la realizo
+            $table->unsignedBigInteger('user_id')->nullable();//quien la realizo el articulo u otro
             $table->foreign('user_id')
                 ->references('id')
                 ->on('users')
                 ->onDelete('restrict'); //restrict | set null
-                
+
             $table->unsignedBigInteger('QuienCalifico')->nullable();
             $table->foreign('QuienCalifico')
                 ->references('id')
                 ->on('users')
                 ->onDelete('restrict'); //restrict | set null
+            $table->unsignedBigInteger('UniCarreraMateria')->nullable();
+            $table->unsignedBigInteger('UniCarreraMateriaID')->nullable();
 
             $table->timestamps();
         });

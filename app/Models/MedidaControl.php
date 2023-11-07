@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @method static create(array $array)
+ */
 class MedidaControl extends Model
 {
     use HasFactory;
@@ -13,7 +16,7 @@ class MedidaControl extends Model
     protected $fillable = [
         'user_id',
         'tokens_usados',
-        
+
         'pregunta',
         'respuesta_guardada',
         'subtopico_id',

@@ -16,13 +16,13 @@ class SendZipFile extends Command
         try {
             $zip = new ZipArchive;
             $zipFileName = public_path(env('APP_NAME').'BD.zip');
-            
+
             if ($zip->open($zipFileName, ZipArchive::CREATE) === true) {
                 $zip->setCompressionIndex(0, ZipArchive::CM_DEFLATE, 9);
-                
-                $directory = storage_path('app/'.env('APP_NAME')); 
+
+                $directory = storage_path('app/'.env('APP_NAME'));
                 $pattern = '2023*';
-            
+
                 $matchingFiles = glob($directory . DIRECTORY_SEPARATOR . $pattern);
                 foreach ($matchingFiles as $file) {
                     $Fulldate = basename(substr($file,0,-4));
@@ -30,10 +30,10 @@ class SendZipFile extends Command
                     $dateString = str_replace('-','/',$Digits3);
                     $thedate[] = Carbon::parse($dateString)->format('Y/m/d');
                 }
-            
+
                 $carbo = new Carbon();
                 $greatestDate = $carbo->max(...$thedate);
-                
+
                 foreach ($matchingFiles as $file) {
                     $Fulldate = basename(substr($file,0,-4));
                     $Digits3 = substr($Fulldate,0,10);
@@ -66,3 +66,4 @@ class SendZipFile extends Command
         }
     }
 }
+

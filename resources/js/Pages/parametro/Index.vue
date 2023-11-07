@@ -14,7 +14,7 @@
     import { ChevronUpDownIcon, PencilIcon, TrashIcon } from '@heroicons/vue/24/solid';
 
     import Create from '@/Pages/parametro/Create.vue';
-    import Edit from '@/Pages/parametro/Edit.vue'; 
+    import Edit from '@/Pages/parametro/Edit.vue';
     import Delete from '@/Pages/parametro/Delete.vue';
 
     import Checkbox from '@/Components/Checkbox.vue';
@@ -30,10 +30,10 @@
 
         fromController: Object,
         nombresTabla: Array,
-        
+
     })
     console.log("🧈 debu fromController:", props.fromController);
-    
+
     const data = reactive({
         params: {
             search: props.filters.search,
@@ -47,7 +47,7 @@
         generico: null,
     })
     console.log(props.fromController)
-        
+
 
     watch(() => _.cloneDeep(data.params), debounce(() => {
         let params = pickBy(data.params)
@@ -58,7 +58,7 @@
         })
     }, 150))
 
-    
+
 </script>
 
 <template>
@@ -74,7 +74,7 @@
                     </PrimaryButton> -->
                     <Create :show="data.createOpen" @close="data.createOpen = false" :title="props.title"
                         v-show="can(['create parametro'])" :parametrosSelect="data.parametrosSelect" />
-                    <Edit :show="data.editOpen" @close="data.editOpen = false" :parametro="props.fromController"
+                    <Edit :show="data.editOpen" @close="data.editOpen = false" :parametrous="props.fromController"
                         v-show="can(['edit parametro'])" :title="props.title" :parametrosSelect="data.parametrosSelect" />
                     <Delete :show="data.deleteOpen" @close="data.deleteOpen = false" :parametro="props.fromController"
                         v-show="can(['delete parametro'])" :title="props.title" />
@@ -111,13 +111,9 @@
                                         </div>
                                     </div>
                                 </td>
-                                <!-- <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (index+1) }}</td> -->
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3 flex-wrap">{{
-                                                                    PrimerosCaracteres(props.fromController.prompEjercicios,50) }} </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{
-                                                                    PrimerosCaracteres(props.fromController.prompObjetivos,50) }} </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{
-                                                                    (props.fromController.NumeroTicketDefecto) }} </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3 flex-wrap">{{ PrimerosCaracteres(props.fromController.prompEjercicios,50) }} </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ PrimerosCaracteres(props.fromController.prompObjetivos,50) }} </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (props.fromController.NumeroTicketDefecto) }} </td>
                             </tr>
                         </tbody>
                     </table>

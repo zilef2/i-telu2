@@ -54,7 +54,7 @@ class HelpGPT
                 "Actua como un rector universitario. Las asignaturas tienen muchas unidades, las unidades tienen muchos temas y un tema tiene un resultado de aprendizaje"
                 . " para este caso se piden " . $unidades . " unidades y " . $temas . " temas"
                 . " Divide la respuesta en  $numeroRenglones renglones, con el siguiente patron"
-                // ". En el renglon 1 Genera el nombre de una asignatura que se encuentre en la carrera universitaria :".$stringCarreraNombre. 
+                // ". En el renglon 1 Genera el nombre de una asignatura que se encuentre en la carrera universitaria :".$stringCarreraNombre.
                 // ". No puede ser una de las siguientes materias: ".$listMaterias.
                 . ". En el renglon 1 genera el objetivo de la asignatura " . $materiaNombre
                 . ". En los renglones " . $renglonesUnidad . " genera el nombre de una unidad que pertenesca a dicha asignatura"
@@ -333,10 +333,10 @@ class HelpGPT
                     }
                 }
             }
-            $respuesta = "El ATP es un compuesto importante en nuestro cuerpo ya que es la principal fuente de energía para todos los procesos metabólicos. Es una molécula con una configuración específica hecha de fosfato, nitrógeno y un anillo de purina. Esto significa que hay otras moléculas similares que contienen el mismo tipo de configuración. Algunos ejemplos son ADP (Adenosina Desfosfato), AMP (Adenosina Monofosfato) y NADH (Nico-Adenosina Deshidrogenasa). Estas moléculas similares se usan como fuente de energía para la mayoría de los procesos metabólicos, de modo que se asemejan a la energía proporcionada por el ATP. 
-                Ejercicios para practicar: 
-                1.¿Qué compuestos se unen para formar el ATP? 
-                2. ¿Qué es la nico-adenosina deshidrogenasa? 
+            $respuesta = "El ATP es un compuesto importante en nuestro cuerpo ya que es la principal fuente de energía para todos los procesos metabólicos. Es una molécula con una configuración específica hecha de fosfato, nitrógeno y un anillo de purina. Esto significa que hay otras moléculas similares que contienen el mismo tipo de configuración. Algunos ejemplos son ADP (Adenosina Desfosfato), AMP (Adenosina Monofosfato) y NADH (Nico-Adenosina Deshidrogenasa). Estas moléculas similares se usan como fuente de energía para la mayoría de los procesos metabólicos, de modo que se asemejan a la energía proporcionada por el ATP.
+                Ejercicios para practicar:
+                1.¿Qué compuestos se unen para formar el ATP?
+                2. ¿Qué es la nico-adenosina deshidrogenasa?
                 3. ¿Qué rol juega el ATP en nuestro cuerpo?
             ";
             return ['respuesta' => $respuesta, 'restarAlToken' => 0];
@@ -436,43 +436,43 @@ class HelpGPT
             $respuesta = "
                 \n
                 1. ¿Cual es la Definicion de un limite?
-                A. Un limite se refiere a la frontera o extremo máximo de algo 
-                B. El limite es una palabra usada para agregar numero a otro 
-                C. El limite es un medio de transporte 
-                D. El limite es un signo de aritmética 
-                
+                A. Un limite se refiere a la frontera o extremo máximo de algo
+                B. El limite es una palabra usada para agregar numero a otro
+                C. El limite es un medio de transporte
+                D. El limite es un signo de aritmética
+
                 RESPUESTA=A
-                
+
                 2. ¿Cuál de las siguientes es un ejemplo de un límite?
-                A. 35 + 129 
-                B. 34 grados 
+                A. 35 + 129
+                B. 34 grados
                 C. El límite de velocidad es 55 mph
                 D. Toma dos horas terminar
-                
+
                 RESPUESTA=C
-                
+
                 3. ¿En qué contexto puede haber un límite?
                 A. Descubriendo una constelación
-                B. Cocinando un plato 
+                B. Cocinando un plato
                 C. Entramando una historia
                 D. Vendiendo un coche
-                
+
                 RESPUESTA=D
-                
+
                 4. ¿Por qué los límites son importantes?
                 A. Porque dan seguridad
-                B. Porque conducen a la creatividad 
-                C. Porque te ayudan a planificar mejor tu tiempo 
+                B. Porque conducen a la creatividad
+                C. Porque te ayudan a planificar mejor tu tiempo
                 D. Porque los límites ayudan a definir relaciones
-                
+
                 RESPUESTA=C
-                
+
                 5. ¿Por qué los límites cambian?
                 A. Porque son dinámicos
-                B. Porque se vuelven más estrictos 
+                B. Porque se vuelven más estrictos
                 C. Porque hay cambios en la tecnología
                 D. Porque hay una nueva ley
-                
+
                 RESPUESTA=A
             ";
             $chuleta = self::ApartarChuleta($respuesta, 'RESPUESTA');
@@ -519,7 +519,7 @@ class HelpGPT
                 return ['respuesta' => $YaEstabaGuardada, 'restarAlToken' => 0];
             }
 
-            //todo: 
+            //todo:
             // $numberPermission = Myhelp::getPermissionToNumber();
             // if($numberPermission === 1)
             // return [ 'respuesta' => env('NOTVALIDATEDBYTEACHER'), 'restarAlToken' => 0];
@@ -527,7 +527,7 @@ class HelpGPT
             if ($longuitudPregunta) {
                 if (!$debug) {
 
-                    $ChatR = JustChatFunctionGPT::Chat($elpromp);
+                    $ChatR = JustChatFunctionGPT::Chat4($elpromp);
 
                     $respuesta = $ChatR[1];
                     $finishingReason = $ChatR[2];
@@ -615,14 +615,31 @@ class HelpGPT
             $errores =
                 $th->getMessage() .
                 ' L:' . $th->getLine() . ' Ubi:' . $th->getFile();
-            dd($errores);
             Log::alert("U -> " . Auth::user()->name . " fallo en preguntar la IA:  " . $errores);
             return back()->with('error', 'fallo en preguntar la IA: ' . $errores);
         }
     }
 
+    public function PreCalcularTokenConsumidos($Prompt): int
+    {
+
+        $help = new Myhelp();
+        $numeroPalabras = $help->ContarPalabras($Prompt);
+        if($numeroPalabras < 20){
+            $returningValue = -1;
+        }else{
+            $resultado = $numeroPalabras / 1000;
+            if ($resultado >= floor($resultado) + 0.5) {
+                $returningValue = ceil($resultado);
+            } else {
+                $returningValue = floor($resultado);
+            }
+        }
+        return (int)$returningValue;
+    }
     public static function CalcularTokenConsumidos($usageRespuesta, $usageRespuestaTotal)
     {
+
         $restarAlToken = 1;
         $usageRespuesta -= self::MAX_USAGE_RESPUESTA;
         $usageRespuestaTotal -= self::MAX_USAGE_TOTAL;
@@ -635,28 +652,46 @@ class HelpGPT
         return $restarAlToken;
     }
 
-    public static function maxToken()
-    {
-        $numberPermissions = Myhelp::getPermissionToNumber(auth()->user()->roles->pluck('name')[0]);
-
-        //max 8,192 or | gpt-4-32k 32,768 tokens
-        if (config('app.env') === 'production') {
-            $maxTokens = 1100 + $numberPermissions * 200; //2000 (10.000 caracteres) + $maxtokens
-            return $maxTokens;
+    /**
+     * @return int
+     */
+    public static function maxToken(): int{
+        try{
+            if(auth()->user()){
+                $numberPermissions = Myhelp::getPermissionToNumber(auth()->user()->roles->pluck('name')[0]);
+                //max 8,192 or | gpt-4-32k 32,768 tokens
+                if (config('app.env') === 'production') {
+                    //2000 (10.000 caracteres) + $maxtokens
+                    $Maxtokens = 1100 + $numberPermissions * 200;
+                }else{
+                    $Maxtokens = 3000;
+                }
+            }else{
+                $Maxtokens = 1500;
+            }
+            return $Maxtokens;
+        } catch (\Throwable $th) {
+            return 330;
         }
-        return 3000;
     }
 
-    public static function maxTokenPDF()
+    /**
+     * @return int
+     */
+    public static function maxTokenPDF(): int
     {
-        $numberPermissions = Myhelp::getPermissionToNumber(auth()->user()->roles->pluck('name')[0]);
+        $maxTokens = 6000;
+        if(auth()->user()){
+            $numberPermissions = Myhelp::getPermissionToNumber(auth()->user()->roles->pluck('name')[0]);
 
-        //max 8,192 or | gpt-4-32k 32,768 tokens
-        if (config('app.env') === 'production') {
-            $maxTokens = 3100 + $numberPermissions * 200; //2000 (10.000 caracteres) + $maxtokens
-            return $maxTokens;
+            //max 8,192 or | gpt-4-32k 32,768 tokens
+            if (config('app.env') === 'production') {
+                $maxTokens = (3100 + $numberPermissions * 200); //2000 (10.000 caracteres) + $maxtokens
+            }else{
+                $maxTokens = 5100;
+            }
         }
-        return 5100;
+        return $maxTokens;
     }
 
 
@@ -786,10 +821,10 @@ class HelpGPT
             //debug
             $respuesta = "
                 1. ¿Cual es la Definicion de un limite (debuging)?
-                A. Un limite se refiere a la frontera o extremo máximo de algo 
-                B. El limite es una palabra usada para agregar numero a otro 
-                C. El limite es un medio de transporte 
-                D. El limite es un signo de aritmética 
+                A. Un limite se refiere a la frontera o extremo máximo de algo
+                B. El limite es una palabra usada para agregar numero a otro
+                C. El limite es un medio de transporte
+                D. El limite es un signo de aritmética
                 RESPUESTA=A
             ";
             $chuleta = self::ApartarChuleta($respuesta, 'RESPUESTA');
@@ -823,7 +858,7 @@ class HelpGPT
         // 'Niégate a responder si la pregunta no esta relacionada con '. $tema .' o ' . $materia . '
         // En caso que te niegues, hazle entender que esto es un aplicativo para la enseñanza académica.
 
-        // 'Responda lo siguiente con el contexto de la asignatura:' . $materia . '. el subtema: ' . $tema . ' del tema: ' . $unidad 
+        // 'Responda lo siguiente con el contexto de la asignatura:' . $materia . '. el subtema: ' . $tema . ' del tema: ' . $unidad
         // . 'el objetivo es explicar el tema en términos fáciles de entender. Esto podría incluir proporcionar instrucciones paso a paso para resolver un problema, sugerir recursos en línea para un estudio más profundo. '
         // . 'La pregunta es: ' . $pregunta . '.'
         // ;

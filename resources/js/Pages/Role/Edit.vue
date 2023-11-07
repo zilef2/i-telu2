@@ -18,6 +18,14 @@ const props = defineProps({
 
 const data = reactive({
     multipleSelect: false,
+    tipoPermiso: [
+        'create',
+        'read',
+        'update',
+        'delete',
+        'cambiarNombre',
+        'puro'
+    ],
 })
 
 const emit = defineEmits(["close"]);
@@ -94,16 +102,31 @@ const select = () => {
                             <Checkbox id="permission-all" v-model:checked="data.multipleSelect" @change="selectAll" />
                             <InputLabel for="permission-all" :value="lang().label.check_all" />
                         </div>
-                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 mt-2">
+                        <div v-for="(tipoPer, ind) in data.tipoPermiso" :key="ind">
+                            <div v-if="tipoPer != 'cambiarNombre'"
+                                class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 mt-2">
+                                <div class="flex items-center justify-start space-x-2"
+                                    v-for="(permission, index) in props.permissions[tipoPer]" :key="index">
+                                    <input @change="select"
+                                        class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-primary dark:text-primary shadow-sm focus:ring-primary/80 dark:focus:ring-primary dark:focus:ring-offset-gray-800 dark:checked:bg-primary dark:checked:border-primary"
+                                        type="checkbox" :id="'permission_' + permission.id" :value="permission.id"
+                                        v-model="form.permissions" />
+                                    <InputLabel :for="'permission_' + permission.id" :value="permission.name" />
+                                </div>
+
+                            </div>
+                            <hr class="border-b my-4">
+                        </div>
+<!--                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 mt-2">
                             <div class="flex items-center justify-start space-x-2"
-                                v-for="(permission, index) in props.permissions" :key="index">
+                                v-for="(permission, index) in props.permissions['no']" :key="index">
                                 <input @change="select"
                                     class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-primary dark:text-primary shadow-sm focus:ring-primary/80 dark:focus:ring-primary dark:focus:ring-offset-gray-800 dark:checked:bg-primary dark:checked:border-primary"
                                     type="checkbox" :id="'permission_' + permission.id" :value="permission.id"
                                     v-model="form.permissions" />
                                 <InputLabel :for="'permission_' + permission.id" :value="permission.name" />
                             </div>
-                        </div>
+                        </div>-->
                     </div>
                 </div>
                 <div class="flex justify-end">

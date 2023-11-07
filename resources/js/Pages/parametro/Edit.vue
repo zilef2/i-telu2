@@ -15,7 +15,7 @@ import SelectInput from '@/Components/SelectInput.vue';
 const props = defineProps({
     show: Boolean,
     title: String,
-    parametro: Object,
+    parametrous: Object,
     subUnidadsSelect: Object,
 })
 
@@ -31,11 +31,11 @@ const justNames = [
     'NumeroTicketDefecto',
     'pMejoraContinua',
 ]
-const form = useForm({ ...Object.fromEntries(justNames.map(field => [field, ''])) });
-// const form = useForm({ ...Object.fromEntries(justNames.map(field =>
-//         [field, props.parametro.field]))
-//     });
-
+/*const form = useForm({ ...Object.fromEntries(justNames.map(field => [field, ['','','','']])) });*/
+const form = useForm({ ...Object.fromEntries(justNames.map(field =>
+        [field, []],
+    ))
+});
 const printForm = [
     // {idd: 'nombre',label: 'nombre', type:'text', value:form.nombre},
     { idd: 'prompEjercicios', label: 'promp para Ejercicios', type: 'area', value: form.prompEjercicios },
@@ -46,7 +46,7 @@ const printForm = [
 ];
 
 const update = () => {
-    form.put(route('parametro.update', props.parametro?.id), {
+    form.put(route('parametro.update', props.parametrous?.id), {
         preserveScroll: true,
         onSuccess: () => {
             emit("close")
@@ -61,10 +61,12 @@ const update = () => {
 watchEffect(() => {
     if (props.show) {
         form.errors = {}
-        form.prompEjercicios = props.parametro?.prompEjercicios
-        form.prompObjetivos = props.parametro?.prompObjetivos
-        form.NumeroTicketDefecto = props.parametro?.NumeroTicketDefecto;
-        form.pMejoraContinua = props.parametro?.pMejoraContinua;
+        for(let i = 0; i < props.parametrous.length;i++ ){
+            form.prompEjercicios[i] = props.parametrous[i]?.prompEjercicios
+            form.prompObjetivos[i] = props.parametrous[i]?.prompObjetivos
+            form.NumeroTicketDefecto[i] = props.parametrous[i]?.NumeroTicketDefecto;
+            form.pMejoraContinua[i] = props.parametrous[i]?.pMejoraContinua;
+        }
     }
 })
 
@@ -76,29 +78,30 @@ watchEffect(() => {
 
 <template>
     <section class="space-y-6">
-        <Modal :show="props.show" @close="emit('close')">
+        <Modal :show="props.show" @close="emit('close')" :maxWidth="'4xl'">
             <form class="p-3" @submit.prevent="update">
                 <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
                     {{ lang().label.edit }} {{ props.title }}
                 </h2>
-                <div class="my-6 grid grid-cols-1 gap-6">
+                <div v-for="(para, index) in props.parametrous" class="my-6 grid grid-cols-2 gap-6">
                     <div v-for="(atributosform, indice) in printForm" :key="indice">
-                        <div v-if="atributosform.type == 'area'" class="">
+                        <div v-if="atributosform.type === 'area'" class="">
                             <div class="relative h-fullp-2">
                                 <label for="" class="leading-7 text-sm text-gray-600">{{ atributosform.label }} </label>
-                                <textarea v-model="form[atributosform.idd]" :id="atributosform.idd"
+                                <textarea v-model="form[atributosform.idd][index]" :id="atributosform.idd"
                                     :name="atributosform.idd" rows="10" cols="35"
-                                    class="h-auto resize-none w-full bg-gray-100 bg-opacity-50 rounded border border-gray-300 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 
+                                    class="h-auto resize-none w-full bg-gray-100 bg-opacity-50 rounded border border-gray-300 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200
                                     text-base outline-none text-gray-700 py-1 px-3 leading-6 transition-colors duration-200 ease-in-out"></textarea>
                             </div>
                         </div>
                         <div v-else class="p-2">
                             <InputLabel :for="atributosform.label" :value="atributosform.label" />
                             <TextInput :id="atributosform.idd" :type="atributosform.type" class="mt-1 p-4 block w-full"
-                                v-model="form[atributosform.idd]" required :placeholder="atributosform.label"
+                                v-model="form[atributosform.idd][index]" required :placeholder="atributosform.label"
                                 :error="form.errors[atributosform.idd]" />
                         </div>
                     </div>
+                    <hr class="border-b-2 border-gray-600 col-span-2">
 
                     <!-- <div>
                         <InputLabel for="subtopico_id" :value="lang().label.subtopico" />

@@ -3,6 +3,7 @@
 namespace App\helpers;
 
 use App\Jobs\GenerarTituloArticulo;
+use App\Models\Articulo;
 use App\Models\Calificacion;
 use App\Models\Materia;
 use App\Models\MedidaControl;
@@ -13,104 +14,130 @@ use OpenAI;
 class HelpArticulo {
     const respuestaLimite = 'Limite de tokens';
     const respuestaLarga = 'La respuesta es demasiado extensa';
-    const servicioNOdisponible = 'servicioNOdisponible';
-    const GPTdesabilitado = 'GPTdesabilitado';
-    const PreguntaCorta = 'PreguntaCorta';
-    const MAX_USAGE_RESPUESTA = 550;
-    const MAX_USAGE_TOTAL = 600;
-    const TOKEN_GENERAR_MATERIA = 2000;
-
-
-
-    public static function OptimizarResumenOIntroduccion($texto, $materiaid,$tipoTexto,$debug = false) {
+    /**
+     * @param $texto
+     * @param $materiaid
+     * @param $tipoTexto
+     * @param $debug
+     * @return array
+     */
+    public static function MejorarResumen($texto, $materiaid, $tipoTexto, $debug = false): array{
         $usuario = Auth::user();
         $materia = Materia::find($materiaid);
         $carrera = $materia->carrera()->get()->first();
         if (!$debug) {
             $Instruccion = Parametro::find(2)->prompEjercicios;
-            
             $elpromp =
                 $Instruccion.
-                ", teniendo encuenta que el contexto es de la carrera universitaria ". $carrera->nombre.",".
-                " Y de la asignatura: $materia->nombre,".
+                ", genere un numero caracteres similar a los del texto".
+                ". El contexto es de la carrera universitaria ". $carrera->nombre. ',' .
+                " de la asignatura: $materia->nombre,".
                 " el texto es un ".$tipoTexto.
-                " el texto es el siguiente: ". $texto.
+                ". El texto es el siguiente: ". $texto.
                 ""
                 ;
 
             $ChatR = self::davinci($elpromp, $usuario,$materia,'Solicito un Resumen de articulo (el id es de la materia)');
-            // $ChatR = dispatch(new GenerarTituloArticulo($elpromp, $usuario,$materia));
+        }else{
+            //debugin
+            $ChatR = ['respuesta' => 'un texto de prueba = MejorarResumen ', 'restarAlToken' => 0];
+        }
+        return $ChatR;
+    }
+
+    public static function OptimizarResumen($texto, $materiaid,$debug = false) {
+        $usuario = Auth::user();
+        $materia = Materia::find($materiaid);
+        $carrera = $materia->carrera()->get()->first();
+        if ($debug) {
+            $Instruccion = Parametro::find(2)->prompEjercicios;
+
+            $elpromp = $Instruccion.
+                ", teniendo encuenta que el contexto es de la carrera universitaria ". $carrera->nombre.",".
+                " Y de la asignatura: $materia->nombre,".
+                " el texto es el siguiente: ". $texto.
+                ""
+            ;
+
+            $ChatR = self::davinci($elpromp, $usuario,$materia,'Solicito un Resumen simple (el id es de la materia)');
             return $ChatR;
             // return ['respuesta' => $ChatR['respuesta'], 'restarAlToken' => $ChatR['restarAlToken']];
         }else{
-            //debugin
-            return ['respuesta' => 'un texto mass largo ome', 'restarAlToken' => 0];
+            //! debugin
+            return ['respuesta' => 'un texto de prueba generado por chatGPT', 'restarAlToken' => 0];
         }
     }
     public static function CalificarArticulo($elformulario,$articuloid, $notaManual, $debug = false) {
         $usuario = Auth::user();
-        $materia = Materia::find($elformulario['materiaid']);
+        $articulo = Articulo::find($articuloid);
+        $materia = Materia::find($articulo->materia_id);
+        $notaManual = (float)$notaManual;
         $carrera = $materia->carrera()->get()->first();
         if($notaManual){
+            if($notaManual > 5 || $notaManual < 0) {
+                return ['respuesta' => 'Nota invalida', 'restarAlToken' => 0];
+            }else{
+                Calificacion::UpdateOrInsert(
+                    [
+                        'Modelo_de_libre' => 'articulo_id',
+                        'libre_id' => $articuloid,
+                        'user_id' => $elformulario['user_id'],
+                        'QuienCalifico' => auth()->user()->id
+                    ], [
+                    'TipoPrueba' => 'Articulo',
+//                    'prompUsado' => 'Calificacion Manual',
+                    'valor' => $notaManual,
+                    'valor_Resumen' => $notaManual,
+                    'valor_Introduccion' => $notaManual,
+                    'valor_Discusion' => $notaManual,
+                    'valor_Conclusiones' => $notaManual,
+                    'valor_Metodologia' => $notaManual,
+                    'tokens' => 0,
+                ]);
+                return ['respuesta' => 'Se guardo la nota', 'restarAlToken' => 0];
+            }
+        }//fin nota manual
+
+
+        if (!$debug) {
+            $Instruccion = Parametro::find(2)->prompObjetivos;
+
+            $elpromp = $Instruccion.
+                "Teniendo encuenta que el contexto es de la carrera universitaria ". $carrera->nombre.",".
+                " Y de la asignatura: $materia->nombre,".
+                " el Resumen del aritculo es el siguiente ".$elformulario['Resumen'][0].
+                ". Tu respuesta siempre debe contener la calificacion con este patron: 'Calificación: (numero 0-5)".
+                ""
+                ;
+
+            $ChatR = self::davinci($elpromp, $usuario,$materia,'Califico un articulo (el id es de la materia)');
+//            $ChatR =['respuesta' => self::respuestaLarga, 'restarAlToken' => 0];
+            $miMismo = new HelpArticulo();
+            $valorArticulo = $miMismo->extraerCalificacion($ChatR['respuesta']);
+
             Calificacion::UpdateOrInsert(
                 [
                     'libre_id' => $articuloid,
-                    'Modelo_de_libre_id' => 'articulo_id',
+                    'Modelo_de_libre' => 'articulo_id',
                     'user_id' => $elformulario['user_id'],
                     'QuienCalifico' => auth()->user()->id
-                ], [
+                ],[
                 'TipoPrueba' => 'Articulo',
-                'prompUsado' => 'Calificacion Manual',
-                'valor' => $notaManual,
-                'valor_Resumen' => $notaManual,
-                'valor_Introduccion' => $notaManual,
-                'valor_Discusion' => $notaManual,
-                'valor_Conclusiones' => $notaManual,
-                'valor_Metodologia' => $notaManual,
-                'tokens' => 0,
+                'argumentoIA' => $ChatR['respuesta'],
+                'prompUsado' => $elpromp,
+                'valorIA' => $valorArticulo,
+                'valor_Resumen' => $valorArticulo,
+                'valor_Introduccion' => $valorArticulo,
+                'valor_Discusion' => $valorArticulo,
+                'valor_Conclusiones' => $valorArticulo,
+                'valor_Metodologia' => $valorArticulo,
+                'tokens' => $ChatR['restarAlToken'],
             ]);
-            return ['respuesta' => 'Se guardo la nota','restarAlToken' => 0];
-        }else{
 
-            if (!$debug) {
-                $Instruccion = Parametro::find(2)->prompObjetivos;
-                
-                $elpromp = $Instruccion.
-                    "Teniendo encuenta que el contexto es de la carrera universitaria ". $carrera->nombre.",".
-                    " Y de la asignatura: $materia->nombre,".
-                    " el Resumen del aritculo es el siguiente ".$elformulario['Resumen'][0].
-                    ". Tu respuesta siempre debe contener la calificacion con este patron: 'Calificación: (numero 0-5)".
-                    ""
-                    ;
-
-                $ChatR = self::davinci($elpromp, $usuario,$materia,'Califico un articulo (el id es de la materia)');
-                $miMismo = new HelpArticulo();
-                $valorArticulo = $miMismo->extraerCalificacion($ChatR['respuesta']);
-
-                Calificacion::UpdateOrInsert(
-                    [
-                        'libre_id' => $articuloid,
-                        'Modelo_de_libre_id' => 'articulo_id',
-                        'user_id' => $elformulario['user_id'],
-                        'QuienCalifico' => auth()->user()->id
-                    ],[
-                    'TipoPrueba' => 'Articulo',
-                    'prompUsado' => $elpromp,
-                    'valor' => $valorArticulo,
-                    'valor_Resumen' => $valorArticulo,
-                    'valor_Introduccion' => $valorArticulo,
-                    'valor_Discusion' => $valorArticulo,
-                    'valor_Conclusiones' => $valorArticulo,
-                    'valor_Metodologia' => $valorArticulo,
-                    'tokens' => $ChatR['restarAlToken'],
-                ]);
-                
-                return $ChatR;
-            }else{
-                //debugin
-                return ['respuesta' => 'un texto mass largo ome', 'restarAlToken' => 0];
-            }
+            return $ChatR;
         }
+        //debugin
+        return ['respuesta' => 'un texto mass largo ome', 'restarAlToken' => 0];
     }
 
 
@@ -119,7 +146,6 @@ class HelpArticulo {
         //     'respuesta' => [$elpromp.' Respondiendo cualquier cosa temporalmente. mucho texto'],
         //     'restarAlToken' => 0,
         // ];
-        
         $client = OpenAI::client(env('GTP_SELECT'));
         $result = $client->completions()->create([
             'model' => 'text-davinci-003',
@@ -131,54 +157,81 @@ class HelpArticulo {
         $finishReason = $result['choices'][0];
         $finishingReason = $finishReason["finish_reason"] ?? '';
 
-        if ($finishingReason == 'stop') {
-            $usageRespuesta = intval($result['usage']["completion_tokens"]); //~ 260
-            $usageRespuestaTotal = intval($result['usage']["total_tokens"]); //~ 500
+        if ($finishingReason === 'stop') {
+            $usageRespuesta = ($result['usage']["completion_tokens"]); //~ 260
+            $usageRespuestaTotal = ($result['usage']["total_tokens"]); //~ 500
             $restarAlToken = HelpGPT::CalcularTokenConsumidos($usageRespuesta, $usageRespuestaTotal);
 
-            $tokensAntes = intval($usuario->limite_token_leccion);
-            $usuario->update(['limite_token_leccion' => ($tokensAntes) - $restarAlToken]);
+            if($usuario){
+                $tokensAntes = ($usuario->limite_token_leccion);
+                $usuario->update(['limite_token_leccion' => ($tokensAntes) - $restarAlToken]);
 
-            MedidaControl::create([
-                'pregunta' => $elpromp,
-                'respuesta_guardada' => $respuesta,
-                'RazonNOSubtopico' => $Razon,
-                'subtopico_id' => $materia->id,
-                'tokens_usados' => $restarAlToken,
-                'user_id' => $usuario->id
-            ]);
-
+                MedidaControl::create([
+                    'pregunta' => $elpromp,
+                    'respuesta_guardada' => $respuesta,
+                    'RazonNOSubtopico' => $Razon,
+                    'subtopico_id' => $materia->id,
+                    'tokens_usados' => $restarAlToken,
+                    'user_id' => $usuario->id
+                ]);
+            }
             return [
                 'respuesta' => $respuesta,
                 'restarAlToken' => $restarAlToken,
             ];
-        } else {
-            if ($finishingReason == 'length') {
-                return [
-                    'respuesta' => [self::respuestaLarga],
-                    'restarAlToken' => 0,
-                ];
-            } else {
-                return [
-                    'respuesta' => ['El servicio no esta disponible'],
-                    'restarAlToken' => 0,
-                ];
-            }
         }
 
+        if ($finishingReason === 'length') {
+            return [
+                'respuesta' => [self::respuestaLarga],
+                'restarAlToken' => 0,
+            ];
+        }
+
+        return [
+            'respuesta' => ['El servicio no esta disponible'],
+            'restarAlToken' => 0,
+        ];
     }
 
-    public function extraerCalificacion($textoRespuesta){
+    public function ConsultarCalificacion($articuloId){
+        $LaCalificacion = Calificacion::Where('TipoPrueba','Articulo')
+            ->Where('libre_id',$articuloId)
+            ->WhereNotNull('valor')
+            ->first();
+        $calificacionARticulo = -1;
+        if($LaCalificacion){
+            $calificacionARticulo = $LaCalificacion->valor;
+        }
 
+        $CalificacionIA = Calificacion::Where('TipoPrueba','Articulo')
+            ->Where('libre_id',$articuloId)
+            ->WhereNotNull('valorIA')
+            ->first();
+        $calificacionARticuloIA = -1;
+        if($CalificacionIA){
+            $calificacionARticuloIA = $CalificacionIA->valorIA;
+        }
+        return [
+            'docente' => $calificacionARticulo,
+            'IA' => $calificacionARticuloIA,
+            'ModelCalificacionIA' => $CalificacionIA
+        ];
+    }
+    public function extraerCalificacion($textoRespuesta){
         $parteCalificacion = strpos(($textoRespuesta), 'Calificación:');
         if ($parteCalificacion !== false) {
             $Calificacion = (substr($textoRespuesta,$parteCalificacion+15,1));
         }
         $Myhelp = new MyHelp();
-        $calif = $Myhelp->SePuedeConvertirAEntero($Calificacion);
+        if(isset($Calificacion)){
+            $calif = $Myhelp->SePuedeConvertirAEntero($Calificacion);
+        }else{
+            $calif = 0;
+        }
 
-        
-        
         return $calif;
     }
+
+
 }

@@ -94,7 +94,7 @@ function inicializarForm(){
     console.log("🧈 debu indexMat:", indexMat);
     data.materiaid = props.Selects.opcionesAsignatura[props.articulo.carrera_id][indexMat]
     console.log("🧈 debu props.Selects.opcionesAsignatura[props.articulo.carrera_id]:", props.Selects.opcionesAsignatura[props.articulo.carrera_id]);
-    
+
 };
 
 onMounted(() => {
@@ -148,39 +148,40 @@ const scrollToTop = () => {
 }
 
 const OptimizarResumenOIntroduccion = async (elTexto, tipoTexto) => {
-    console.log("🧈 debu tipoTexto:", tipoTexto);
+    console.log("🧈 debu tipoTexto:", elTexto);
     data.errorCarrera = [];
     data.mostrarLoader = true;
     data.tipoTexto = tipoTexto
     const tamanoMinimo = 10
-
-    let TieneSuficientesPalabras = ContarPalabras(elTexto) > tamanoMinimo || elTexto.length > (tamanoMinimo * 5)
-    if (TieneSuficientesPalabras) {
-        if (data.materiaid && data.materiaid.value) {
-            form[data.tipoTexto][0] = form[data.tipoTexto][2] ? form[data.tipoTexto][2] : form[data.tipoTexto][0]
-            router.reload({
-                only: [
-                    'ValoresGenerarSeccion',
-                ],
-                data: {
-                    elTexto: elTexto,
-                    materia: data.materiaid.value,
-                    tipoTexto: tipoTexto,
-                },
-            }, {
-                preserveScroll: true,
-                onSuccess: () => {
-                },
-                onError: () => alert(JSON.stringify(form.errors, null, 4)),
-                onFinish: () => {
-                    data.mostrarLoader = false
-                }
-            })
+    if(elTexto){
+        let TieneSuficientesPalabras = ContarPalabras(elTexto) > tamanoMinimo || elTexto.length > (tamanoMinimo * 5)
+        if (TieneSuficientesPalabras) {
+            if (data.materiaid && data.materiaid.value) {
+                form[data.tipoTexto][0] = form[data.tipoTexto][2] ? form[data.tipoTexto][2] : form[data.tipoTexto][0]
+                router.reload({
+                    only: [
+                        'ValoresGenerarSeccion',
+                    ],
+                    data: {
+                        elTexto: elTexto,
+                        materia: data.materiaid.value,
+                        tipoTexto: tipoTexto,
+                    },
+                }, {
+                    preserveScroll: true,
+                    onSuccess: () => {
+                    },
+                    onError: () => alert(JSON.stringify(form.errors, null, 4)),
+                    onFinish: () => {
+                        data.mostrarLoader = false
+                    }
+                })
+            } else {
+                data.errorCarrera[0] = 'Seleccione una asignatura primero';
+            }
         } else {
-            data.errorCarrera[0] = 'Seleccione una asignatura primero';
+            data.errorCarrera[tipoTexto] = 'El texto a perfeccionar es muy corto';
         }
-    } else {
-        data.errorCarrera[tipoTexto] = 'El texto a perfeccionar es muy corto';
     }
     data.mostrarLoader = false;
 }
@@ -273,7 +274,7 @@ const update = () => {
                         <p v-if="data.restarAlToken && data.restarAlToken != 0" class="text-sky-600 dark:text-gray-400">Se
                             consumió: {{ data.restarAlToken }} token</p>
                     </div>
-                    
+
 
                     <div v-for="(campo) in data.campos" :key="campo.id">
                         <div v-if="data.NumSujerencias[campo.id]" class="grid grid-cols-2 gap-8">
@@ -299,7 +300,7 @@ const update = () => {
                                         class="block w-full px-5 py-3 mt-2 text-white font-sans bg-black border border-sky-600 select-none
                                         rounded-lg dark:placeholder-gray-600 dark:bg-gray-200 dark:text-gray-800 dark:border-gray-700 focus:border-blue-400
                                          dark:focus:border-blue-400 focus:ring-blue-400 focus:outline-none focus:ring focus:ring-opacity-40 text-justify" >
-                                        {{ form[campo.id][1][0] }}
+                                        {{ form[campo.id][1] }}
                                     </div>
                                 </div>
                             </div>
@@ -316,6 +317,9 @@ const update = () => {
                                 </div>
                             </div>
                         </div>
+
+
+                        <!-- si esta sin revisar por la ia-->
                         <div v-else>
                             <div class="">
                                 <label :for="campo.id" class="rounded-2xl px-10 text-gray-500 text-xl font-bold dark:text-gray-400 shadow-sm bg-gradient-to-r from-gray-50 via-gray-100 to-sky-100 mb-2">
@@ -335,7 +339,7 @@ const update = () => {
                             </div>
                         </div>
 
-                        <div v-if="campo.id == 'Resumen' || campo.id == 'Introduccion' || campo.id == 'Metodologia' || campo.id == 'Discusion' || campo.id == 'Conclusiones'"
+                        <div v-if="campo.id === 'Resumen' || campo.id === 'Introduccion' || campo.id === 'Metodologia' || campo.id === 'Discusion' || campo.id === 'Conclusiones'"
                             class="">
                             <div class="flex items-center my-2">
                                 <p v-if="data.errorCarrera[0]" class="text-red-500 dark:text-red-200 underline">
@@ -345,8 +349,8 @@ const update = () => {
                                 <p v-if="data.restarAlToken && data.restarAlToken != 0" class="text-sky-600 text-lg dark:text-gray-600">Se
                                     consumió: {{ data.restarAlToken }} token</p>
                             </div>
-    
-                            <GreenButton 
+
+                            <GreenButton
                                 :class="{ 'opacity-25': data.mostrarLoader }" :disabled="data.mostrarLoader"
                                 @click="OptimizarResumenOIntroduccion(form[campo.id][2] ? form[campo.id][2] : form[campo.id][0], campo.id)"
                                 class="ml-3 mt-1 px-10 py-3 outline outline-offset-2 ring-2 ring-green-700">
@@ -360,7 +364,7 @@ const update = () => {
                                 <p v-if="data.errorCarrera[campo.id]" class="text-red-500 dark:text-red-200 underline">
                                     {{ data.errorCarrera[campo.id] }}</p>
                             </div>
-                            
+
                         </div>
 
                         <hr class="border-2 border-sky-100 my-8">
@@ -371,7 +375,7 @@ const update = () => {
                             class="w-1/3 item-center px-6 py-3 mt-4 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-sky-500 rounded-lg hover:bg-blue-400 focus:outline-none focus:ring focus:ring-blue-300 focus:ring-opacity-50">
                             Actualizar
                         </button>
-                        <button type="button" @click="scrollToTop" 
+                        <button type="button" @click="scrollToTop"
                             class="w-1/3 hover:bg-green-500 item-center px-6 py-3 mt-4 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-sky-800 rounded-lg focus:outline-none focus:ring focus:ring-blue-300 focus:ring-opacity-50">
                             Ir al Inicio</button>
 

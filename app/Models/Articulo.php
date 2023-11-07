@@ -4,18 +4,19 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Articulo extends Model
 {
-    use HasFactory;
+    use HasFactory,SoftDeletes;
 
     protected $fillable = [
         'nick',
         'version',
         'Portada',
         'Resumen', // Revisar sujerencias
-        'Resumen_ia', 
-        'Resumen_final', 
+        'Resumen_ia',
+        'Resumen_final',
         'Palabras_Clave',
         'Introduccion',// Revisar sujerencias
         'Introduccion_ia',
@@ -39,6 +40,7 @@ class Articulo extends Model
         'carrera_id',
         'materia_id',
         'libre_id',
+        'Modelo_de_libre',
 
         'Resumen_integer',
         'Introduccion_integer',
@@ -51,13 +53,23 @@ class Articulo extends Model
         'Discusion_critica',
         'Conclusiones_critica',
         'Metodologia_critica',
+
+        'tipo',
+        'Critica_string',
+        'Referencias_ai',
+        'links_ai',
+
+        'Resumen_correcciones',
+        'Introduccion_correcciones',
+        'Metodologia_correcciones',
+        'Discusion_correcciones',
+        'Conclusiones_correcciones',
     ];
 
     protected $totalPreguntas = ['total'];
 
-    public function calculateTotal()
-    {
-        $this->attributes['total'] = 
+    public function calculateTotal(){
+        $this->attributes['total'] =
             $this->Resumen_integer +
             $this->Introduccion_integer +
             $this->Discusion_integer +
@@ -70,11 +82,23 @@ class Articulo extends Model
         return $this->user->name;
     }
     public function calificacion() { return $this->hasMany(Calificacion::class, 'libre_id'); }
-    public function calificacion_name(): string {
-        $calif = $this->calificacion->Where('Modelo_de_libre_id',"articulo_id");
-        if($calif && $calif->count() > 0) {
+    public function calificacion_name(): float {
+        $calif = $this->calificacion->Where('Modelo_de_libre',"articulo_id");
+        if($calif && $calif->count() > 0 && $calif->first()->valor) {
             return $calif->first()->valor;
         }
         return 0;
+    }
+    public function calificacion_IA(): float {
+        $calif = $this->calificacion->Where('Modelo_de_libre',"articulo_id");
+        if($calif && $calif->count() > 0 && $calif->first()->valorIA) {
+            return $calif->first()->valorIA;
+        }
+        return 0;
+    }
+
+    public function PromedioValores() : float
+    {
+        return $this->calificacion->first()->PromedioValores();
     }
 }

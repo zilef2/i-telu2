@@ -20,17 +20,17 @@ class ParametroSeeder extends Seeder
             'prompObjetivos'        => 'Eres un rector de universidad experimentado. Genera 3 ideas para el objetivo de la asignatura: ', //necesita nombre de la materia
             'pMejoraContinua'       => " Estoy tratando de mejorar mi compresion en [Unidad]. Hazme una pregunta algebraica y sigue haciéndome preguntas adaptativas para que yo mejore. Si obtengo la respuesta correcta, dame una pregunta más difícil, si respondo mal, proporciona retroalimentación y dame una pregunta más fácil. ",
             'prompExplicarTema'     => "Eres un experto en la asignatura de (asignatura), explica el tema:(tema) de la unidad (Unidad) para un estudiante de nivel (nivel).",
-            
+
             'NumeroTicketDefecto'   => 15, //ticket: numero promedio de preguntas que puede realizarle a la IA
         ]);
         Parametro::create([
             'id' => 2,
-            'prompEjercicios'       => "Por favor, mejore la argumentación, coherencia y unidad del siguiente texto. Evitando las posibles redundancias. ",
+            'prompEjercicios'       => "Sugiera una Mejora en la argumentación, coherencia y unidad, Evitando las posibles redundancias del siguiente texto. No continue con la redaccion, solo mejore el contenido del texto",
             'prompObjetivos'        => "Califique el siguiente articulo universitario, siendo 0 la nota mas baja y 5 la mas alta (un trabajo perfecto). ",
             'pMejoraContinua'       => "",
             'prompExplicarTema'     => "",
-            
-            'NumeroTicketDefecto'   => 0, 
+
+            'NumeroTicketDefecto'   => 0,
         ]);
         Parametro::create([
             'id' => 3,
@@ -38,8 +38,21 @@ class ParametroSeeder extends Seeder
             'prompObjetivos'        => "200",
             'pMejoraContinua'       => "300",
             'prompExplicarTema'     => "0",
-            
-            'NumeroTicketDefecto'   => 0, 
+
+            'NumeroTicketDefecto'   => 0,
         ]);
-    }
+
+        //https://typeset.io/library/
+        Parametro::create([ //scispace
+            'id' => 4,
+
+            'prompEjercicios'       => "Explique el resumen de este artículo en 2 líneas.",
+            'prompObjetivos'        => "¿Cuáles son los aportes de este trabajo?",
+            'pMejoraContinua'       => "Buscar artículos relacionados",
+            'prompExplicarTema'     => "Explique las implicaciones prácticas de este artículo.",
+
+            'NumeroTicketDefecto'   => 0,
+        ]);
+    } //php artisan db:seed --class=ParametroSeeder
+
 }

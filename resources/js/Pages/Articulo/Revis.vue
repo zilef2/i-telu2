@@ -21,9 +21,13 @@ const props = defineProps({
     breadcrumbs: Object,
 
     numberPermissions: Number,
+    CalifiConslta: Array,
+    CalifiInicial: Object,
     articulo: Object,
 
-    Selects: Object,
+    Universidad: Object,
+    Carrera: Object,
+    Materia: Object,
     ValoresGenerarSeccion: Object,
 });
 
@@ -32,7 +36,7 @@ const props = defineProps({
 const data = reactive({
     mostrarLoader: false,
     MensajeFinal: '',
-    calificacion: '',
+    calificacionBackend: '',
     restarAlToken: 0,
     NumSujerencias: [],
     errorCarrera: [],
@@ -40,39 +44,42 @@ const data = reactive({
         { id: 'nick', etiqueta: 'Titulo del articulo', valor: [] },
         { id: 'Portada', etiqueta: NoUnderLines('Portada'), valor: [] },
         { id: 'Resumen', etiqueta: NoUnderLines('Resumen'), valor: [] },
+        { id: 'Resumen_correcciones', etiqueta: NoUnderLines('Resumen_correcciones'), valor: '' },
         { id: 'Palabras_Clave', etiqueta: NoUnderLines('Palabras Clave'), valor: [] },
         { id: 'Introduccion', etiqueta: NoUnderLines('Introduccion'), valor: [] },
+        { id: 'Introduccion_correcciones', etiqueta: NoUnderLines('Introduccion_correcciones'), valor: '' },
         { id: 'Revision_de_la_Literatura', etiqueta: NoUnderLines('Revision de la Literatura'), valor: [] },
         { id: 'Metodologia', etiqueta: NoUnderLines('Metodologia'), valor: [] },
+        { id: 'Metodologia_correcciones', etiqueta: NoUnderLines('Metodologia_correcciones'), valor: '' },
         { id: 'Resultados', etiqueta: NoUnderLines('Resultados'), valor: [] },
         { id: 'Discusion', etiqueta: NoUnderLines('Discusion'), valor: [] },
+        { id: 'Discusion_correcciones', etiqueta: NoUnderLines('Discusion_correcciones'), valor: '' },
         { id: 'Conclusiones', etiqueta: NoUnderLines('Conclusiones'), valor: [] },
+        { id: 'Conclusiones_correcciones', etiqueta: NoUnderLines('Conclusiones_correcciones'), valor: '' },
         { id: 'Agradecimientos', etiqueta: NoUnderLines('Agradecimientos'), valor: [] },
         { id: 'Referencias', etiqueta: NoUnderLines('Referencias'), valor: [] },
         { id: 'Anexos_o_Apendices', etiqueta: NoUnderLines('Anexos_o_Apendices'), valor: [] },
     ],
-    universidadid: null,
-    carreraid: null,
-    materiaid: null,
     tipoTexto: '',
     campoActivo: null,
-    calif: null,
+    calificacionDocente: 3,
+    EstaCalificado: props.CalifiInicial['docente'] >= 0,
+    EstaCalificadoIA: props.CalifiInicial['IA'] >= 0,
+    CalifiActual : props.CalifiInicial,
 })
+console.log(data.EstaCalificado)
+console.log(props.calificacionARticulo)
 const form = useForm({
     ...Object.fromEntries(data.campos.map(field => [field.id, []])),
 
-    universidadid: null,
-    carreraid: null,
-    materiaid: null,
     user_id:0,
     Resumen_integer:0,
     Introduccion_integer:0,
     Discusion_integer:0,
     Conclusiones_integer:0,
     Metodologia_integer:0,
-
+    is_correcciones:true
 });
-
 
 function inicializarForm(){
     form.nick[0] = props.articulo.nick
@@ -89,17 +96,7 @@ function inicializarForm(){
     form.Referencias[0] = props.articulo.Referencias
     form.Anexos_o_Apendices[0] = props.articulo.Anexos_o_Apendices
     form.user_id = props.articulo.user_id
-
-    let indexUniversidad = props.Selects.opcionesU.findIndex((ele) => ele.value == props.articulo.universidad_id)
-    data.universidadid = props.Selects.opcionesU[indexUniversidad]
-    
-    let indexCarrera = props.Selects.opcionesCarreras[props.articulo.universidad_id].findIndex((ele) => ele.value == props.articulo.carrera_id)
-    data.carreraid = props.Selects.opcionesCarreras[props.articulo.universidad_id][indexCarrera]
-
-    let indexMat = props.Selects.opcionesAsignatura[props.articulo.carrera_id].findIndex((ele) => ele.value == props.articulo.materia_id)
-    data.materiaid = props.Selects.opcionesAsignatura[props.articulo.carrera_id][indexMat]
-    
-};
+}
 
 onMounted(() => {
     let ele;
@@ -110,29 +107,23 @@ onMounted(() => {
 
     inicializarForm()
 })
-
-watchEffect(() => {
-})
-
-// watch(() => data.universidadid, (newX) => {
-//     if (newX.value !== 0)
-//         data.carreraid = props.Selects.opcionesCarreras[newX.value][1];
-// })
-
-// watch(() => data.carreraid, (newX) => {
-//     if (newX.value !== 0)
-//         data.materiaid = props.Selects.opcionesAsignatura[newX.value][1];
-// })
-
+watchEffect(() => {})
 watch(() => props.ValoresGenerarSeccion, (newX) => {
-    // data.NumSujerencias[data.tipoTexto] = true
-    console.log("🧈 debu newX:", newX);
+
+    // console.log("🧈 debu newX:", newX);
     if (newX && newX.respuesta) {
-        data.calificacion = newX.respuesta
+        data.calificacionBackend = newX.respuesta
+        data.CalifiActual = props.CalifiConslta
+        //todo: newX.restarAlToken
         // form[data.tipoTexto][2] = form[data.tipoTexto][0]
         // data.restarAlToken = newX.restarAlToken
         // data.NumSujerencias[data.tipoTexto]++;
         // console.log("🧈 debu data.NumSujerencias:", data.NumSujerencias);
+
+        setTimeout(function() {
+            data.mostrarLoader = false;
+            window.location.reload();
+        },500)
     }
 
 })
@@ -149,50 +140,41 @@ const scrollToTop = () => {
         behavior: 'smooth'
       });
 }
-//aquiiii hay que actualizar la tabla calificacion
-const CalificarArticulo = async (notaManual = null) => {
+const CalificarArticulo = (notaManual = null) => {
 
     data.errorCarrera = [];
     data.mostrarLoader = true;
-    form.universidadid = props.articulo.universidad_id
-    form.carreraid = props.articulo.carrera_id
-    form.materiaid = props.articulo.materia_id
+    // data.laNotaEsManual = notaManual !== null;
 
-    if (data.materiaid && data.materiaid.value) {
-        router.reload({
-            only: [
-                'ValoresGenerarSeccion',
-            ],
-            data: {
-                elformulario: form,
-                articuloid: props.articulo.id,
-                notaManual: notaManual,
-            },
-        }, {
-            preserveScroll: true,
-            onSuccess: () => {
-            },
-            onError: () => alert(JSON.stringify(form.errors, null, 4)),
-            onFinish: () => {
-                data.mostrarLoader = false
-            }
-        })
-    } else {
-        data.errorCarrera[0] = 'Seleccione una asignatura primero';
-    }
-    data.mostrarLoader = false;
+    router.reload({
+        only: [
+            'ValoresGenerarSeccion',
+            'CalifiConslta',
+        ],
+        data: {
+            elformulario: form,
+            articuloid: props.articulo.id,
+            notaManual: notaManual,
+        },
+    }, {
+        preserveScroll: true,
+        onSuccess: () => {},
+        onError: () => alert(JSON.stringify(form.errors, null, 4)),
+        onFinish: () => {
+            setTimeout(function() {
+                data.mostrarLoader = false;
+            },500)
+        }
+        // setTimeout(function() {
+        //     data.mostrarLoader = false;
+        // }, 500);
+    })
+
 }
 
 const update = () => {
-    form.Resumen_integer = data.NumSujerencias['Resumen']
-    form.Introduccion_integer = data.NumSujerencias['Introduccion']
-    form.Discusion_integer = data.NumSujerencias['Discusion']
-    form.Conclusiones_integer = data.NumSujerencias['Conclusiones']
-    form.Metodologia_integer = data.NumSujerencias['Metodologia']
 
-    form.universidadid = data.universidadid
-    form.carreraid = data.carreraid
-    form.materiaid = data.materiaid
+    form.is_correcciones = true
 
     form.put(route('Articulo.update',props.articulo.id), {
         preserveScroll: true,
@@ -225,11 +207,19 @@ const update = () => {
                             <p class="text-gray-500 text-center text-xl font-bold dark:text-gray-400">{{ data.universidadid.title }}</p>
                         </div>
                         <div class="">
-                            <p v-if="data.carreraid && data.materiaid" id="opciones2U" class="w-full"> 
+                            <p v-if="data.carreraid && data.materiaid" id="opciones2U" class="w-full">
                                 {{data.carreraid.title}}, {{data.materiaid.title}}
                             </p>
                         </div>
-
+                        <p class="my-1 text-gray-500 dark:text-gray-400">
+                            {{ props.Universidad.nombre }}
+                        </p>
+                        <p class="my-1 text-gray-500 dark:text-gray-400">
+                            {{ props.Carrera.nombre }}
+                        </p>
+                        <p class="my-1 text-gray-500 dark:text-gray-400">
+                            {{ props.Materia.nombre }}
+                        </p>
                         <h1 v-if="!form.nick"
                             class="mt-4 text-2xl font-semibold tracking-wide text-center text-gray-800 capitalize md:text-3xl dark:text-white">
                             Nuevo articulo </h1>
@@ -237,20 +227,9 @@ const update = () => {
                             class="mt-4 text-2xl font-semibold tracking-wide text-center text-gray-800 capitalize md:text-3xl dark:text-white">
                             {{form.nick[0]}}
                         </h1>
-                        <p class="my-6 text-gray-500 font-bold dark:text-gray-400">
-                            Este asistente ha sido diseñado con el propósito de mejorar la argumentación, la coherencia y la cohesión de su discurso. Se presenta como una herramienta de apoyo que no busca sustituir su habilidad para realizar críticas argumentativas. Le animo de manera cordial a redactar su texto y, con el máximo cuidado, le proporcionaremos sugerencias valiosas.
-                        </p>
                     </div>
-                    <div v-if="!data.mostrarLoader" class="text-center">
-                        <GreenButton 
-                            :class="{ 'opacity-25': data.mostrarLoader }" :disabled="data.mostrarLoader"
-                            @click="CalificarArticulo()"
-                            class="ml-3 px-10 py-2 outline outline-offset-2 ring-2 ring-green-700">
-                                {{ data.mostrarLoader ? 'Calificando...' : 'Calificar Con IA' }}
-                        </GreenButton>
+                    <div v-if="!data.mostrarLoader" class="items-center self-center">
 
-                        
-                            
                         <button type="button" @click="scrollToBottom"
                             class="w-22 hover:bg-green-500 item-center px-6 py-2 mt-4 mx-8 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-sky-800 rounded-lg focus:outline-none focus:ring focus:ring-blue-300 focus:ring-opacity-50">
                             Ir al final ↓
@@ -260,53 +239,89 @@ const update = () => {
                             Regresar
                         </Link>
                     </div>
-                    <div v-if="!data.mostrarLoader" class="self-center inline-flex gap-10">
-                        <div class="text-center mx-auto">
-                            <label for="" class="mx-6 text-center">Coloque una nota a este articulo</label>
-                            <input type="number" step="0.5" min="0" max="5" v-model="data.calif">
-                            <GreenButton v-if="data.calif != ''"
-                                :class="{ 'opacity-25': data.mostrarLoader }" :disabled="data.mostrarLoader"
-                                @click="CalificarArticulo(data.calif)"
-                                class="ml-3 px-10 py-2 outline outline-offset-2 ring-2 ring-green-700">
-                                    {{ data.mostrarLoader ? 'Calificando...' : 'Calificar Manualmente' }}
-                            </GreenButton>
+
+                    <!--IA-->
+                    <div v-if="data.CalifiActual['IA'] === -1" class="text-center inline-flex gap-4 mx-auto">
+                        <label for="" class="mx-6 text-center">La IA revisará el articulo y pondrá una nota a este articulo</label>
+                        <GreenButton
+                            :class="{ 'opacity-25': data.mostrarLoader }" :disabled="data.mostrarLoader"
+                            @click="CalificarArticulo()"
+                            class="self-center text-center ml-3 px-10 py-2 outline outline-offset-2 ring-2 ring-green-700">
+                            {{ data.mostrarLoader ? 'Calificando...' : 'Calificar Con IA' }}
+                        </GreenButton>
+                    </div>
+                    <div v-else class="">
+                        <div class="bg-white pb-1 sm:pb-8 lg:pb-2">
+                            <div class="relative flex flex-wrap bg-gray-100 px-4 py-3 sm:flex-nowrap sm:items-center sm:justify-center sm:gap-3 sm:pr-8 md:px-8">
+                                <div class="order-1 mb-2 inline-block w-11/12 max-w-screen-sm text-sm text-black sm:order-none sm:mb-0 sm:w-auto md:text-base">
+                                    Nota de la IA:
+                                </div>
+                                <a href="#" class="order-last inline-block w-full whitespace-nowrap rounded-lg bg-indigo-600 px-4 py-2 text-center text-xs font-semibold text-white outline-none ring-indigo-300 transition duration-100 hover:bg-indigo-700 focus-visible:ring active:bg-indigo-800 sm:order-none sm:w-auto md:text-sm">
+                                    {{ data.CalifiActual['IA'] }}
+                                </a>
+                            </div>
+                            <div v-if="data.CalifiActual['ModelCalificacionIA']" class="relative flex flex-wrap bg-gray-100 px-4 py-3 sm:flex-nowrap sm:items-center sm:justify-center sm:gap-3 sm:pr-8 md:px-8">
+                                <div class="order-1 mb-2 inline-block w-11/12 max-w-screen-sm text-sm text-black sm:order-none sm:mb-0 sm:w-auto md:text-base">
+                                    {{ data.CalifiActual['ModelCalificacionIA']['argumentoIA'] }}
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div v-if="data.mostrarLoader" class="mt-2"> <Generando /> </div>
 
-                    <div class="flex items-center mt-2">
-                        <p v-if="data.errorCarrera[0]" class="text-red-500 dark:text-red-200 underline">
+                    <!--docente-->
+                    <div v-if="data.CalifiActual['docente'] === -1" class="mx-auto self-center inline-flex gap-10">
+                        <div v-if="!data.mostrarLoader" class="">
+                            <div class="text-center mx-auto">
+                                <label for="" class="mx-6 text-center">Coloque una nota a este articulo</label>
+                                <input type="number" step="0.1" min="0" max="5" v-model="data.calificacionDocente"
+                                       class="w-20 rounded border bg-gray-50 pl-5 py-1 text-gray-800 font-bold outline-none ring-indigo-300 transition duration-100 focus:ring">
+                                <GreenButton v-if="data.calificacionDocente !== ''"
+                                    :class="{ 'opacity-25': data.mostrarLoader }" :disabled="data.mostrarLoader"
+                                    @click="CalificarArticulo(data.calificacionDocente)"
+                                    class="ml-3 px-10 py-2 outline outline-offset-2 ring-2 ring-green-700">
+                                        {{ data.mostrarLoader ? 'Calificando...' : 'Calificar Manualmente' }}
+                                </GreenButton>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else class="">
+                        <div class="bg-white pb-6 sm:pb-8 lg:pb-6">
+                            <div class="relative flex flex-wrap bg-gray-100 px-4 py-3 sm:flex-nowrap sm:items-center sm:justify-center sm:gap-3 sm:pr-8 md:px-8">
+                                <div class="order-1 mb-2 inline-block w-11/12 max-w-screen-sm text-sm text-black sm:order-none sm:mb-0 sm:w-auto md:text-base">
+                                    Nota del docente:
+                                </div>
+                                <a href="#" class="order-last inline-block w-full whitespace-nowrap rounded-lg bg-indigo-600 px-4 py-2 text-center text-xs font-semibold text-white outline-none ring-indigo-300 transition duration-100 hover:bg-indigo-700 focus-visible:ring active:bg-indigo-800 sm:order-none sm:w-auto md:text-sm">
+                                    {{ data.CalifiActual['docente'] }}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="data.mostrarLoader" class="mt-2"> <Generando /> </div>
+                    <div v-if="data.errorCarrera[0]" class="flex items-center mt-2">
+                        <p  class="text-red-500 dark:text-red-200 underline">
                             {{ data.errorCarrera[0] }}</p>
                     </div>
 
-                    <!-- calificacion -->
-                    <div v-if="data.calificacion != ''" class="">
+                    <div v-if="data.calificacionBackend !== ''" class="">
                         <label for="calificacion" class="text-gray-500 text-xl font-bold dark:text-gray-400 mb-2">
-                            Calificación
+                            Calificación (IA)
                         </label>
-                        <div v-if="data.calificacion != 'Se guardo la nota'" class="relative rounded-md shadow-sm select-none">
+                        <div v-if="data.calificacionBackend !== 'Se guardo la nota'" class="relative rounded-md shadow-sm select-none">
                             <div id="calificacion"
                                 class="block w-full px-5 py-3 mt-2 text-black font-sans bg-white
                                     dark:bg-gray-200 dark:text-gray-800 dark:border-gray-700 focus:border-blue-400
                                     dark:focus:border-blue-400 focus:ring-blue-400 focus:outline-none focus:ring focus:ring-opacity-40 text-justify" >
-                                {{ data.calificacion}}
-                            </div>
-                        </div>
-                        <div v-else class="relative rounded-md shadow-sm self-center items-center mx-auto">
-                            <div id="calificacion"
-                                class="text-center bg-green-200 w-full px-5 py-3 mt-2 text-black font-sans 
-                                    dark:bg-gray-200 dark:text-gray-800 dark:border-gray-700 focus:border-blue-400
-                                    dark:focus:border-blue-400 focus:ring-blue-400 focus:outline-none focus:ring focus:ring-opacity-40" >
-                                {{ data.calificacion}}
+                                {{ data.calificacionBackend}}
                             </div>
                         </div>
                     </div>
 
-                   
-                    
 
                     <div v-for="(campo) in data.campos" :key="campo.id">
+<!--                        aquiiiiii: traer el las sejerencias y ya, no se necesita data.NumSujerencias[campo.id]-->
                         <div v-if="data.NumSujerencias[campo.id]" class="grid grid-cols-2 gap-8">
+
                             <div class="">
                                 <label :for="campo.id" class="text-gray-500 text-xl font-bold dark:text-gray-400 mb-2">{{ campo.etiqueta }}</label>
                                 <div class="relative rounded-md shadow-sm">
@@ -315,15 +330,15 @@ const update = () => {
                                         class="block w-full px-5 py-3 mt-2 bg-gray-50 text-gray-700 placeholder-gray-400 border border-gray-200
                                         rounded-lg dark:placeholder-gray-600 dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700 focus:border-blue-400
                                          dark:focus:border-blue-400 focus:ring-blue-400 focus:outline-none focus:ring focus:ring-opacity-40 text-justify" />
-                                    <div v-if="data.campoActivo === campo.id && form[campo.id][0] == ''"
+                                    <div v-if="data.campoActivo === campo.id && form[campo.id][0] === ''"
                                         class="absolute inset-y-0 left-0 pl-3 flex items-center cursor-progress text-gray-400">
                                         Puede preguntar a la IA, haciendo click en Generar o Refinar
                                     </div>
                                 </div>
                             </div>
                             <div class="">
-                                <label :for="campo.id" class="text-gray-500 text-xl font-bold dark:text-gray-400 mb-2">Sugerencia {{
-                                    campo.etiqueta }}</label>
+                                <label :for="campo.id" class="text-gray-500 text-xl font-bold dark:text-gray-400 mb-2">
+                                    Sugerencia {{ campo.etiqueta }}</label>
                                 <div class="relative rounded-md shadow-sm select-none">
                                     <div :id="campo.id + '1'"
                                         class="block w-full px-5 py-3 mt-2 text-white font-sans bg-black border border-sky-600 select-none
@@ -334,8 +349,8 @@ const update = () => {
                                 </div>
                             </div>
                             <div class="col-span-2">
-                                <label :for="campo.id" class="text-gray-500 text-xl font-bold dark:text-gray-400 mb-2">{{ campo.etiqueta
-                                }} Final</label>
+                                <label :for="campo.id" class="text-gray-500 text-xl font-bold dark:text-gray-400 mb-2">
+                                    {{ campo.etiqueta }} Final</label>
                                 <div class="relative rounded-md shadow-sm">
                                     <textarea :id="campo.id + '2'" @focus="data.campoActivo = campo.id" rows="6" cols="33"
                                         @blur="data.campoActivo = null" v-model="form[campo.id][2]"
@@ -353,28 +368,15 @@ const update = () => {
                                 </label>
                                 <div class="relative rounded-md shadow-sm">
                                     <textarea :id="campo.id" @focus="data.campoActivo = campo.id" rows="4" cols="33"
-                                        @blur="data.campoActivo = null" v-model="form[campo.id][0]"
-                                        class="block w-full px-5 py-3 mt-2 text-gray-700 placeholder-gray-400 bg-white border border-gray-200
-                                        rounded-lg dark:placeholder-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 focus:border-blue-400
-                                         dark:focus:border-blue-400 focus:ring-blue-400 focus:outline-none focus:ring focus:ring-opacity-40" />
-                                    <div v-if="data.campoActivo === campo.id && form[campo.id][0] == ''"
-                                        class="absolute inset-y-0 left-0 pl-3 flex items-center cursor-progress text-gray-400">
-                                        Puede preguntar a la IA, haciendo click en Generar o Refinar
-                                    </div>
+                                      v-model="form[campo.id][0]"
+                                      :disabled="!(campo.id).endsWith('correcciones')"
+                                      :class="{ 'opacity-75 bg-gray-200': !(campo.id).endsWith('correcciones') }"
+                                      class="block w-full px-5 py-3 mt-2 border rounded-xl
+                                        placeholder-gray-400      text-gray-700      border-gray-200
+                                        dark:placeholder-gray-600 dark:text-gray-300 dark:border-gray-700
+                                        focus:border-blue-400"
+                                    />
                                 </div>
-                            </div>
-                        </div>
-
-                        <div v-if="campo.id == 'Resumen' || campo.id == 'Introduccion' || campo.id == 'Metodologia' || campo.id == 'Discusion' || campo.id == 'Conclusiones'"
-                            class="">
-                            <div class="flex items-center my-2">
-                                <p v-if="data.errorCarrera[0]" class="text-red-500 dark:text-red-200 underline">
-                                    {{ data.errorCarrera[0] }}</p>
-                            </div>
-    
-                            <div class="flex items-center mt-6">
-                                <p v-if="data.errorCarrera[campo.id]" class="text-red-500 dark:text-red-200 underline">
-                                    {{ data.errorCarrera[campo.id] }}</p>
                             </div>
                         </div>
 
@@ -386,7 +388,7 @@ const update = () => {
                             class="w-1/3 item-center px-6 py-3 mt-4 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-sky-500 rounded-lg hover:bg-blue-400 focus:outline-none focus:ring focus:ring-blue-300 focus:ring-opacity-50">
                             Actualizar
                         </button>
-                        <button type="button" @click="scrollToTop" 
+                        <button type="button" @click="scrollToTop"
                             class="w-1/3 hover:bg-green-500 item-center px-6 py-3 mt-4 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-sky-800 rounded-lg focus:outline-none focus:ring focus:ring-blue-300 focus:ring-opacity-50">
                             Ir al Inicio</button>
 

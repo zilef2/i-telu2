@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\helpers\HelpArticulo;
 use App\helpers\Myhelp;
+use App\Jobs\CriticarArticulo;
+use App\Models\Calificacion;
 use Inertia\Inertia;
 
 use App\Models\Articulo;
@@ -25,14 +27,25 @@ class ArticulosController extends Controller{
 
     private $modelName = 'Articulo';
     private $yaEstaFiltrada = false;
+    private $Myhelp;
+
+    public function __construct()
+    {
+        $this->Myhelp = new Myhelp();
+    }
 
     // - MapearClasePP, Filtros, losSelect
 
     public function MapearClasePP(&$Articulos, $numberPermissions) {
         if ($numberPermissions < 2 && !$this->yaEstaFiltrada) {
-            $Articulos = Auth::user()->articulos->flatMap(function ($articulo) {
-                return collect($articulo);
-            })->get();
+
+//            $Articulos = Auth::user()->articulos->flatMap(function ($articulo) {
+//                return collect($articulo);
+//            });
+            $IdArticulosDelUser = Auth::user()->articulos()->pluck('id');
+            $Articulos = $Articulos->WhereIn('id',$IdArticulosDelUser)->get();
+//            if(!$Articulos->isEmpty())
+//                $Articulos->get();
         } else {
             if($numberPermissions < 8){
                 $matrizMateriasEstudiantes = Auth()->user()->EstudiantesDelProfe();
@@ -49,6 +62,8 @@ class ArticulosController extends Controller{
         $Articulos = $Articulos->map(function ($Articulo) {
             $Articulo->hijo = $Articulo->user_name();
             $Articulo->cal = $Articulo->calificacion_name();
+            $Articulo->calIA = $Articulo->calificacion_IA();
+            $Articulo->PromedioValores = $Articulo->PromedioValores();
             return $Articulo;
         })->filter();
     }
@@ -74,18 +89,22 @@ class ArticulosController extends Controller{
                 ;
         }
     }
-    public function losSelect($numberPermissions) {
-        // if ($numberPermissions < intval(env('PERMISS_VER_FILTROS_SELEC'))) { //coorPrograma,profe,estudiante
-        //     $UserSelect = Articulo::WhereHas('articulos')->get();
-        // } else {
-            $UserSelect = User::WhereHas('roles', function ($query) {
-                return $query->whereNotIn('name', ['superadmin','admin']);
-            })->get();
-        // }
+    public function AutoSelect($numberPermissions) {
 
-        return [
-            'HijoSelec' => $UserSelect
-        ];
+        $myhelp = new Myhelp();
+        if($numberPermissions < 8){
+            $selecs = $myhelp->Vector_TurnInSelectID_AUTH(
+                ['universidades','carreras','materias'],
+                ['a universidad', 'a carrera', 'a materia'],
+            );
+        }else{
+            $selecs['universidades'] = Myhelp::NEW_turnInSelectID(Universidad::all(),'a universidad');
+            $selecs['carreras'] =      Myhelp::NEW_turnInSelectID(Carrera::all(),'a carrera');
+            $selecs['materias'] =      Myhelp::NEW_turnInSelectID(Materia::all(),'a materia');
+            $selecs['aviso'] = true;
+        }
+
+        return $selecs;
     }
 
     public function index(Request $request) {
@@ -94,7 +113,48 @@ class ArticulosController extends Controller{
 
         $titulo = __('app.label.Articulos');
         $permissions = auth()->user()->roles->pluck('name')[0];
-        $Articulos = Articulo::query();
+        //$Articulos = Articulo::query();
+        $Articulos = Articulo::query()->Where('tipo','Articulo');
+
+        $perPage = $request->has('perPage') ? $request->perPage : 10;
+        if ($permissions === "estudiante") {
+        } else { // not estudiante
+            $this->Filtros($request, $Articulos, $showMateria);
+        }
+        $this->MapearClasePP($Articulos, $numberPermissions);
+        $page = request('page', 1); // Current page number
+        $total = $Articulos->count();
+        $paginated = new LengthAwarePaginator(
+            $Articulos->forPage($page, $perPage),
+            $total,
+            $perPage,
+            $page,
+            ['path' => request()->url()]
+        );
+
+        $HijoSelec = $this->AutoSelect($numberPermissions);
+
+        return Inertia::render('Articulo/Index', [ //carpeta
+            'breadcrumbs'           =>  [['label' => __('app.label.Articulos'), 'href' => route('Articulo.index')]],
+            'title'                 =>  $titulo,
+            'filters'               =>  $request->all(['search', 'field',
+                                        'order'
+                                    ]),
+            'perPage'               =>  (int) $perPage,
+            'fromController'        =>  $paginated,
+            'HijoSelec'             =>  $HijoSelec,
+            'numberPermissions'     =>  $numberPermissions,
+        ]);
+    } //fin index
+
+    //index de solo resumenes
+    public function index2(Request $request) {
+        $permissions = Myhelp::EscribirEnLog($this, 'Resumenes');
+        $numberPermissions = Myhelp::getPermissionToNumber($permissions);
+
+        $titulo = __('app.label.Articulos');
+        $permissions = auth()->user()->roles->pluck('name')[0];
+        $Articulos = Articulo::Where('tipo','SoloesunResumen');
 
         $perPage = $request->has('perPage') ? $request->perPage : 10;
         if ($permissions === "estudiante") {
@@ -113,42 +173,62 @@ class ArticulosController extends Controller{
             ['path' => request()->url()]
         );
 
-        $HijoSelec = $this->losSelect($numberPermissions);
+        $HijoSelec = $this->AutoSelect($numberPermissions);
 
-        return Inertia::render('Articulo/Index', [ //carpeta
-            'breadcrumbs'       =>  [['label' => __('app.label.Articulos'), 'href' => route('Articulo.index')]],
-            'title'             =>  $titulo,
-            'filters'           =>  $request->all([
-                                        'search',
-                                        'field', 
+        //# generar()
+        $ValoresGenerarSeccion = Inertia::lazy(fn () => HelpArticulo::OptimizarResumen(
+            $request->elTexto,1
+//            $request->materia
+            // $request->tipoTexto
+        ));
+
+        return Inertia::render('Articulo/Index2', [ //carpeta
+            'breadcrumbs'           =>  [['label' => __('app.label.Articulos'), 'href' => route('Articulo.index')]],
+            'title'                 =>  $titulo,
+            'filters'               =>  $request->all(['search', 'field',
                                         'order'
                                     ]),
-
-            'perPage'           =>  (int) $perPage,
-            'fromController'    =>  $paginated,
-            'HijoSelec'         =>  $HijoSelec['HijoSelec'],
-            'numberPermissions' =>  $numberPermissions,
+            'perPage'               =>  (int) $perPage,
+            'fromController'        =>  $paginated,
+            'HijoSelec'             =>  $HijoSelec,
+            'numberPermissions'     =>  $numberPermissions,
+            'ValoresGenerarSeccion' =>  $ValoresGenerarSeccion,
         ]);
     } //fin index
+
+    public function ArticuloResumen() {
+       return redirect()->route('Articulo.index')->with('error', 'no hay ningun problema');
+    }
 
     public function create(Request $request) {
         $numberPermissions = Myhelp::getPermissionToNumber(Myhelp::EscribirEnLog($this, 'Articulo'));
 
-        $universidades = Universidad::all();
-        $opcionesU = Myhelp::NEW_turnInSelectID($universidades,' una universidad');
-        foreach ($universidades as $key => $value) {
-            $queryCarrera = Carrera::Where('universidad_id',$value->id);
-            $carrerasIDs = $queryCarrera->pluck('id');
-            foreach ($carrerasIDs as $carreraid) {
-                
-                $opcionesAsignatura[$carreraid] = Myhelp::NEW_turnInSelectID(Materia::Where('carrera_id',$carreraid)->get(), ' una asignatura');
-            }
-            $opcionesCarreras[$value->id] = Myhelp::NEW_turnInSelectID($queryCarrera->get(), ' una carrera');
+        if($numberPermissions < 9 && auth()->user()->universidades()->count() === 0){
+            return redirect()->route('Articulo.index')->with('error','Usted aun no esta inscrito en una universidad');
         }
 
+        if($numberPermissions < 9){
+            $universidades = auth()->user()->universidades();
+        }else{
+            $universidades = Universidad::all();
+        }
+
+
+
+//        $opcionesU = Myhelp::NEW_turnInSelectID($universidades,' una universidad');
+//        foreach ($universidades as $key => $value) {
+//            $queryCarrera = Carrera::Where('universidad_id',$value->id);
+//            $carrerasIDs = $queryCarrera->pluck('id');
+//            foreach ($carrerasIDs as $carreraid) {
+//
+//                $opcionesAsignatura[$carreraid] = Myhelp::NEW_turnInSelectID(Materia::Where('carrera_id',$carreraid)->get(), ' una asignatura');
+//            }
+//            $opcionesCarreras[$value->id] = Myhelp::NEW_turnInSelectID($queryCarrera->get(), ' una carrera');
+//        }
+        $HijoSelec = $this->AutoSelect($numberPermissions);
         //# generar()
-        $ValoresGenerarSeccion = Inertia::lazy(fn () => HelpArticulo::OptimizarResumenOIntroduccion(
-            $request->elTexto, 
+        $ValoresGenerarSeccion = Inertia::lazy(fn () => HelpArticulo::MejorarResumen(
+            $request->elTexto,
             $request->materia,
             $request->tipoTexto
         ));
@@ -156,11 +236,7 @@ class ArticulosController extends Controller{
         return Inertia::render('Articulo/Create', [ //carpeta
             'breadcrumbs'       =>  [['label' => __('app.label.Articulos'), 'href' => route('Articulo.create')]],
             'title'             =>  'Creando nuevo articulo',
-            'Selects'           =>  [
-                'opcionesU'             =>  $opcionesU,
-                'opcionesCarreras'      =>  $opcionesCarreras,
-                'opcionesAsignatura'    =>  $opcionesAsignatura,
-            ],
+            'HijoSelec'             =>  $HijoSelec,
 
             'numberPermissions'         =>  $numberPermissions,
             'ValoresGenerarSeccion'     =>  $ValoresGenerarSeccion,
@@ -170,46 +246,54 @@ class ArticulosController extends Controller{
     public function store(ArticuloRequest $request) {
         DB::beginTransaction();
         $numberPermissions = Myhelp::getPermissionToNumber(Myhelp::EscribirEnLog($this, ' Articulo'));
-
+        $rutaRedirect = 'Articulo.index';
         try {
-            $input = $request->all();
-            $finalInput = [];
-            foreach ($input as $key => $value) {
-                if(!isset($value[0])){
-                    $finalInput[$key] = $value;
-                }else{
-                    $finalInput[$key] = $value[0];
-                    if(isset($value[1])){
-                        $finalInput[$key.'_ia'] = $value[1][0];
-                        $finalInput[$key.'_final'] = $value[2];
-                    }
-                }
+            $OwnUser = auth()->user();
+            $myhelp = new Myhelp();
+
+            if(isset($request->isArticulo) && $request->isArticulo){
+                $finalInput = $myhelp->GuardarInput($request,$OwnUser);
+                $rutaRedirect = 'Articulo.create';
+
+                $Articulo = Articulo::create($finalInput);
+                DB::commit();
+                $mensaje = "U -> " . Auth::user()->name . " Guardo Articulo con nick: " . $request->nick[0] . " correctamente";
+                Myhelp::EscribirEnLog($this, $mensaje);
+
+                // $CriticarJob = new CriticarArticulo($Articulo->id); dispatch($CriticarJob);
+                //dispatchAfterResponse
+                //CriticarArticulo::dispatch($Articulo->id)->onConnection('database');
+                CriticarArticulo::dispatch($Articulo->id, auth()->user())->onQueue('secondary');
+
+                return redirect()->route('Articulo.index')->with(
+                    'success', __('app.label.created_successfully2', ['nombre' => $Articulo->nick]),
+                );
+            }else{
+                $vectorResumen = [
+                    $request['universidad_id']['value'],
+                    $request['carrera_id']['value'],
+                    $request['materia_id']['value']
+                ];
+                $finalInput = $myhelp->GuardarInput($request,$OwnUser,$vectorResumen);
+                $Articulo = Articulo::create($finalInput);
+                DB::commit();
+                $mensaje = "U -> " . Auth::user()->name . " Guardo Resumen con nick" . $request->nick[0] . " correctamente";
+                Myhelp::EscribirEnLog($this, $mensaje);
+                return redirect()->route('Articulo.index2')->with(
+                    'success', __('app.label.created_successfully2', ['nombre' => $Articulo->nick]),
+                );
             }
-            $finalInput['universidad_id'] = $input['universidadid']['value'];
-            $finalInput['carrera_id'] = $input['carreraid']['value'];
-            $finalInput['materia_id'] = $input['materiaid']['value'];
-            $finalInput['user_id'] = auth()->user()->id;
-            $finalInput['version'] = 1;
-            $Articulo = Articulo::create($finalInput);
-            DB::commit();
-            $mensaje = "U -> " . Auth::user()->name . " Guardo Articulo " . $request->nick[0] . " correctamente";
-            Myhelp::EscribirEnLog($this, $mensaje);
-
-            return redirect()->route('Articulo.index')->with(
-                'success', __('app.label.created_successfully2', ['nombre' => $Articulo->nick]),
-            );
-
         } catch (\Throwable $th) {
             DB::rollback();
             $problema = " - " . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile();
-            Log::alert("U -> " . Auth::user()->name . " fallo en Guardar Articulo " . $request->nick[0] . $problema);
-            return redirect('Articulo/create')->with('error', __('app.label.created_error', ['nombre' => __('app.label.Articulo')]) . $problema);
+            $this->Myhelp->LogWithTrace($this,$th,$problema);
+            return redirect()->route($rutaRedirect)->with('error', __('app.label.created_error', ['nombre' => __('app.label.Articulo')]) . $problema);
         }
     }
 
 
-    public function show(Articulo $Articulo) { } 
-    
+    public function show(Articulo $Articulo) { }
+
     public function edit(Articulo $Articulo, Request $request) {
         $numberPermissions = Myhelp::getPermissionToNumber(Myhelp::EscribirEnLog($this, 'Articulo'));
 
@@ -219,15 +303,15 @@ class ArticulosController extends Controller{
             $queryCarrera = Carrera::Where('universidad_id',$value->id);
             $carrerasIDs = $queryCarrera->pluck('id');
             foreach ($carrerasIDs as $carreraid) {
-                
+
                 $opcionesAsignatura[$carreraid] = Myhelp::NEW_turnInSelectID(Materia::Where('carrera_id',$carreraid)->get(), ' una asignatura');
             }
             $opcionesCarreras[$value->id] = Myhelp::NEW_turnInSelectID($queryCarrera->get(), ' una carrera');
         }
 
         //# generar()
-        $ValoresGenerarSeccion = Inertia::lazy(fn () => HelpArticulo::OptimizarResumenOIntroduccion(
-            $request->elTexto, 
+        $ValoresGenerarSeccion = Inertia::lazy(fn () => HelpArticulo::MejorarResumen(
+            $request->elTexto,
             $request->materia,
             $request->tipoTexto
         ));
@@ -249,39 +333,32 @@ class ArticulosController extends Controller{
     public function RevisarArticulo(Request $request, $id) {
         $Articulo = Articulo::find($id);
         $numberPermissions = Myhelp::getPermissionToNumber(Myhelp::EscribirEnLog($this, 'Articulo'));
+        $HelpArticulo = new HelpArticulo();
 
-        $universidades = Universidad::all();
-        $opcionesU = Myhelp::NEW_turnInSelectID($universidades,' una universidad');
-        foreach ($universidades as $key => $value) {
-            $queryCarrera = Carrera::Where('universidad_id',$value->id);
-            $carrerasIDs = $queryCarrera->pluck('id');
-            foreach ($carrerasIDs as $carreraid) {
-                
-                $opcionesAsignatura[$carreraid] = Myhelp::NEW_turnInSelectID(Materia::Where('carrera_id',$carreraid)->get(), ' una asignatura');
-            }
-            $opcionesCarreras[$value->id] = Myhelp::NEW_turnInSelectID($queryCarrera->get(), ' una carrera');
-        }
+        $Universidad = Universidad::Find($Articulo->universidad_id);
+        $Carrera = Carrera::Find($Articulo->carrera_id);
+        $Materia = Materia::Find($Articulo->materia_id);
 
         //# generar()
-        // dd( $request->elformulario );
-
         $ValoresGenerarSeccion = Inertia::lazy(fn () => HelpArticulo::CalificarArticulo(
             $request->elformulario,
             $request->articuloid,
             $request->notaManual,
         ));
+        $CalifiInicial = $HelpArticulo->ConsultarCalificacion($Articulo->id);
+        $CalifiConslta = Inertia::lazy(fn () => $HelpArticulo->ConsultarCalificacion($Articulo->id));
 
         return Inertia::render('Articulo/Revis', [ //carpeta
             'breadcrumbs'       =>  [['label' => __('app.label.Articulos'), 'href' => route('Articulo.create')]],
             'title'             =>  'Creando nuevo articulo',
-            'Selects'           =>  [
-                'opcionesU'             =>  $opcionesU,
-                'opcionesCarreras'      =>  $opcionesCarreras,
-                'opcionesAsignatura'    =>  $opcionesAsignatura,
-            ],
 
+            'Universidad' => $Universidad,
+            'Carrera' => $Carrera,
+            'Materia' => $Materia,
             'articulo'                  =>  $Articulo,
             'numberPermissions'         =>  $numberPermissions,
+            'CalifiConslta'             =>  $CalifiConslta,
+            'CalifiInicial'             =>  $CalifiInicial,
             'ValoresGenerarSeccion'     =>  $ValoresGenerarSeccion,
         ]);
     }
@@ -290,32 +367,21 @@ class ArticulosController extends Controller{
         $Articulo = Articulo::find($id);
         DB::beginTransaction();
         $numberPermissions = Myhelp::getPermissionToNumber(Myhelp::EscribirEnLog($this, ' Articulo'));
-
+        $OwnUser = auth()->user();
         try {
-            $input = $request->all();
-            $finalInput = [];
-            foreach ($input as $key => $value) {
-                if(!isset($value[0])){
-                    $finalInput[$key] = $value;
-                }else{
-                    $finalInput[$key] = $value[0];
-                    if(isset($value[1])){
-                        $finalInput[$key.'_ia'] = $value[1][0];
-                        $finalInput[$key.'_final'] = $value[2];
-                    }
-                }
+            $myhelp = new Myhelp();
+            if($request->is_correcciones){
+                $result = $myhelp->GuardarInputSiTermina($request);
+            }else{
+                $result = $myhelp->GuardarInput($request,$OwnUser);
             }
-            $finalInput['universidad_id'] = $input['universidadid']['value'];
-            $finalInput['carrera_id'] = $input['carreraid']['value'];
-            $finalInput['materia_id'] = $input['materiaid']['value'];
-            $finalInput['user_id'] = auth()->user()->id;
-            $finalInput['version'] = 1;
-            $Articulo->update($finalInput);
+            $Articulo->update($result);
+
             DB::commit();
-            $mensaje = "U -> " . Auth::user()->name . " Guardo Articulo " . $request->nick[0] . " correctamente";
+            $mensaje = "U -> " . Auth::user()->name . " Guardo Articulo correctamente";
             Myhelp::EscribirEnLog($this, $mensaje);
 
-            return redirect()->route('Articulo.index')->with('success', __('app.label.created_successfully2', ['nombre' => $Articulo->nick]));
+            return redirect()->route('Articulo.index')->with('success', __('app.label.updated_successfully2', ['nombre' => $Articulo->nick]));
 
         } catch (\Throwable $th) {
 
@@ -358,6 +424,18 @@ class ArticulosController extends Controller{
         } catch (\Throwable $th) {
             $problema = $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile();
             return back()->with('error', __('app.label.deleted_error', ['name' => count($request->id) . ' ' . __('app.label.user')]) . $problema);
+        }
+    }
+
+    public function guardarTiempoUser(Request $request) {
+        try {
+//            startTime
+//            endTime
+//            tiempoEscritura
+
+        } catch (\Throwable $th) {
+            $problema = $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile();
+            Myhelp::EscribirEnLog($this, ' guardarTiempoUser','Tiempo guardado incorrectamente: '.$problema);
         }
     }
 }

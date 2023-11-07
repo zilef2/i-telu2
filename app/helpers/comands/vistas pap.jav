@@ -9,12 +9,9 @@ php artisan make:crud Calificacion "TipoPrueba:string, prompUsado:string, valor:
 //its donest need a Model -> materia_user
 
 
-
-// php artisan make:crud semestre "nombre:string, descripcion:string"
-//laravel excel 
-php artisan make:import PersonalImport --model=User
-php artisan make:import PersonalUniversidadImport --model=User
-//fin laravel excel
+//6nov2023
+php artisan make:crud UsuarioPendientesPago "fecha_peticion:timestamp, fecha_aprovacion:timestamp, valorTotal:float, tokensComprados:integer"
+php artisan make:crud Cuotas "numeroDeLaCuota:integer, numeroDecuotas:integer, valor:float"
 
 
 
@@ -24,3 +21,9 @@ php artisan make:controller TemporalPdfReader
 
 //model for save pdf average
 php artisan make:crud RespuestaPDf " guardar_pdf:string, resumen:string, nivel:string, precisa:string, idExistente:string"
+
+
+----***** laravel excel *****----
+php artisan make:Oimport PersonalImport --model=User
+php artisan make:Oimport PersonalUniversidadImport --model=User
+//fin laravel excel

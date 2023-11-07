@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -12,7 +13,7 @@ use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, HasRoles;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -30,10 +31,10 @@ class User extends Authenticatable
         'semestre',
         'semestre_mas_bajo',
         'limite_token_general',
-        'limite_token_leccion',
-        
+        'limite_token_leccion', //zona asignatura
+
         'pgrado', //bachiller, pregrado, postgrado
-        
+
         'email_verified_at',
         'plan',
     ];
@@ -60,7 +61,7 @@ class User extends Authenticatable
     public function LimiteDePromps() {
         return $this->hasMany('App\Models\LosPromps');
     }
-    
+
     public function reportes() {
         return $this->hasMany('App\Models\Reporte');
     }
@@ -107,7 +108,7 @@ class User extends Authenticatable
         foreach ($materias as $key => $value) {
             $matrizMateriasEstudiantes[$value->id] = $value->usuarios($value->id,'estudiante')->get();
         }
-        
+
         return $matrizMateriasEstudiantes;
     }
 }

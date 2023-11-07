@@ -2,22 +2,35 @@
 
 return [
     'label' => [
+
+        //pendiente
+        'aceptar' => 'aceptar',
+        'Aceptar' => 'Aceptar',
+        'Pendientes' => 'Pendientes',
+        'Pendiente' => 'Pendiente',
+        'pendientes' => 'pendientes',
+        'pendiente' => 'pendiente',
+
+        //Resumen
+        'Resumenes' => 'Resumenes',
+        'Resumen' => 'Resumen',
+
         //Plan
         'Plan' => 'Plan',
         'Planes' => 'Planes',
         'Plans' => 'Planes',
 
-        
+
         //articulos
         'Articulos' => 'Articulos',
         'Articulo' => 'Articulo',
+        'Critica_string' => 'Critica',
         //sidebar
         'ResolucionMejora' => 'Resolucion y Mejora',
 
         //materia
         'archivo' => 'Archivo',
         'archivos' => 'Archivos',
-        'Resumen' => 'Resumen',
 
         //extra user
         'verEstudiante' => 'Perfil Estudiante',
@@ -89,7 +102,7 @@ return [
         'fecha_nacimiento' => 'fecha de nacimiento',
         'semestre' => 'semestre',
         'semestre_mas_bajo' => 'semestre mas bajo',
-        'limite_token_general' => 'limite generar',
+        'limite_token_general' => 'limite general',
         'limite_token_leccion' => 'limite de tokens por leccion',
         'limite_token_lec' => 'limite/leccion',
 

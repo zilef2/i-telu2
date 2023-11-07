@@ -32,9 +32,9 @@ let anio = ref(0);
 
 const anioHoy = new Date().getFullYear();
 const anio18 = anioHoy - 18;
+
+
 // VueDatePicker
-
-
 const form = useForm({
     name: 'alejo pruebas',
     email: 'ajelof22@gmail.com',

@@ -14,6 +14,7 @@ import { ChevronUpDownIcon, PencilIcon, TrashIcon, CheckBadgeIcon } from '@heroi
 
 import Toast from '@/Components/Toast.vue';
 
+import CreatResumen from '@/Pages/Articulo/CreatResumen.vue';
 import Edit from '@/Pages/Articulo/Edit.vue';
 import Delete from '@/Pages/Articulo/Delete.vue';
 import DeleteBulk from '@/Pages/Articulo/DeleteBulk.vue';
@@ -22,16 +23,18 @@ import Checkbox from '@/Components/Checkbox.vue';
 import InfoButton from '@/Components/InfoButton.vue';
 import { XMarkIcon, CheckCircleIcon, ExclamationCircleIcon, InformationCircleIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
 
-import { slugTOhumano }from '@/global.ts';
+import { slugTOhumano, PrimerasPalabras }from '@/global.ts';
 
 const { _, debounce, pickBy } = pkg
 const props = defineProps({
     title: String,
     filters: Object,
     breadcrumbs: Object,
+    HijoSelec: Object,
     perPage: Number,
 
     fromController: Object,
+    ValoresGenerarSeccion: Object,
     numberPermissions: Number,
 
 })
@@ -46,6 +49,7 @@ const data = reactive({
     selectedId: [],
     multipleSelect: false,
     createOpen: false,
+    CreateResumenBool: false,
     editOpen: false,
     deleteOpen: false,
     deleteBulkOpen: false,
@@ -102,7 +106,7 @@ function notification(newVal) {
 
     setTimeout(() => {
         data.isVisible = false;
-    }, 3000);
+    }, 5000);
 }
 
 </script>
@@ -128,24 +132,36 @@ function notification(newVal) {
                 </div>
             </div>
         </transition>
+        <transition name="slide-fade">
+            <div v-if="$page.props.flash && $page.props.flash.error != '' && $page.props.flash.error != null && data.isVisible" class="fixed top-4 right-4 w-8/12 md:w-7/12 lg:w-3/12 z-[100]">
+                <div class="flex p-4 justify-between items-center bg-red-600 rounded-lg">
+                    <div>
+                        <ExclamationCircleIcon class="h-8 w-8 text-white" fill="currentColor" />
+                    </div>
+                    <div class="mx-3 text-sm font-medium text-white" v-html="$page.props.flash.error">
+                    </div>
+                    <button @click="toggle" type="button"
+                        class="ml-auto bg-white/20 text-white rounded-lg focus:ring-2 focus:ring-white/50 p-1.5 hover:bg-white/30 h-8 w-8">
+                        <span class="sr-only">Close</span>
+                        <XMarkIcon class="w-5 h-5" />
+                    </button>
+                </div>
+            </div>
+        </transition>
 
         <div class="space-y-4">
             <div class="px-4 sm:px-0">
                 <div class="rounded-lg overflow-hidden w-fit">
-                    <div class="flex-inline">
+                    <div class="flex-inline gap-1">
                         <Link :href="route('Articulo.create')" class="items-center py-2 px-4 rounded-lg">
                             <PrimaryButton class="rounded-lg" >
-                                {{ lang().button.add }}
+                                {{ lang().button.add }} articulo
                             </PrimaryButton>
                         </Link>
-                        <!-- <Link :href="route('Articulo.edit')" class="items-center py-2 px-4 rounded-lg">
-                            <PrimaryButton class="rounded-lg" >
-                                {{ lang().button.edit }}
-                            </PrimaryButton>
-                        </Link> -->
                     </div>
                     <!-- <Edit :show="data.editOpen" @close="data.editOpen = false" :articulo="data.generico"
                         v-if="can(['update Articulo'])" :title="props.title" /> -->
+
                     <Delete :show="data.deleteOpen" @close="data.deleteOpen = false" :articulo="data.generico"
                         v-if="can(['delete Articulo'])" :title="props.title" />
                     <DeleteBulk :show="data.deleteBulkOpen"
@@ -190,6 +206,9 @@ function notification(newVal) {
                                 <th v-on:click="order('version')" class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
                                     <div class="flex justify-between items-center"> <span> {{slugTOhumano('version')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>
                                 </th>
+                                <th v-on:click="order('Critica_string')" class="min-w-xl px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
+                                    <div class="flex justify-between items-center"> <span> {{slugTOhumano('Critica')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>
+                                </th>
                                 <th v-on:click="order('Portada')" class="px-2 py-4 w-64 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
                                     <div class="flex justify-between items-center"> <span> {{slugTOhumano('Portada')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>
                                 </th>
@@ -198,6 +217,9 @@ function notification(newVal) {
                                 </th>
                                 <th  class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
                                     <div class="flex justify-between items-center"> <span> {{slugTOhumano('Calificacion')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>
+                                </th>
+                                <th  class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
+                                    <div class="flex justify-between items-center"> <span> {{slugTOhumano('Calificación Promedio')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>
                                 </th>
                                 <th v-on:click="order('Resumen')" class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
                                     <div class="flex justify-between items-center"> <span> {{slugTOhumano('Resumen')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>
@@ -232,7 +254,7 @@ function notification(newVal) {
                                 <th v-on:click="order('Anexos_o_Apendices')" class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
                                     <div class="flex justify-between items-center"> <span> {{slugTOhumano('Anexos_o_Apendices')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>
                                 </th>
-                                
+
 
                                 <!-- <th v-if="props.numberPermissions > 1" v-on:click="order('resultado_aprendizaje')"
                                     class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
@@ -278,20 +300,22 @@ function notification(newVal) {
                                 </td>
                                     <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.nick) }} </td>
                                     <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.version) }} </td>
-                                    <td class="whitespace-nowrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabra(clasegenerica.Portada) }} </td>
+                                    <td class="w-[700px] flex flex-wrap py-4 px-2 sm:py-3">{{ PrimerasPalabras(clasegenerica.Critica_string,66) }} </td>
+                                    <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ PrimerasPalabras(clasegenerica.Portada) }} </td>
                                     <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ (clasegenerica.hijo) }} </td>
-                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ (clasegenerica.cal) }} </td>
-                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabra(clasegenerica.Resumen) }} </td>
+                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">Docente: {{ (clasegenerica.cal) }} <br> IA: {{ (clasegenerica.calIA) }} </td>
+                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ (clasegenerica.PromedioValores) }} </td>
+                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabras(clasegenerica.Resumen) }} </td>
                                     <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ (clasegenerica.Palabras_Clave) }} </td>
-                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabra(clasegenerica.Introduccion) }} </td>
-                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabra(clasegenerica.Revision_de_la_Literatura) }} </td>
-                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabra(clasegenerica.Metodologia) }} </td>
-                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabra(clasegenerica.Resultados) }} </td>
-                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabra(clasegenerica.Discusion) }} </td>
-                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabra(clasegenerica.Conclusiones) }} </td>
-                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabra(clasegenerica.Agradecimientos) }} </td>
-                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabra(clasegenerica.Referencias) }} </td>
-                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabra(clasegenerica.Anexos_o_Apendices) }} </td>
+                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabras(clasegenerica.Introduccion) }} </td>
+                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabras(clasegenerica.Revision_de_la_Literatura) }} </td>
+                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabras(clasegenerica.Metodologia) }} </td>
+                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabras(clasegenerica.Resultados) }} </td>
+                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabras(clasegenerica.Discusion) }} </td>
+                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabras(clasegenerica.Conclusiones) }} </td>
+                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabras(clasegenerica.Agradecimientos) }} </td>
+                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabras(clasegenerica.Referencias) }} </td>
+                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabras(clasegenerica.Anexos_o_Apendices) }} </td>
                                 <!-- <td v-if="props.numberPermissions > 1" class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.resultado_aprendizaje) }} </td> -->
                             </tr>
                         </tbody>

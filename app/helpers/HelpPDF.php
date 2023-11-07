@@ -8,20 +8,21 @@ use Smalot\PdfParser\Parser;
 class HelpPDF {
 
 //usado en temporalPdfReader y en GuardarResumirArchivoPDF: para procesar un archivo
-    public static function ParserPDF($archivoid){
+    public static function ParserPDF($archivo){
         $parser = new Parser();
-        if(is_int($archivoid)){
-            $archivo = Archivo::find($archivoid);
+
+        if(isset($archivo->NombreOriginal)){
+            $file = storage_path('app/public/archivosSubidos/'.$archivo->NombreOriginal);
         }else{
-            $archivo = $archivoid;
+            $file = $archivo;
         }
-
-        $file = storage_path('app/public/archivosSubidos/'.$archivo->NombreOriginal);
-
-        $pdf = $parser->parseFile($file);
-        return $pdf->getText();
+        return $parser->parseFile($file)->getText();
     }
 
+    public function AproximarUsoDeTokens($numeroPalabras){
+
+        return ceil(($numeroPalabras / 100));
+    }
     public static function TextTOJsonl($text){
         // Step 1: Read the plain-text document
         // $text = file_get_contents('plain-text-document.txt');

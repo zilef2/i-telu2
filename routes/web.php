@@ -16,6 +16,7 @@ use App\Http\Controllers\UniversidadsController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ParametrosController;
 use App\Http\Controllers\PlansController;
+use App\Http\Controllers\UsuarioPendientesPagosController;
 use App\Http\Controllers\TemporalPdfReader;
 use App\Models\Permission;
 use App\Models\Role;
@@ -41,32 +42,6 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 
-// Route::get('/userAPI',function () {
-//     $user = Auth::user();
-//     $permissions = Myhelp::EscribirEnLog($this, ' Se genero un token');
-//     $numberPermissions = Myhelp::getPermissionToNumber($permissions);
-//     if($numberPermissions > 8){
-
-//         $expiration = now()->addHour(4);
-//         $token = $user->createToken('Token Name');
-//         $token->expires_at = $expiration;
-//         // $token->save();
-//         $token = $token->plainTextToken;
-//         $token = str_replace(1,'ñ',$token);
-//         $token = str_replace(2,'_ñ_',$token);
-        
-//         dd(
-//             // response()->json(['token' => $token]),
-//             $token,
-//             'Vencimiento: '. $expiration,
-//             'Cierre esta ventana tan pronto como sea posible'
-//         );
-//     }else{
-//         Myhelp::EscribirEnLog($this, 'API', 'no valid user trying to get token', false,true);
-//     }
-// })->middleware(['auth', 'verified']);
-
-
 Route::get('/setLang/{locale}', function ($locale) {
     Session::put('locale', $locale);
     return back();
@@ -77,22 +52,20 @@ Route::middleware('auth', 'verified')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    
+
     Route::resource('/role', RoleController::class)->except('create', 'show', 'edit');
     Route::post('/role/destroy-bulk', [RoleController::class, 'destroyBulk'])->name('role.destroy-bulk');
-    
+
     Route::resource('/permission', PermissionController::class)->except('create', 'show', 'edit');
     Route::post('/permission/destroy-bulk', [PermissionController::class, 'destroyBulk'])->name('permission.destroy-bulk');
 
-    
-    
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    
+
     //# parametro
     Route::resource('/parametro', ParametrosController::class);
-    
+
     //# user
     Route::resource('/user', UserController::class)->except('create', 'show', 'edit');
     Route::post('/user/destroy-bulk', [UserController::class, 'destroyBulk'])->name('user.destroy-bulk');
@@ -100,7 +73,7 @@ Route::middleware('auth', 'verified')->group(function () {
     Route::post('/uploadEstudiantes', [UserController::class, 'uploadEstudiantes'])->name('user.uploadEstudiantes');
     Route::post('/uploadUniversidad', [UserController::class, 'uploadUniversidad'])->name('user.uploadUniversidad');
     Route::post('/uploadCarreras', [UserController::class, 'uploadCarreras'])->name('user.uploadCarreras');
-    
+
     $rutasUsers = ['VerTiemposEstudiantes'];
     foreach ($rutasUsers as $key => $value) {
         Route::get('/'.$value, [ExtraUser::class, $value])->name($value);
@@ -121,7 +94,6 @@ Route::middleware('auth', 'verified')->group(function () {
     Route::resource('/carrera', CarrerasController::class);
 
 
-
     // #materia
     Route::resource('/materia', MateriasController::class);
     Route::get('/AsignarMateria/{materiaid}', [MateriasController::class, 'AsignarUsers'])->name('materia.AsignarUsers');
@@ -131,14 +103,15 @@ Route::middleware('auth', 'verified')->group(function () {
     Route::get('/masPreguntas', [MateriasController::class, 'masPreguntas'])->name('materia.masPreguntas');
     // Route::match(['post', 'get'],'/Estudiando', [MateriasController::class, 'actionEQH'])->name('materia.actionEQH');
     Route::post('/Estudiando', [MateriasController::class, 'actionEQH'])->name('materia.actionEQH');
-    
+
     Route::post('/materiaGenerar', [MateriasController::class, 'materiaGenerar'])->name('materia.Generar');
     Route::post('/materiaguardarGenerado', [MateriasController::class, 'materiaguardarGenerado'])->name('materia.guardarGenerado');
-    
+
     Route::get('/Estudiando', function(){ return redirect('/materia'); });
-    
+
     Route::get('/Archivos/{materiaid}', [MateriasController::class, 'Archivosindex'])->name('materia.Archivos');
     Route::post('/storeArchivos', [MateriasController::class, 'storeArchivos'])->name('materia.storeArchivos');
+    Route::post('/DeleteArchivos', [MateriasController::class, 'DeleteArchivos'])->name('materia.DeleteArchivos');
 
 
 
@@ -157,7 +130,7 @@ Route::middleware('auth', 'verified')->group(function () {
     Route::post('/Unidad/destroy-bulk', [UnidadsController::class, 'destroyBulk'])->name('Unidad.destroy-bulk');
 
     Route::post('/gpt/temasCreate', [UnidadsController::class, 'temasCreate']); //->name('unidads.temasCreate');
-    
+
     //# otros
     Route::resource('/subtopico', SubtopicosController::class);
     Route::post('/subtopico/destroy-bulk', [SubtopicosController::class, 'destroyBulk'])->name('subtopico.destroy-bulk');
@@ -168,7 +141,7 @@ Route::middleware('auth', 'verified')->group(function () {
     Route::resource('/parametro', ParametrosController::class);
 
 
-    
+
     // #promps
     Route::resource('/LosPromp', LosPrompsController::class)->except('create', 'show', 'edit');
 
@@ -177,33 +150,42 @@ Route::middleware('auth', 'verified')->group(function () {
     Route::post('/leyendopdf', [TemporalPdfReader::class , 'Read'])->name('leyendopdf.read');
     Route::get('/verPdf/{archivoid}', [TemporalPdfReader::class , 'verPdf'])->name('verPdf');
     Route::get('/vistaPDF/{archivoid}', [TemporalPdfReader::class , 'vistaPDF'])->name('vistaPDF');
-    
-    
-    Route::get('/generarResumen/{archivoid}', [TemporalPdfReader::class , 'generarResumen'])->name('generarResumen');
+
+
+    Route::get('/generarResumen/{archivoid}/{opcion?}', [TemporalPdfReader::class , 'generarResumen'])->name('generarResumen');
     //# openAI PDF
     Route::get('/subirPDFOpenAI/{archivoid}', [TemporalPdfReader::class , 'subirPDFOpenAI'])->name('subirPDFOpenAI');
-    
+
 
     // #Articulo
     Route::resource('/Articulo', ArticulosController::class);
     Route::get('/Articulo/revisar/{id}', [ArticulosController::class,'RevisarArticulo'])->name('Articulo.revisar');
+    Route::get('/Articul/index2', [ArticulosController::class,'index2'])->name('Articulo.index2');
     Route::post('/Articulo/destroy-bulk', [ArticulosController::class, 'destroyBulk'])->name('Articulo.destroy-bulk');
+    Route::post('/guardarTiempoUser', [ArticulosController::class, 'guardarTiempoUser']);
+
+    Route::get('/Resumen', [ArticulosController::class,'ArticuloResumen'])->name('Resumen');
+
 
     //#plan
     Route::resource('/Plan', PlansController::class);
+    // #pendientes
+    Route::resource('/pendiente', UsuarioPendientesPagosController::class);
+    Route::post('/pendiente/destroy-bulk', [UsuarioPendientesPagosController::class, 'destroyBulk'])->name('Articulo.destroy-bulk');
+    Route::get('/AceptarUsersPendiente/{pendienteid}', [UsuarioPendientesPagosController::class, 'AceptarUsers'])->name('pendiente.AceptarUsers');
 });
 
 
 
 
-// <editor-fold desc="Artisan">
+//<editor-fold desc="Artisan functions">
     Route::get('/exception', function () {
         throw new Exception('Probando excepciones y enrutamiento. La prueba ha concluido exitosamente.');
     });
 
     Route::get('/foo', function () {
         if (file_exists(public_path('storage'))) { return 'Ya existe'; }
-        App('files')->link( storage_path('App/public'), public_path('storage') ); 
+        App('files')->link( storage_path('App/public'), public_path('storage') );
         return 'Listo';
     });
 
@@ -222,5 +204,6 @@ Route::middleware('auth', 'verified')->group(function () {
         echo Artisan::call('up');
         return "Aplicación funcionando";
     });
+//</editor-fold>
 
 ?>

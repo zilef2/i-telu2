@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
-class parametrosController extends Controller
+class ParametrosController extends Controller
 {
 
     public $respuestaLimite = 'Limite de tokens';
@@ -31,16 +31,8 @@ class parametrosController extends Controller
         return $nombresTabla;
     }
 
-    public function losSelect() {
-        // $MateriasSelect = Materia::all();
-        // return [
-        //     'MateriasSelect' => $MateriasSelect
-        // ];
-    }
-
     public function index(Request $request) {
         $permissions = Myhelp::EscribirEnLog($this,' parametro');
-
 
         $titulo = __('app.label.parametros');
         if($permissions == 'admin' || $permissions == 'superadmin'){
@@ -50,7 +42,7 @@ class parametrosController extends Controller
                 'title'          =>  $titulo,
                 'filters'        =>  $request->all(['search', 'field', 'order']),
                 'perPage'        =>  1,
-                'fromController' =>  Parametro::first(),
+                'fromController' =>  Parametro::all(),
                 'breadcrumbs'    =>  [['label' => __('app.label.parametros'), 'href' => route('parametro.index')]],
                 'nombresTabla'   =>  $nombresTabla,
             ]);

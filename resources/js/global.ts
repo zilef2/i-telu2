@@ -34,7 +34,7 @@ export function LookForValueInArray(arrayOfObjects:Object[] , searchValue): Stri
     //ex: { title: '123', value: 1 },
     let foundObject = '';
     for (const obj of arrayOfObjects) {
-        
+
         if(typeof searchValue == 'string'){
             // if (obj['title'] === searchValue) {
             //     foundObject = obj['value'];
@@ -47,7 +47,7 @@ export function LookForValueInArray(arrayOfObjects:Object[] , searchValue): Stri
             }
         }
     }
-    
+
     return foundObject;
 }
 // end this Project
@@ -135,7 +135,7 @@ export function LookForValueInArray(arrayOfObjects:Object[] , searchValue): Stri
 
 
 
-// MATH 
+// MATH
     export function CalcularAvg(TheArray,NameValue = '',isTime = false) {
         let sum = 0
         if(NameValue === ''){
@@ -211,7 +211,7 @@ export function LookForValueInArray(arrayOfObjects:Object[] , searchValue): Stri
         if(texto){
 
             if(texto.length > caracteres + 5){
-                
+
                 const primeros = texto.substring(0,caracteres);
                 return primeros + '...';
             }

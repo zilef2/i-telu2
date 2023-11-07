@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 
-class subtopicosController extends Controller {
+class SubtopicosController extends Controller {
     private $modelName = 'Subtopico';
     private $yaEstaFiltrada = false;
 
@@ -221,5 +221,5 @@ class subtopicosController extends Controller {
             return back()->with('error', __('app.label.deleted_error', ['name' => count($request->id) . ' ' . __('app.label.user')]) . $th->getMessage());
         }
     }
-    
+
 }

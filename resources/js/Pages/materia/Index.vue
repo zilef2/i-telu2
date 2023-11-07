@@ -122,7 +122,7 @@ watchEffect(() => {
         )
     )
     data.carrerasDeUSel.unshift({ label: 'Seleccione carrera', value: 0 })
-    
+
 
     if(typeof (data.params.selectedUni) == 'undefined' || typeof (data.params.selectedUni) == 'object'){
         data.params.selectedUni = "0";
@@ -174,9 +174,9 @@ onMounted(() => {
                         Generar Materia
                     </PrimaryButton>
                     <generarTodo :show="data.generarOpen" @close="data.generarOpen = false" :title="props.title"
-                        v-if="can(['create materia'])" :carrerasSelect="data.carrerasDeUSel" 
+                        v-if="can(['create materia'])" :carrerasSelect="data.carrerasDeUSel"
                         :ValoresGenerarMateria="props.ValoresGenerarMateria"
-                        :MateriasRequisitoSelect="props.MateriasRequisitoSelect" 
+                        :MateriasRequisitoSelect="props.MateriasRequisitoSelect"
                         />
 
                     <Create :show="data.createOpen" @close="data.createOpen = false" :title="props.title"
@@ -290,11 +290,11 @@ onMounted(() => {
                                 </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">
                                     <div class="flex justify-start items-center">
-                                        <div class="rounded-md overflow-hidden">
+                                        <div class="rounded-md overflow-hidden" >
                                             <Link :href="route('materia.Archivos', clasegenerica.id)">
                                                 <InfoButton type="button" class="py-1.5 rounded-none"
-                                                    v-tooltip="lang().tooltip.archivos">
-                                                    <BookmarkIcon class="w-7 h-7 px-0.5" />
+                                                    v-tooltip="lang().tooltip.archivos + ' ' + clasegenerica.cuantosArchivos" >
+                                                    <BookmarkIcon class="w-7 h-7 px-0.5" :class="{'border-[2px] border-gradient-to-r from-indigo-800 via-purple-800 to-pink-800' : clasegenerica.cuantosArchivos > 0}"/>
                                                 </InfoButton>
                                             </Link>
                                         </div>

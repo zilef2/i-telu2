@@ -107,6 +107,7 @@ const BeneVector = [
     [Beneficios[0]],
     [Beneficios[0], Beneficios[1]],
     [Beneficios[0], Beneficios[1], Beneficios[2]],
+    [Beneficios[0], 'Probar el producto'],
 ]
 
 </script>
@@ -122,53 +123,54 @@ const BeneVector = [
                 <div class="mx-auto max-w-screen-xl px-4 md:px-8">
                     <h2 class="mb-4 text-center text-2xl font-bold text-gray-800 md:mb-8 lg:text-3xl xl:mb-12">Planes disponibles</h2>
 
-                    <div class="mb-6 grid gap-2 grid-cols-1 sm:grid-cols-2 md:mb-8 md:grid-cols-3 lg:gap-8">
+                    <div class="mb-6 grid gap-2 grid-cols-1 sm:grid-cols-2 md:mb-8 md:grid-cols-4 lg:gap-8">
                         <!-- plan - start -->
                         <div
                             v-for="plan in fromController" :key="plan.id"
                             class="flex flex-col overflow-hidden rounded-lg border sm:mt-8 hover:bg-gray-50"
-                            :class="{'border-sky-700' : plan.id == 2}">
+                            :class="{'border-sky-700' : plan.id === 2}">
                             <div class="h-2 bg-pink-500"></div>
 
-                            <div class="flex flex-1 flex-col p-6 pt-8">
+                            <div class="flex flex-1 flex-col py-6 px-3">
                                 <div class="mb-12">
                                     <div class="mb-2 text-center text-2xl font-bold text-gray-800">{{ plan.nombre }}</div>
 
-                                    <p class="mb-8 px-8 text-center text-gray-500">{{ plan.tipo}}</p>
+                                    <p class="mb-8 px-2 text-center text-gray-500">{{ plan.tipo}}</p>
 
+                                    <div v-if="plan.nombre !== 'demo'" class="flex items-center gap-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 16 16"> <circle cx="8" cy="8" r="8" fill="currentColor" class="text-gray-300" /> <circle cx="8" cy="8" r="3" fill="currentColor" class="text-gray-500" /> </svg>
+                                        <span  class="text-gray-600">Soporte en todo momento</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 16 16"> <circle cx="8" cy="8" r="8" fill="currentColor" class="text-gray-300" /> <circle cx="8" cy="8" r="3" fill="currentColor" class="text-gray-500" /> </svg>
+                                        <span class="text-gray-600">{{ plan.valor }} tokens</span>
+                                    </div>
                                     <div v-for="ben in BeneVector[plan.id]" class="space-y-4">
                                         <!-- check - start -->
                                         <div class="flex items-center gap-2">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 16 16"> <circle cx="8" cy="8" r="8" fill="currentColor" class="text-gray-300" /> <circle cx="8" cy="8" r="3" fill="currentColor" class="text-gray-500" /> </svg>
                                             <p  class="text-gray-600 text-justify">{{ ben }}</p>
                                         </div>
-                                        <!-- check - end -->
-
-
-                                        <!-- check - start -->
-                                        <div class="flex items-center gap-2">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 16 16"> <circle cx="8" cy="8" r="8" fill="currentColor" class="text-gray-300" /> <circle cx="8" cy="8" r="3" fill="currentColor" class="text-gray-500" /> </svg>
-                                            <span class="text-gray-600">Soporte en todo momento</span>
-                                        </div>
-                                        <!-- check - end -->
                                     </div>
                                 </div>
 
                                 <div class="mt-auto">
-                                    <a href="#" class="block rounded-lg bg-indigo-500 px-8 py-3 text-center text-sm font-semibold text-white outline-none ring-indigo-300 transition duration-100 hover:bg-indigo-600 focus-visible:ring active:bg-indigo-700 md:text-base">
+                                    <a v-if="plan.valor !== 0" href="#" class="block rounded-lg bg-indigo-500 px-8 py-3 text-center text-sm font-semibold text-white outline-none ring-indigo-300 transition duration-100 hover:bg-indigo-600 focus-visible:ring active:bg-indigo-700 md:text-base">
                                         $ {{ plan.valor }} 000 / Mes
                                     </a>
+                                    <a v-if="plan.valor === 0" href="#" class="block rounded-lg bg-indigo-500 px-8 py-3 text-center text-sm font-semibold text-white outline-none ring-indigo-300 transition duration-100 hover:bg-indigo-600 focus-visible:ring active:bg-indigo-700 md:text-base">
+                                        Gratis por 15 dias
+                                    </a>
                                 </div>
-                                <div v-if="plan.id == 2" class="mt-auto my-8">
+<!--                                <div v-if="plan.id == 2" class="mt-auto my-8">
                                     <a href="#"
                                         class="block rounded-lg bg-indigo-400 px-8 py-1 text-center text-sm font-semibold text-white outline-none ring-indigo-800 transition duration-100 hover:bg-gray-300 focus-visible:ring active:text-gray-700">
                                         Mejor Oferta!
                                     </a>
-                                </div>
+                                </div>-->
                             </div>
                         </div>
                         <!-- plan - end -->
-
                     </div>
                 </div>
             </div>
@@ -190,11 +192,12 @@ const BeneVector = [
                                 <DialogPanel
                                     class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
                                     <DialogTitle as="h3" class="text-lg font-medium leading-6 text-gray-900">
-                                        Sin carreras
+                                        Activacion de plan para IntelU
                                     </DialogTitle>
                                     <div class="mt-2">
                                         <p class="text-sm text-gray-500">
-                                            Esta Plan no tiene carreras inscritas
+                                            Para activar el plan, realize la transferencia a la siguiente cuenta, ahorros, Banco:
+                                            Su plan sera activado el siguiente dia habil
                                     </p>
                                 </div>
 

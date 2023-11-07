@@ -5,9 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Universidad extends Model {
-    use HasFactory;
+    use HasFactory,SoftDeletes;
 
     protected $fillable = [
         'enum',
@@ -28,7 +29,7 @@ class Universidad extends Model {
             ->WhereHas('roles',function ($query) use ($elrol){
                 $query->where('name', $elrol );
             });
-            
+
         } else {
             $result = $this->belongsToMany(User::class, 'universidad_user')
             ->wherePivot('universidad_id','<>',$universidadid)
@@ -39,7 +40,7 @@ class Universidad extends Model {
 
         return $result;
     }
-    
+
     public function estudiantesMuchosRoles($universidadid, $inscrito, $roles) {
         if ($inscrito) {
             $result = $this->belongsToMany(User::class, 'universidad_user')
@@ -47,7 +48,7 @@ class Universidad extends Model {
             ->WhereHas('roles',function ($query) use ($roles){
                 $query->whereIn('name', $roles );
             });
-            
+
         } else {
             $result = $this->belongsToMany(User::class, 'universidad_user')
             ->wherePivot('universidad_id','<>',$universidadid)

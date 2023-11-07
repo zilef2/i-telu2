@@ -78,11 +78,11 @@ const toggleContent2 = () => {
                 </Link>
             </li>
             <li v-show="
-                can(['isSuper']) || 
-                can(['isAdmin']) || 
-                can(['isCoorAcademico']) || 
-                can(['isCoorPrograma']) || 
-                can(['isProfesor']) 
+                can(['isSuper']) ||
+                can(['isAdmin']) ||
+                can(['isCoorAcademico']) ||
+                can(['isCoorPrograma']) ||
+                can(['isProfesor'])
                 "
                 class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
                 :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('VerTiemposEstudiantes') }">
@@ -112,12 +112,20 @@ const toggleContent2 = () => {
                 <span class="ml-3">{{ lang().label.role }}</span>
                 </Link>
             </li>
-            <li v-if="data.showContent" v-show="can(['read permission'])"
+            <li v-if="data.showContent" v-show="can(['isSuper'])"
                 class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
                 :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('permission.index') }">
                 <Link :href="route('permission.index')" class="flex items-center py-2 px-4">
                 <ShieldCheckIcon class="w-6 h-5" />
                 <span class="ml-3">{{ lang().label.permission }}</span>
+                </Link>
+            </li>
+            <li v-if="data.showContent" v-show="can(['isAdmin'])"
+                class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
+                :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('pendiente.index') }">
+                <Link :href="route('pendiente.index')" class="flex items-center py-2 px-4">
+                <ShieldCheckIcon class="w-6 h-5" />
+                <span class="ml-3">Usuarios Pendientes</span>
                 </Link>
             </li>
 
@@ -132,7 +140,7 @@ const toggleContent2 = () => {
                 <span class="ml-3">{{ lang().label.parametros }}</span>
                 </Link>
             </li>
-            
+
         </ul>
 
 
@@ -219,8 +227,16 @@ const toggleContent2 = () => {
                     <span class="ml-3">{{ lang().label.ResolucionMejora }}</span>
                 </Link>
             </li>
-            
-           
+
+            <li v-show="can(['read Articulo'])"
+                class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
+                :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('Articulo.index2') }">
+                <Link :href="route('Articulo.index2')" class="flex items-center py-1 px-4">
+                    <CheckCircleIcon class="w-6 h-5" />
+                    <span class="ml-3">{{ lang().label.Resumenes }}</span>
+                </Link>
+            </li>
+
         </ul>
     </div>
 </template>

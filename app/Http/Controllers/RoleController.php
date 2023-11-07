@@ -24,7 +24,7 @@ class RoleController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Inertia\Response
      */
     public function index(RoleIndexRequest $request)
     {
@@ -35,7 +35,10 @@ class RoleController extends Controller
         }
         if ($request->has(['field', 'order'])) {
             $roles->orderBy($request->field, $request->order);
+        }else{
+            $roles->orderByDesc('updated_at');
         }
+
         $roles->with('permissions');
         $role = auth()->user()->roles->pluck('name')[0];
         $permissions = Permission::latest();
@@ -43,13 +46,38 @@ class RoleController extends Controller
             $permissions = Permission::whereNotIn('name', ['create permission', 'read permission', 'update permission', 'delete permission'])->latest();
             $roles->where('name', '<>', 'superadmin');
         }
+
+        $permissions = $permissions->get()
+            ->groupBy(function($permiso) {
+                /*return strncmp($permiso->name, 'create', 6) === 0 ? 'create' : 'no';*/
+                if (str_starts_with($permiso->name, 'create')) {
+                    return 'create';
+                }
+                if (str_starts_with($permiso->name, 'read')) {
+                    return 'read';
+                }
+                if (str_starts_with($permiso->name, 'update')) {
+                    return 'update';
+                }
+                if (str_starts_with($permiso->name, 'delete')) {
+                    return 'delete';
+                }
+                if (str_starts_with($permiso->name, 'cambiarNombre')) {
+                    return 'cambiarNombre';
+                }
+                return 'puro';
+
+            })->toarray();
+        unset($permissions['puro'][3]);
+
         $perPage = $request->has('perPage') ? $request->perPage : 10;
+
         return Inertia::render('Role/Index', [
             'title'         => __('app.label.role'),
             'filters'       => $request->all(['search', 'field', 'order']),
             'perPage'       => (int) $perPage,
             'roles'         => $roles->paginate($perPage),
-            'permissions'   => $permissions->get(),
+            'permissions'   => $permissions,
             'breadcrumbs'   => [['label' => __('app.label.role'), 'href' => route('role.index')]],
         ]);
     }

@@ -82,7 +82,6 @@ const select = () => {
 
 <template>
     <Head :title="props.title" />
-
     <AuthenticatedLayout>
         <Breadcrumb :title="title" :breadcrumbs="breadcrumbs" />
         <div class="space-y-4">

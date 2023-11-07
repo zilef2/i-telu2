@@ -27,13 +27,9 @@ class PlansController extends Controller{
 
     // - MapearClasePP, Filtros, losSelect
 
-    public function MapearClasePP(&$Plans, $numberPermissions) {
-        if ($numberPermissions < 4 && !$this->yaEstaFiltrada) {
-            // $Plans = Auth::user()->Plans->flatMap(function ($Plan) {
-            //     return collect($Plan);
-            // });
-        } else {
-        }
+    public function MapearClasePP(&$Plans, $numberPermissions): void {
+        $Plans->orderByRaw("nombre = 'demo' DESC");
+
         $Plans = $Plans->get();
 
         // $Plans = $Plans->map(function ($Plan) {
@@ -43,7 +39,7 @@ class PlansController extends Controller{
     }
 
     public function losSelect($numberPermissions) {
-        if ($numberPermissions < intval(env('PERMISS_VER_FILTROS_SELEC'))) { //coorPrograma,profe,estudiante
+        if ($numberPermissions < (int)env('PERMISS_VER_FILTROS_SELEC')) { //coorPrograma,profe,estudiante
             $UserSelect = Plan::WhereHas('Plans')->get();
         } else {
             $UserSelect = User::WhereHas('roles', function ($query) {
@@ -61,16 +57,15 @@ class PlansController extends Controller{
         $numberPermissions = Myhelp::getPermissionToNumber($permissions);
 
         $titulo = __('app.label.Plans');
-        $permissions = auth()->user()->roles->pluck('name')[0];
+
         $Plans = Plan::query();
 
         $perPage = $request->has('perPage') ? $request->perPage : 10;
-        if ($permissions === "estudiante") {
+        /*if ($numberPermissions === 1) {
         } else { // not estudiante
-        }
+        }*/
 
         $this->MapearClasePP($Plans, $numberPermissions);
-
         // $HijoSelec = $this->losSelect($numberPermissions);
 
         return Inertia::render('Plan/Index', [ //carpeta
@@ -78,10 +73,9 @@ class PlansController extends Controller{
             'title'             =>  $titulo,
             'filters'           =>  $request->all([
                                         'search',
-                                        'field', 
+                                        'field',
                                         'order'
                                     ]),
-
             'perPage'           =>  (int) $perPage,
             'fromController'    =>  $Plans,
             // 'HijoSelec'         =>  $HijoSelec['HijoSelec'],
@@ -97,7 +91,7 @@ class PlansController extends Controller{
 
         // //# generar()
         // $ValoresGenerarSeccion = Inertia::lazy(fn () => HelpPlan::OptimizarResumenOIntroduccion(
-        //     $request->elTexto, 
+        //     $request->elTexto,
         //     $request->materia,
         //     $request->tipoTexto
         // ));
@@ -122,9 +116,9 @@ class PlansController extends Controller{
         try {
             $input = $request->all();
             $finalInput = [];
-            
+
             foreach ($input as $key => $value) {
-                
+
                 if(!isset($value[0])){
                     $finalInput[$key] = $value;
                 }else{

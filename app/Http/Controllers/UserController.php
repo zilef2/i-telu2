@@ -23,8 +23,7 @@ use Maatwebsite\Excel\Validators\ValidationException;
 class UserController extends Controller
 {
 
-    public function __construct()
-    {
+    public function __construct(){
         $this->middleware('permission:create user', ['only' => ['create', 'store']]);
         $this->middleware('permission:read user', ['only' => ['index', 'show']]);
         $this->middleware('permission:update user', ['only' => ['edit', 'update']]);
@@ -40,6 +39,8 @@ class UserController extends Controller
     {
         $permissions = Myhelp::EscribirEnLog($this, ' users');
         $numberPermissions = Myhelp::getPermissionToNumber($permissions);
+
+
 
         $users = User::query();
         if ($request->has('search')) {
@@ -85,9 +86,7 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
-    {
-    }
+    //public function create()    {    }
 
 
     //! STORE - UPDATE - DELETE
@@ -268,7 +267,7 @@ class UserController extends Controller
                 $mensageWarning = $helpExcel->validarArchivoExcel($request->archivo1);
                 if ($mensageWarning != '') return back()->with('warning', $mensageWarning);
 
-                // $result = 
+                // $result =
                 Excel::import($personalImp, $request->archivo1);
                 $misErrores = [
                     $personalImp->contarEmailExistente,
@@ -279,7 +278,7 @@ class UserController extends Controller
                 ];
                 $MensajeWarning = self::MensajeWar($misErrores);
                 if ($MensajeWarning !== '') {
-                    return back()->with('success', 
+                    return back()->with('success',
                         'Usuarios nuevos: ' . $personalImp->countfilas.
                         ' Usuarios actualizados: ' . $personalImp->countfilasActualizadas
                     )->with('warning', $MensajeWarning);

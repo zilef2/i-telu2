@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\helpers\HelpGPT;
+use App\helpers\HelpPDF;
+use Illuminate\Support\Facades\Storage;
 use OpenAI;
 use App\Models\User;
 
@@ -77,11 +79,12 @@ class MateriasController extends Controller
 
             $materia->papa = $materia->carrera_nombre();
             $materia->cuantoshijos = count($materia->unidads);
+            $materia->cuantosArchivos = count($materia->archivos);
 
             $materia->muchos = $materia->users_nombres();
 
             $materia->objetivs = ($materia->objetivos()->count());
-            $materia->objetivos = ($materia->objetivos);
+
             return $materia;
         })->filter();
         // dd($materias);
@@ -147,7 +150,7 @@ class MateriasController extends Controller
             $nombresTabla = $this->fNombresTabla($numberPermissions);
         }
 
-        //hijos materias 
+        //hijos materias
         $this->MapearClasePP($materias, $numberPermissions);
 
         $carrerasSelect = $MateriasRequisitoSelect = $UniversidadSelect = null;
@@ -586,6 +589,7 @@ class MateriasController extends Controller
 
                 set_time_limit(70);
                 session(['tiempo' => Carbon::now()]);
+                $ejercicioSelec = '';
                 return Inertia::render('materia/vistaTem', [ //carpeta
                     'breadcrumbs'           =>  [['label' => __('app.label.materias'), 'href' => route('materia.index')]],
                     'title'                 =>  'Aprendiendo con GPT',
@@ -770,11 +774,7 @@ class MateriasController extends Controller
             ]);
         } catch (\Throwable $th) {
             $everythingError = $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile();
-            dd($everythingError);
             Log::Critical("U -> " . Auth::user()->name . " fallo en en EQH - " . $everythingError);
-
-            $myhelp = new Myhelp();
-            // $myhelp->redirect('materias.index')->with('error', 'error: ' . $th->getMessage() . ' L:' . $th->getLine(). ' Ubi:' . $th->getFile());
             return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.materia')]) . $everythingError);
         }
     }
@@ -784,11 +784,15 @@ class MateriasController extends Controller
         $numberPermissions = Myhelp::getPermissionToNumber($permissions);
 
         $materia = Materia::find($materiaid);
-        if ($permissions === "estudiante") {
-        } else { // not estudiante
-        }
+//        if ($permissions === "estudiante") {
+//        } else { // not estudiante
+//        }
 
         $archivos = Archivo::where('materia_id', $materiaid)->get();
+
+//        $AvisarPesoPDF = Inertia::lazy(fn () => $this->AvisarPesoPDF(
+//            'temas' => $request->archivo
+//        ));
         return Inertia::render('materia/docs/ArchivosIndex', [ //carpeta
             'breadcrumbs'               =>  [
                 ['label' => __('app.label.materias'), 'href' => route('materia.index')],
@@ -798,23 +802,119 @@ class MateriasController extends Controller
             'numberPermissions'         =>  $numberPermissions,
             'archivos'                  =>  $archivos,
             'materia'                   =>  $materia,
+//            'AvisarPesoPDF'                   =>  $AvisarPesoPDF,
         ]);
+    }
+
+    /**
+     * @param $request
+     * @param $TheUser
+     * se valida si el usuario tiene los tokens para leer el PDF y si tiene suficientes palabras
+     * @return array
+     */
+    public function AvisarPesoPDF($request, $TheUser,$archivoid = null): array
+    {
+        if($archivoid){
+            $archivou = Archivo::find($archivoid);
+            $text = HelpPDF::ParserPDF(storage_path('app/public/archivosSubidos/'.$archivou->NombreOriginal));
+        }else{
+            $nombreContenido = str_replace(" ","",time() ."_". $request->archivo->getClientOriginalName());
+            $request->archivo->storeAs('public/archivosSubidos',$nombreContenido);
+            $text = HelpPDF::ParserPDF($request->archivo);
+        }
+        $Myhelp = new Myhelp();
+        $palabras = $Myhelp->ContarPalabras($text);
+        $myhelp = new HelpPDF();
+        $tokenAprox = $myhelp->AproximarUsoDeTokens($palabras);
+        $puedeHacerOperacion = $TheUser->limite_token_leccion >= $tokenAprox;
+        $tieneSuficientesPalabras = $palabras > 30 && $palabras < 10000000;
+        return [$tokenAprox,$puedeHacerOperacion,$text,$tieneSuficientesPalabras];
     }
 
     public function storeArchivos(Request $request) {
         Myhelp::EscribirEnLog($this, get_called_class(), '', false);
         DB::beginTransaction();
         try {
-            if ($request->type == 'application/pdf') {
-                GuardarResumirArchivoPDF::dispatch($request);
+            $TheUser = Myhelp::AuthU();
 
+            if ($request->type === 'application/pdf') {
+                [$tokensConsumidos, $puedeHacerlo,$text,$tieneSuficientesPalabras] = $this->AvisarPesoPDF($request,$TheUser);
+                if($tieneSuficientesPalabras) {
+
+                    if ($request->GuardarPDF) {
+                        $this->GuardarArchivo($request, $TheUser, $puedeHacerlo);
+                        $mensaje = "U -> " . $TheUser->name . " Guardo archivo " . $request->nombre . " correctamente";
+                        $mensaje2 = __('app.label.created_successfully2', ['nombre' => $request->archivo->getClientOriginalName()]);
+                        $tipoMensaje = 'success';
+
+                    } else {
+                        $mensaje2 = 'Este archivo consumirá aproximadamente ' . $tokensConsumidos . ' tokens. Usted tiene ' . $TheUser->limite_token_leccion . ' restantes.';
+                        $mensaje = "U -> " . $TheUser->name . " Pidio los tokens que gastara el archivo " . $request->nombre . " correctamente";
+                        $tipoMensaje = 'info';
+                    }
+                }else{
+                    $mensaje2 = 'Este archivo no tiene suficiente texto, o tiene demasiado';
+                    $mensaje = "U -> " . $TheUser->name . " Pidio leer un archivo muy corto o largo";
+                    $tipoMensaje = 'error';
+                }
                 DB::commit();
-                Log::info("U -> " . Auth::user()->name . " Guardo archivo " . $request->nombre . " correctamente");
-                return back()->with('success', __('app.label.created_successfully2', ['nombre' => $request->archivo->getClientOriginalName()]));
+                Log::info($mensaje);
+                return back()->with($tipoMensaje, $mensaje2);
             }
 
             DB::rollback();
-            Log::Critical("U -> " . Auth::user()->name . ". El archivo no es un PDF");
+            Log::Critical("U -> " . $TheUser->name . ". El archivo no es un PDF");
+            return back()->with('error', "El archivo no es PDF");
+        } catch (\Throwable $th) {
+            DB::rollback();
+            $nombreUser = $TheUser->name ?? 'desconocido';
+            $problema = $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile();
+            Log::alert("U -> $nombreUser fallo en Guardar el archivo " . $request->nombre . " - " . $problema);
+
+            return back()->with('error', __('app.label.created_error', ['name' => __('app.label.archivo')]) . $problema);
+        }
+    }
+
+    private function GuardarArchivo(Request $request,$theUser,$puedeHacerlo){
+        $nombreContenido = str_replace(" ","",time() ."_". $request->archivo->getClientOriginalName());
+        $request->archivo->storeAs('public/archivosSubidos',$nombreContenido);
+
+        $archivo = Archivo::create([
+            'NombreOriginal'    => $nombreContenido,
+            'nombre'            => $request->nombre ?? '',
+            'peso'              => $request->peso ?? 0,
+            'type'              => $request->type,
+            'user_id'           => $theUser->id,
+            'materia_id'        => $request->materia_id,
+        ]);
+
+        if($puedeHacerlo){ //la variable $puedeHacerlo, se refiere a si tiene suficientes tokens para resumir
+        //            $fechaEjecucion = now()->addHours(2);
+        //        $fechaEjecucion = now()->addDay()->setHour(1)->setMinute(0)->setSecond(0);
+            $fechaEjecucion = now()->addSecond(11);
+            GuardarResumirArchivoPDF::dispatch($archivo, $theUser)->delay($fechaEjecucion);
+        }
+    }
+
+    public function DeleteArchivos(Request $request) {
+        Myhelp::EscribirEnLog($this, get_called_class(), ' deleting a file(archivo)', false);
+        DB::beginTransaction();
+        try {
+            if ($request->id) {
+                $archivo = Archivo::find($request->id);
+                $oldPath = 'public/archivosSubidos/'.$archivo->NombreOriginal;
+                $newPath = 'public/DeletedArchivo/'.$archivo->NombreOriginal;
+
+                Storage::move($oldPath, $newPath);
+                $archivo->delete();
+
+                DB::commit();
+                Log::info("U -> " . Auth::user()->name . " Borro un archivo correctamente");
+                return back()->with('success', __('app.label.created_successfully2', ['nombre' => $archivo->nombre]));
+            }
+
+            DB::rollback();
+            Log::Alert("U -> " . Auth::user()->name . ". No se mando un id");
             return back()->with('error', "El archivo no es PDF");
         } catch (\Throwable $th) {
             DB::rollback();

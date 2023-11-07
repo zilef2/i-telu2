@@ -20,20 +20,16 @@ class Materia extends Model {
         'justificacion',
         'codigo',
         'enum',
-        
+
         //1 octubre
-        'activa',
+        'activa', //Esta materia puede seguir recibiendo modificaciones y unidades
     ];
 
-    public function unidads(): HasMany {
-        return $this->hasMany(Unidad::class, 'materia_id');
-    }
+    public function unidads(): HasMany {return $this->hasMany(Unidad::class, 'materia_id');}
+    public function archivos(): HasMany {return $this->hasMany(Archivo::class, 'materia_id');}
     public function Tsubtemas(): HasManyThrough {
         return $this->hasManyThrough(Subtopico::class, Unidad::class);
     }
-    // public function Tejercicios(): HasManyThrough {
-    //     return $this->hasManyThrough(Ejercicio::class,Subtopico::class,Unidad::class); 
-    // }
 
     public function objetivos(): HasMany {
         return $this->hasMany(Objetivo::class, 'materia_id');
@@ -75,7 +71,6 @@ class Materia extends Model {
     }
 
     //fin requisitos
-
     public function carrera_nombre(): string {
         return $this->carrera->nombre;
     }
