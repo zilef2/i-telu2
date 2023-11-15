@@ -17,6 +17,7 @@ const props = defineProps({
     numberPermissions: Number,
     ValoresGenerarSeccion: Object,
     HijoSelec: Object,
+    CuantasUniversidades: Number,
 });
 
 const emit = defineEmits(["close"]);
@@ -32,6 +33,7 @@ const data = reactive({
     ],
     tipoTexto: '',
     campoActivo: null,
+    ErrorFormulario: '',
 })
 const form = useForm({
     ...Object.fromEntries(data.campos.map(field => [field.id, []])),
@@ -147,15 +149,22 @@ const create = () => {
     form.carrera_id = data.carreraid
     form.materia_id = data.materiaid
 
-    form.post(route('Articulo.store'), {
-        preserveScroll: true,
-        onSuccess: () => {
-            emit("close")
-            form.reset()
-        },
-        onError: () => alert(JSON.stringify(form.errors, null, 4)),
-        onFinish: () => null,
-    })
+    console.log(data.materiaid)
+    if(data.materiaid && data.materiaid.value !== 0){
+        data.ErrorFormulario = ''
+        form.post(route('Articulo.store'), {
+            preserveScroll: true,
+            onSuccess: () => {
+                emit("close")
+                form.reset()
+            },
+            onError: () => alert(JSON.stringify(form.errors, null, 4)),
+            onFinish: () => null,
+        })
+    }else{
+        data.ErrorFormulario = 'No hay materia seleccionada'
+    }
+
 }
 </script>
 
@@ -166,9 +175,13 @@ const create = () => {
                 <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
                     Nuevo resumen
                 </h2>
-                <div class="flex items-center mt-6">
-                    <p v-if="data.errorCarrera[0]" class="text-red-500 dark:text-red-200 underline">
+                <div v-if="data.errorCarrera[0]" class="flex items-center mt-6">
+                    <p class="text-red-500 dark:text-red-200 underline">
                         {{ data.errorCarrera[0] }}</p>
+                </div>
+                <div v-if="data.ErrorFormulario !== ''" class="flex items-center mt-6">
+                    <p class="text-red-500 dark:text-red-200 underline">
+                        {{ data.ErrorFormulario }}</p>
                 </div>
                 <div class="flex text-center mt-6">
                     <p class="text-gray-500 dark:text-gray-400">A que asignatura pertenecerá el resumen</p>
@@ -261,8 +274,8 @@ const create = () => {
                                 class="text-sky-600 text-lg dark:text-gray-600">Se
                                 consumió: {{ data.restarAlToken }} token</p>
                         </div>
-
-                        <GreenButton :class="{ 'opacity-25': data.mostrarLoader }" :disabled="data.mostrarLoader"
+                        <GreenButton v-if="props.CuantasUniversidades > 0"
+                            :class="{ 'opacity-25': data.mostrarLoader }" :disabled="data.mostrarLoader"
                             @click="OptimizarResumenOIntroduccion(form[campo.id][2] ? form[campo.id][2] : form[campo.id][0], campo.id)"
                             class="ml-3 mt-1 px-10 py-3 outline outline-offset-2 ring-2 ring-green-700">
                             {{ data.mostrarLoader ? 'Revisando...' : 'Revisar' }}

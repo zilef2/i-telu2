@@ -57,7 +57,7 @@ const order = (field) => {
 
 watch(() => _.cloneDeep(data.params), debounce(() => {
     let params = pickBy(data.params)
-    router.get(route("user.index"), params, {
+    router.get(route("VerTiemposEstudiantes"), params, {
         replace: true,
         preserveState: true,
         preserveScroll: true,
@@ -146,21 +146,21 @@ watchEffect(() => {
                                         <ChevronUpDownIcon class="w-4 h-4" />
                                     </div>
                                 </th>
-                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('identificacion')">
-                                    <div class="flex justify-between items-center"> <span>{{ lang().label.identificacion }}</span>
-                                        <ChevronUpDownIcon class="w-4 h-4" />
-                                    </div>
-                                </th>
-                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('sexo')">
-                                    <div class="flex justify-between items-center"> <span>{{ lang().label.sexo }}</span>
-                                        <ChevronUpDownIcon class="w-4 h-4" />
-                                    </div>
-                                </th>
-                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('fecha_nacimiento')">
-                                    <div class="flex justify-between items-center"> <span>{{ lang().label.edad }}</span>
-                                        <ChevronUpDownIcon class="w-4 h-4" />
-                                    </div>
-                                </th>
+<!--                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('identificacion')">-->
+<!--                                    <div class="flex justify-between items-center"> <span>{{ lang().label.identificacion }}</span>-->
+<!--                                        <ChevronUpDownIcon class="w-4 h-4" />-->
+<!--                                    </div>-->
+<!--                                </th>-->
+<!--                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('sexo')">-->
+<!--                                    <div class="flex justify-between items-center"> <span>{{ lang().label.sexo }}</span>-->
+<!--                                        <ChevronUpDownIcon class="w-4 h-4" />-->
+<!--                                    </div>-->
+<!--                                </th>-->
+<!--                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('fecha_nacimiento')">-->
+<!--                                    <div class="flex justify-between items-center"> <span>{{ lang().label.edad }}</span>-->
+<!--                                        <ChevronUpDownIcon class="w-4 h-4" />-->
+<!--                                    </div>-->
+<!--                                </th>-->
                                 <th class="px-2 py-4 cursor-pointer" v-on:click="order('pgrado')">
                                     <div class="flex justify-between items-center"> <span>{{ lang().label.pgrado }}</span>
                                         <ChevronUpDownIcon class="w-4 h-4" />
@@ -189,7 +189,7 @@ watchEffect(() => {
                             <tr v-for="(user, index) in users.data" :key="index"
                                 class="border-t border-gray-200 dark:border-gray-700 hover:bg-sky-100 hover:dark:bg-gray-900/20"
                                 :class="index % 2 == 0 ? 'bg-gray-100 dark:bg-gray-800' : ''">
-                                
+
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">
                                     <div class="flex justify-center items-center">
                                         <div class="rounded-md overflow-hidden">
@@ -223,15 +223,15 @@ watchEffect(() => {
                                 <!-- <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.created_at }}</td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.updated_at }}</td> -->
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.MedidaControl }}</td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.identificacion }}</td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.sexo }}</td>
-                                <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">{{ CalcularEdad(user.fecha_nacimiento) }}</td>
+<!--                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.identificacion }}</td>-->
+<!--                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.sexo }}</td>-->
+<!--                                <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">{{ CalcularEdad(user.fecha_nacimiento) }}</td>-->
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.pgrado }}</td>
                                 <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">{{ user.semestre }}</td>
                                 <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">{{ user.limite_token_leccion }}
                                 </td>
                                 <!-- <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">{{ user.pgrado }}</td> -->
-                               
+
                             </tr>
                         </tbody>
                     </table>

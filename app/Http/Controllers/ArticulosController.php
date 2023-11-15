@@ -6,6 +6,8 @@ use App\helpers\HelpArticulo;
 use App\helpers\Myhelp;
 use App\Jobs\CriticarArticulo;
 use App\Models\Calificacion;
+use App\Models\TiemposArticulo;
+use Illuminate\Support\Arr;
 use Inertia\Inertia;
 
 use App\Models\Articulo;
@@ -37,22 +39,26 @@ class ArticulosController extends Controller{
     // - MapearClasePP, Filtros, losSelect
 
     public function MapearClasePP(&$Articulos, $numberPermissions) {
+        $user = Myhelp::AuthU();
         if ($numberPermissions < 2 && !$this->yaEstaFiltrada) {
 
 //            $Articulos = Auth::user()->articulos->flatMap(function ($articulo) {
 //                return collect($articulo);
 //            });
-            $IdArticulosDelUser = Auth::user()->articulos()->pluck('id');
+            $IdArticulosDelUser = $user->articulos()->pluck('id');
             $Articulos = $Articulos->WhereIn('id',$IdArticulosDelUser)->get();
 //            if(!$Articulos->isEmpty())
 //                $Articulos->get();
         } else {
             if($numberPermissions < 8){
-                $matrizMateriasEstudiantes = Auth()->user()->EstudiantesDelProfe();
+                $estudiantesID = [];
+                $matrizMateriasEstudiantes = $user->EstudiantesDelProfe();
                 foreach ($matrizMateriasEstudiantes as $key => $value) {
                     $estudiantesID[] = $value->pluck('id');
                 }
-                $Articulos = Articulo::WhereIn('user_id',$estudiantesID)->get();
+                $estudiantesID[] = $user->id;
+                $FlattenestudiantesID = Arr::flatten($estudiantesID);
+                $Articulos = Articulo::WhereIn('user_id',$FlattenestudiantesID)->get();
 
             }else{
                 $Articulos = $Articulos->get();
@@ -188,11 +194,13 @@ class ArticulosController extends Controller{
             'filters'               =>  $request->all(['search', 'field',
                                         'order'
                                     ]),
+
             'perPage'               =>  (int) $perPage,
             'fromController'        =>  $paginated,
             'HijoSelec'             =>  $HijoSelec,
             'numberPermissions'     =>  $numberPermissions,
             'ValoresGenerarSeccion' =>  $ValoresGenerarSeccion,
+            'CuantasUniversidades'   => auth()->user()->universidades()->count()
         ]);
     } //fin index
 
@@ -213,18 +221,6 @@ class ArticulosController extends Controller{
             $universidades = Universidad::all();
         }
 
-
-
-//        $opcionesU = Myhelp::NEW_turnInSelectID($universidades,' una universidad');
-//        foreach ($universidades as $key => $value) {
-//            $queryCarrera = Carrera::Where('universidad_id',$value->id);
-//            $carrerasIDs = $queryCarrera->pluck('id');
-//            foreach ($carrerasIDs as $carreraid) {
-//
-//                $opcionesAsignatura[$carreraid] = Myhelp::NEW_turnInSelectID(Materia::Where('carrera_id',$carreraid)->get(), ' una asignatura');
-//            }
-//            $opcionesCarreras[$value->id] = Myhelp::NEW_turnInSelectID($queryCarrera->get(), ' una carrera');
-//        }
         $HijoSelec = $this->AutoSelect($numberPermissions);
         //# generar()
         $ValoresGenerarSeccion = Inertia::lazy(fn () => HelpArticulo::MejorarResumen(
@@ -234,10 +230,9 @@ class ArticulosController extends Controller{
         ));
 
         return Inertia::render('Articulo/Create', [ //carpeta
-            'breadcrumbs'       =>  [['label' => __('app.label.Articulos'), 'href' => route('Articulo.create')]],
-            'title'             =>  'Creando nuevo articulo',
-            'HijoSelec'             =>  $HijoSelec,
-
+            'breadcrumbs'               =>  [['label' => __('app.label.Articulos'), 'href' => route('Articulo.create')]],
+            'title'                     =>  'Creando nuevo articulo',
+            'HijoSelec'                 =>  $HijoSelec,
             'numberPermissions'         =>  $numberPermissions,
             'ValoresGenerarSeccion'     =>  $ValoresGenerarSeccion,
         ]);
@@ -248,14 +243,28 @@ class ArticulosController extends Controller{
         $numberPermissions = Myhelp::getPermissionToNumber(Myhelp::EscribirEnLog($this, ' Articulo'));
         $rutaRedirect = 'Articulo.index';
         try {
-            $OwnUser = auth()->user();
+            $OwnUser = Myhelp::AuthU();
             $myhelp = new Myhelp();
 
             if(isset($request->isArticulo) && $request->isArticulo){
+
+                $huellaArticulo = session('huellaArticulo');
+                $tiempos = [];
+                if($huellaArticulo){
+                    $tiempos = TiemposArticulo::Where('huellaArticulo',$huellaArticulo)->Where('user_id',$OwnUser->id)->get();
+                }
+
                 $finalInput = $myhelp->GuardarInput($request,$OwnUser);
                 $rutaRedirect = 'Articulo.create';
 
                 $Articulo = Articulo::create($finalInput);
+
+                foreach ($tiempos as $index => $tiempo) {
+                    $tiempo->update([
+                       'articulo_id' => $Articulo->id
+                    ]);
+                }
+
                 DB::commit();
                 $mensaje = "U -> " . Auth::user()->name . " Guardo Articulo con nick: " . $request->nick[0] . " correctamente";
                 Myhelp::EscribirEnLog($this, $mensaje);
@@ -429,12 +438,34 @@ class ArticulosController extends Controller{
 
     public function guardarTiempoUser(Request $request) {
         try {
-//            startTime
-//            endTime
-//            tiempoEscritura
+
+            $user = Myhelp::AuthU();
+//            dd($request->index,
+//                $request->startTime,
+//                $request->endTime,
+//            );
+            $tiempo = HelpArticulo::updatingDateTime(
+                $request->startTime[$request->index]);
+
+            if($request->index == 1){
+                $huella = $tiempo;
+                session(['huellaArticulo',$tiempo]);
+            }else{
+                $huella = session('huellaArticulo');
+            }
+
+            TiemposArticulo::create([
+                'startTime' => $tiempo,
+                'endTime' => HelpARticulo::updatingDateTime($request->endTime[$request->index]),
+                'tiempoEscritura' => ($request->tiempoEscritura[$request->index]),
+                'user_id' => $user->id,
+                'articulo_id' => null,
+                'huellaArticulo' => $huella
+            ]);
 
         } catch (\Throwable $th) {
             $problema = $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile();
+            dd($problema);
             Myhelp::EscribirEnLog($this, ' guardarTiempoUser','Tiempo guardado incorrectamente: '.$problema);
         }
     }

@@ -260,7 +260,7 @@ onMounted(() => {
                                         </div>
                                     </div>
                                 </td>
-                                <td v-if="numberPermissions > 2" class="whitespace-nowrap py-4 px-2 sm:py-3">
+                                <td v-if="numberPermissions > 1.5" class="whitespace-nowrap py-4 px-2 sm:py-3">
                                     <div class="flex justify-start items-center ml-6">
                                         <div class="rounded-md overflow-hidden">
                                             <Link :href="route('materia.AsignarUsers', clasegenerica.id)">

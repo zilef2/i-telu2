@@ -99,6 +99,8 @@ class Articulo extends Model
 
     public function PromedioValores() : float
     {
-        return $this->calificacion->first()->PromedioValores();
+        if($this->calificacion && $this->calificacion->first())
+            return $this->calificacion->first()->PromedioValores();
+        return 0;
     }
 }

@@ -3,6 +3,9 @@
 return [
     'label' => [
 
+        //DASHBOARD
+        'materia.index' => 'Materias',
+        'SeleccioneAsignatura' => 'Seleccione una Asignatura',
         //pendiente
         'aceptar' => 'aceptar',
         'Aceptar' => 'Aceptar',
@@ -90,8 +93,8 @@ return [
         'requisito1' => 'Requisito 1',
         'requisito2' => 'Requisito 2',
         'requisito3' => 'Requisito 3',
-        'carrera' => 'Carrera',
         'descripcion' => 'descripcion',
+        'Descripcion' => 'Descripcion',
         'seeTemas' => 'Unidades',
         //user
         'pgrado' => 'Nivel',
@@ -120,7 +123,7 @@ return [
         'coordinador_academico' => 'Coordinador Academico',
         //each model
         'universidadCarreras' => 'Universidad y Carreras',
-        'carrera' => 'Carrera',
+        'Carrera' => 'Carrera',
         'Carreras' => 'Carreras',
         'materia' => 'Asignatura',
         'Unidad' => 'Unidad',
@@ -175,7 +178,6 @@ return [
         'updated' => 'Actualizado',
         'verified' => 'Verificado',
         'search' => 'Buscar',
-        'of' => 'de',
         'logout_confirm' => 'Seguro que va a salir?',
         'delete_confirm' => 'Desea borrar ',
 
@@ -199,7 +201,6 @@ return [
         'deleted_error2' => 'Error borrando :nombre.',
 
         'all_permission' => 'Todos los Permisos',
-        'no_permission' => 'No hay Permisos',
         'edit' => 'Editar',
         'delete' => 'Borrar',
         'add' => 'Nuevo',

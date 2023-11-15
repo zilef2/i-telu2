@@ -171,7 +171,7 @@ const deletethis = (archivoid) => {
                             <h2 class="tracking-widest text-sm title-font font-medium text-gray-400 mb-1">{{  formatDate(archivin.updated_at) }}</h2>
                             <div class="text-center mx-auto py-1"><h1
                                 class="title-font sm:text-2xl text-xl font-medium text-gray-900 h-[6rem] my-1 items-center text-center">
-                                {{ PrimerasPalabras(archivin.nombre, 21) }}</h1></div>
+                                {{ PrimerasPalabras(archivin.nombre, 18) }}</h1></div>
                             <div class="grid grid-cols-2">
                                 <Link :href="route('vistaPDF', archivin.id)" class="my-1 border-2 border-b-blue-300">
                                     <a class="text-indigo-500 inline-flex items-center">Visualizar archivo

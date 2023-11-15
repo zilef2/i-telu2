@@ -21,37 +21,40 @@ class ExtraUser extends Controller {
                     ->orWhere('identificacion', 'LIKE', "%" . $request->search . "%")
                     ;
             })
-            ->where('name', '!=', 'admin')
+            ->where('name', '!=', 'Admin IntelU')
             ->where('name', '!=', 'Superadmin');
             // $users->where('name', 'LIKE', "%" . $request->search . "%");
         }
         $users->whereHas('roles', function ($query) {
-            return $query->whereIn('name', ['estudiante','admin']);
+            return $query->whereIn('name', ['estudiante']);
         })->with('roles');
 
     }
 
 
-    public function MapearClasePP(&$users, $numberPermissions) {
-        // $MedidaControls = Auth::user()->MedidaControl()->pluck('materias.id')->toArray();
+    public function MapearClasePP($request, &$users, $numberPermissions) {
+
+        if ($request->has(['field', 'order'])) {
+            $users = $users->orderBy($request->field, $request->order);
+        }
         $users = $users->get()->map(function ($user) use ($numberPermissions) {
-            $user->MedidaControl = intval($user->MedidaControl->count());
+            $rol = $user->roles->pluck('name')[0];
+            if($rol === 'superadmin' || $rol === 'admin') return null;
+
+            $user->MedidaControl = (int)($user->MedidaControl->count());
             return $user;
         })->filter();
     }
-    
+
     public function VerTiemposEstudiantes(Request $request) {
         $permissions = Myhelp::EscribirEnLog($this, ' extrausers');
         $numberPermissions = Myhelp::getPermissionToNumber($permissions);
 
         $users = User::query();
         $this->Filtros($request, $users);
+        $this->MapearClasePP($request, $users,$numberPermissions);
 
-        $this->MapearClasePP($users,$numberPermissions);
 
-        if ($request->has(['field', 'order'])) {
-            $users = $users->orderBy($request->field, $request->order);
-        }
 
         $perPage = $request->has('perPage') ? $request->perPage : 10;
         $page = request('page', 1); // Current page number
@@ -104,17 +107,17 @@ class ExtraUser extends Controller {
             $CountMedida = 0;
             foreach ($medida as $key => $value) {
                 $CountMedida += count($value);
-                
+
             }
             // $CountSubtopicos = count($medida);
 
             $subtopicos = Subtopico::Wherein('id',$idsubtopicos)->get();
 
-           
+
 // dd($medida);
 
         $roles = Role::get();
-        //todo: que materia, 
+        //todo: que materia,
 
         return Inertia::render('ExtraUser/ver', [
             'breadcrumbs'   => [

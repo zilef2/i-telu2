@@ -25,6 +25,8 @@ class Materia extends Model {
         'activa', //Esta materia puede seguir recibiendo modificaciones y unidades
     ];
 
+
+    //<editor-fold desc="Mandatory relationships">
     public function unidads(): HasMany {return $this->hasMany(Unidad::class, 'materia_id');}
     public function archivos(): HasMany {return $this->hasMany(Archivo::class, 'materia_id');}
     public function Tsubtemas(): HasManyThrough {
@@ -34,6 +36,34 @@ class Materia extends Model {
     public function objetivos(): HasMany {
         return $this->hasMany(Objetivo::class, 'materia_id');
     }
+    public function carrera(): BelongsTo {
+        return $this->belongsTo(Carrera::class, 'carrera_id');
+    }
+
+    // requisitos
+    public function requisito1(): BelongsTo {
+        return $this->belongsTo(Materia::class, 'req1_materia_id');
+    }
+    public function requisito2(): BelongsTo {
+        return $this->belongsTo(Materia::class, 'req2_materia_id');
+    }
+    public function requisito3(): BelongsTo {
+        return $this->belongsTo(Materia::class, 'req3_materia_id');
+    }
+    public function users(): BelongsToMany {
+        return $this->BelongsToMany(User::class);
+    } //$materias->users
+
+    //</editor-fold>
+
+
+    public function universidad()
+    {
+        return $this->carrera->universidad;
+    }
+
+
+    //<editor-fold desc="return a String">
     public function objetivosString($cuantos = false) {
         $pluc = $this->objetivos->pluck('nombre')->toArray();
         $cuantosObjetivosTiene = count($pluc);
@@ -43,29 +73,15 @@ class Materia extends Model {
         if($cuantos) return $cuantosObjetivosTiene;
         return implode(". ", $pluc);
     }
-
-    public function carrera(): BelongsTo {
-        return $this->belongsTo(Carrera::class, 'carrera_id');
-    }
-
-    // requisitos
-    public function requisito1(): BelongsTo {
-        return $this->belongsTo(Materia::class, 'req1_materia_id');
-    }
     public function requisito1_nombre() {
         return $this->requisito1 != null ? $this->requisito1->nombre : '';
     }
 
-    public function requisito2(): BelongsTo {
-        return $this->belongsTo(Materia::class, 'req2_materia_id');
-    }
+
     public function requisito2_nombre() {
         return $this->requisito2 != null ? $this->requisito2->nombre : '';
     }
 
-    public function requisito3(): BelongsTo {
-        return $this->belongsTo(Materia::class, 'req3_materia_id');
-    }
     public function requisito3_nombre() {
         return $this->requisito3 != null ? $this->requisito3->nombre : '';
     }
@@ -75,9 +91,7 @@ class Materia extends Model {
         return $this->carrera->nombre;
     }
 
-    public function users(): BelongsToMany {
-        return $this->BelongsToMany(User::class);
-    } //$materias->users
+
 
     public function users_nombres(): string {
         $usuarios = $this->users->pluck('name')->toArray();
@@ -93,6 +107,8 @@ class Materia extends Model {
         else
             return $usuarios;
     }
+    //</editor-fold>
+
 
     public function usuarios($materiaid, $elrol) {
         $result = $this->belongsToMany(User::class, 'materia_user')

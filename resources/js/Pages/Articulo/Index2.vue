@@ -15,12 +15,10 @@ import { ChevronUpDownIcon, PencilIcon, TrashIcon, CheckBadgeIcon } from '@heroi
 import Toast from '@/Components/Toast.vue';
 
 import CreatResumen from '@/Pages/Articulo/CreatResumen.vue';
-import Edit from '@/Pages/Articulo/Edit.vue';
 import Delete from '@/Pages/Articulo/Delete.vue';
 import DeleteBulk from '@/Pages/Articulo/DeleteBulk.vue';
 
 import Checkbox from '@/Components/Checkbox.vue';
-import InfoButton from '@/Components/InfoButton.vue';
 import { XMarkIcon, CheckCircleIcon, ExclamationCircleIcon, InformationCircleIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
 
 import { slugTOhumano }from '@/global.ts';
@@ -36,6 +34,7 @@ const props = defineProps({
     fromController: Object,
     ValoresGenerarSeccion: Object,
     numberPermissions: Number,
+    CuantasUniversidades: Number,
 
 })
 
@@ -117,7 +116,7 @@ function notification(newVal) {
         <Breadcrumb :title="title" :breadcrumbs="breadcrumbs" />
 
         <transition name="slide-fade">
-            <div v-if="$page.props.flash && $page.props.flash.success != '' && $page.props.flash.success != null && data.isVisible" class="fixed top-4 right-4 w-8/12 md:w-7/12 lg:w-3/12 z-[100]">
+            <div v-if="$page.props.flash && $page.props.flash.success !== '' && $page.props.flash.success != null && data.isVisible" class="fixed top-4 right-4 w-8/12 md:w-7/12 lg:w-3/12 z-[100]">
                 <div class="flex p-4 justify-between items-center bg-green-600 rounded-lg">
                     <div>
                         <CheckCircleIcon class="h-8 w-8 text-white" fill="currentColor" />
@@ -153,13 +152,17 @@ function notification(newVal) {
             <div class="px-4 sm:px-0">
                 <div class="rounded-lg overflow-hidden w-fit">
                     <div class="flex-inline gap-1">
-                        <PrimaryButton class="rounded-none" @click="data.CreateResumenBool = true">
+                        <PrimaryButton v-if="props.CuantasUniversidades > 0" class="rounded-none" @click="data.CreateResumenBool = true">
                             {{ lang().button.add }} resumen
                         </PrimaryButton>
+                        <button v-else class="rounded-none" > ¡No esta asociado a una universidad!</button>
                     </div>
                     <!-- <Edit :show="data.editOpen" @close="data.editOpen = false" :articulo="data.generico"
                         v-if="can(['update Articulo'])" :title="props.title" /> -->
-                    <CreatResumen :show="data.CreateResumenBool" @close="data.CreateResumenBool = false" :HijoSelec="props.HijoSelec" :ValoresGenerarSeccion="ValoresGenerarSeccion" />
+                    <CreatResumen :show="data.CreateResumenBool" @close="data.CreateResumenBool = false"
+                          :HijoSelec="props.HijoSelec" :ValoresGenerarSeccion="ValoresGenerarSeccion"
+                          :CuantasUniversidades="props.CuantasUniversidades"
+                    />
 
                     <Delete :show="data.deleteOpen" @close="data.deleteOpen = false" :articulo="data.generico"
                         v-if="can(['delete Articulo'])" :title="props.title" />

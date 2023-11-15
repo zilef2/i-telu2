@@ -29,17 +29,8 @@ use Inertia\Inertia;
 require __DIR__ . '/auth.php';
 
 Route::get('/', function () { return redirect('/login'); });
-Route::get('/dashboard', function () {
-    $permissions = auth()->user()->roles->pluck('name')[0];
-    if($permissions == "estudiante") return redirect('/materia');
-
-
-    return Inertia::render('Dashboard', [
-        'users'         => (int) User::count(),
-        'roles'         => (int) Role::count(),
-        'permissions'   => (int) Permission::count(),
-    ]);
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [UserController::class,'VistaPrincipal'])->middleware(['auth', 'verified'])->name('dashboard');
+//Route::get('/dashboard', function () { })
 
 
 Route::get('/setLang/{locale}', function ($locale) {
@@ -171,8 +162,13 @@ Route::middleware('auth', 'verified')->group(function () {
     Route::resource('/Plan', PlansController::class);
     // #pendientes
     Route::resource('/pendiente', UsuarioPendientesPagosController::class);
-    Route::post('/pendiente/destroy-bulk', [UsuarioPendientesPagosController::class, 'destroyBulk'])->name('Articulo.destroy-bulk');
+    Route::post('/pendiente/destroy-bulk', [UsuarioPendientesPagosController::class, 'destroyBulk'])->name('pendiente.destroy-bulk');
     Route::get('/AceptarUsersPendiente/{pendienteid}', [UsuarioPendientesPagosController::class, 'AceptarUsers'])->name('pendiente.AceptarUsers');
+
+
+    // #SeleccioneAsignatura (parte inicial para un usuario que compro la subscripcion
+    Route::get('/SeleccioneAsignatura', [UserController::class, 'SeleccioneAsignatura'])->name('SeleccioneAsignatura');
+    Route::post('/ComprarAsignatura', [UserController::class, 'ComprarAsignatura'])->name('ComprarAsignatura');
 });
 
 
@@ -206,4 +202,13 @@ Route::middleware('auth', 'verified')->group(function () {
     });
 //</editor-fold>
 
+//en el kernel
+//protected $routeMiddleware = [
+//    // ...
+//    'errorHandler' => \App\Http\Middleware\ErrorHandlerMiddleware::class,
+//];
+//Route::middleware('errorHandler')->group(function () {
+//// Rutas aquí
+//});
 ?>
+

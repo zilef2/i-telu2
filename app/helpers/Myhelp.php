@@ -154,13 +154,14 @@ class Myhelp {
      * @param $permissions
      * @return int
      */
-    public static function getPermissionToNumber($permissions = null): int{
+    public static function getPermissionToNumber($permissions = null): float{
         if ($permissions === null)
             $permissions = auth()->user()->roles->pluck('name')[0];
 
         $ResultValue = 0;
 
         if ($permissions === 'estudiante') $ResultValue = 1;
+        if ($permissions === 'estudiante_independiente') $ResultValue = 1.5;
         if ($permissions === 'profesor') $ResultValue = 2;
         if ($permissions === 'coordinador_de_programa') $ResultValue = 3;
         if ($permissions === 'coordinador_academico') $ResultValue = 4;

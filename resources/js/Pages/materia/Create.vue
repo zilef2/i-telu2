@@ -75,7 +75,7 @@ watchEffect(() => {
                          :dataSet="props.carrerasSelect"> </SelectInput>
                         <InputError class="mt-2" :message="form.errors.carrera_id" />
                     </div>
-                    
+
                     <div>
                         <InputLabel for="enum" :value="lang().label.enum + '*'" />
                         <TextInput id="enum" type="number" class="mt-1 block w-full" v-model="form.enum" required
@@ -95,28 +95,28 @@ watchEffect(() => {
                         <InputError class="mt-2" :message="form.errors.codigo" />
                     </div>
                     <div>
-                        <InputLabel for="descripcion" :value="lang().label.descripcion" />
+                        <InputLabel for="descripcion" :value="lang().label.descripcionop" />
                         <TextInput id="descripcion" type="text" class="mt-1 block w-full" v-model="form.descripcion"
                             :placeholder="lang().placeholder.descripcion" :error="form.errors.descripcion" />
                         <InputError class="mt-2" :message="form.errors.descripcion" />
                     </div>
-                    
-                    
+
+
 
                     <!-- objetivos -->
                     <div>
                         <InputLabel for="cuantosObj" :value="lang().label.cuantosObj" />
-                        <TextInput id="cuantosObj" type="number" min=0 max=3 class="mt-1 block w-full" v-model.number="form.cuantosObj" required
+                        <TextInput id="cuantosObj" type="number" min=0 max=11 class="mt-1 block w-full" v-model.number="form.cuantosObj" required
                             :placeholder="lang().placeholder.cuantosObj" />
                     </div>
-                    <div v-if="form.cuantosObj > 0" v-for="index in form.cuantosObj">
+                    <div v-if="form.cuantosObj > 0" v-for="index in form.cuantosObj" class="col-span-2">
                         <InputLabel for="" :value="lang().label.objetivo + ' '+(index)" />
-                        <TextInput id="objetivo" type="text" min=0 max=5 class="mt-1 block w-full" v-model="form.objetivo[index-1]" required
+                        <TextInput id="objetivo" type="text" class="mt-1 block w-full" v-model="form.objetivo[index-1]" required
                             :placeholder="lang().placeholder.objetivo" />
                         <InputError class="mt-2" :message="form.errors.objetivo" />
                     </div>
                 </div>
-                
+
                 <div class="flex justify-end">
                     <SecondaryButton :disabled="form.processing" @click="emit('close')"> {{ lang().button.close }}
                     </SecondaryButton>

@@ -297,9 +297,12 @@ const update = () => {
                                     campo.etiqueta }}</label>
                                 <div class="relative rounded-md shadow-sm select-none">
                                     <div :id="campo.id + '1'"
-                                        class="block w-full px-5 py-3 mt-2 text-white font-sans bg-black border border-sky-600 select-none
-                                        rounded-lg dark:placeholder-gray-600 dark:bg-gray-200 dark:text-gray-800 dark:border-gray-700 focus:border-blue-400
-                                         dark:focus:border-blue-400 focus:ring-blue-400 focus:outline-none focus:ring focus:ring-opacity-40 text-justify" >
+                                         class="block w-full px-5 py-3 mt-2 font-sans
+                                         border border-sky-600 select-none rounded-lg
+                                        focus:border-blue-400 focus:ring-blue-400 focus:outline-none focus:ring focus:ring-opacity-40 text-justify
+                                        bg-sky-100 text-black
+                                        dark:placeholder-gray-600 dark:bg-gray-200 dark:text-gray-800 dark:border-gray-700 dark:focus:border-blue-400
+                                        ">
                                         {{ form[campo.id][1] }}
                                     </div>
                                 </div>

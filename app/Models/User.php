@@ -69,9 +69,22 @@ class User extends Authenticatable
     public function universidades(): BelongsToMany {
         return $this->BelongsToMany(Universidad::class);
     }
+
+    public function ExistUniversidad($id): Bool {
+//        $this->universidades();
+        return $this->universidades->contains($id);
+    }
+
     public function carreras(): BelongsToMany {
         return $this->BelongsToMany(Carrera::class);
     }
+    public function ExistCarrera($id): Bool {
+        return $this->carreras->contains($id);
+    }
+    public function ExistMateria($id): Bool {
+        return $this->materias->contains($id);
+    }
+
     public function materias(): BelongsToMany {
         return $this->BelongsToMany(Materia::class);
     }
@@ -104,8 +117,8 @@ class User extends Authenticatable
     public function EstudiantesDelProfe() {
 
         $materias = $this->materias;
-
-        foreach ($materias as $key => $value) {
+        $matrizMateriasEstudiantes = [];
+        foreach ($materias as $value) {
             $matrizMateriasEstudiantes[$value->id] = $value->usuarios($value->id,'estudiante')->get();
         }
 

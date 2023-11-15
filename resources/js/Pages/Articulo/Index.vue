@@ -203,15 +203,14 @@ function notification(newVal) {
                                     <div class="flex justify-between items-center"> <span> Nombre </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>
                                 </th>
 
-                                <th v-on:click="order('version')" class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
-                                    <div class="flex justify-between items-center"> <span> {{slugTOhumano('version')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>
-                                </th>
+<!--                                <th v-on:click="order('version')" class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800"><div class="flex justify-between items-center"> <span> {{slugTOhumano('version')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div></th>-->
+
                                 <th v-on:click="order('Critica_string')" class="min-w-xl px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
                                     <div class="flex justify-between items-center"> <span> {{slugTOhumano('Critica')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>
                                 </th>
-                                <th v-on:click="order('Portada')" class="px-2 py-4 w-64 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
-                                    <div class="flex justify-between items-center"> <span> {{slugTOhumano('Portada')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>
-                                </th>
+<!--                                <th v-on:click="order('Portada')" class="px-2 py-4 w-64 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">-->
+<!--                                    <div class="flex justify-between items-center"> <span> {{slugTOhumano('Portada')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>-->
+<!--                                </th>-->
                                 <th v-on:click="order('user_id')" class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
                                     <div class="flex justify-between items-center"> <span> {{slugTOhumano('Autor')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>
                                 </th>
@@ -227,33 +226,33 @@ function notification(newVal) {
                                 <th v-on:click="order('Palabras_Clave')" class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
                                     <div class="flex justify-between items-center"> <span> {{slugTOhumano('Palabras_Clave')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>
                                 </th>
-                                <th v-on:click="order('Introduccion')" class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
-                                    <div class="flex justify-between items-center"> <span> {{slugTOhumano('Introduccion')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>
-                                </th>
-                                <th v-on:click="order('Revision_de_la_Literatura')" class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
-                                    <div class="flex justify-between items-center"> <span> {{slugTOhumano('Revision_de_la_Literatura')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>
-                                </th>
-                                <th v-on:click="order('Metodologia')" class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
-                                    <div class="flex justify-between items-center"> <span> {{slugTOhumano('Metodologia')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>
-                                </th>
-                                <th v-on:click="order('Resultados')" class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
-                                    <div class="flex justify-between items-center"> <span> {{slugTOhumano('Resultados')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>
-                                </th>
-                                <th v-on:click="order('Discusion')" class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
-                                    <div class="flex justify-between items-center"> <span> {{slugTOhumano('Discusion')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>
-                                </th>
-                                <th v-on:click="order('Conclusiones')" class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
-                                    <div class="flex justify-between items-center"> <span> {{slugTOhumano('Conclusiones')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>
-                                </th>
-                                <th v-on:click="order('Agradecimientos')" class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
-                                    <div class="flex justify-between items-center"> <span> {{slugTOhumano('Agradecimientos')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>
-                                </th>
+<!--                                <th v-on:click="order('Introduccion')" class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">-->
+<!--                                    <div class="flex justify-between items-center"> <span> {{slugTOhumano('Introduccion')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>-->
+<!--                                </th>-->
+<!--                                <th v-on:click="order('Revision_de_la_Literatura')" class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">-->
+<!--                                    <div class="flex justify-between items-center"> <span> {{slugTOhumano('Revision_de_la_Literatura')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>-->
+<!--                                </th>-->
+<!--                                <th v-on:click="order('Metodologia')" class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">-->
+<!--                                    <div class="flex justify-between items-center"> <span> {{slugTOhumano('Metodologia')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>-->
+<!--                                </th>-->
+<!--                                <th v-on:click="order('Resultados')" class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">-->
+<!--                                    <div class="flex justify-between items-center"> <span> {{slugTOhumano('Resultados')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>-->
+<!--                                </th>-->
+<!--                                <th v-on:click="order('Discusion')" class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">-->
+<!--                                    <div class="flex justify-between items-center"> <span> {{slugTOhumano('Discusion')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>-->
+<!--                                </th>-->
+<!--                                <th v-on:click="order('Conclusiones')" class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">-->
+<!--                                    <div class="flex justify-between items-center"> <span> {{slugTOhumano('Conclusiones')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>-->
+<!--                                </th>-->
+<!--                                <th v-on:click="order('Agradecimientos')" class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">-->
+<!--                                    <div class="flex justify-between items-center"> <span> {{slugTOhumano('Agradecimientos')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>-->
+<!--                                </th>-->
                                 <th v-on:click="order('Referencias')" class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
                                     <div class="flex justify-between items-center"> <span> {{slugTOhumano('Referencias')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>
                                 </th>
-                                <th v-on:click="order('Anexos_o_Apendices')" class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">
-                                    <div class="flex justify-between items-center"> <span> {{slugTOhumano('Anexos_o_Apendices')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>
-                                </th>
+<!--                                <th v-on:click="order('Anexos_o_Apendices')" class="px-2 py-4 cursor-pointer hover:bg-sky-50 dark:hover:bg-sky-800">-->
+<!--                                    <div class="flex justify-between items-center"> <span> {{slugTOhumano('Anexos_o_Apendices')}} </span> <ChevronUpDownIcon class="w-4 h-4" /> </div>-->
+<!--                                </th>-->
 
 
                                 <!-- <th v-if="props.numberPermissions > 1" v-on:click="order('resultado_aprendizaje')"
@@ -298,25 +297,26 @@ function notification(newVal) {
                                         </div>
                                     </div>
                                 </td>
-                                    <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.nick) }} </td>
-                                    <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.version) }} </td>
-                                    <td class="w-[700px] flex flex-wrap py-4 px-2 sm:py-3">{{ PrimerasPalabras(clasegenerica.Critica_string,66) }} </td>
-                                    <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ PrimerasPalabras(clasegenerica.Portada) }} </td>
-                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ (clasegenerica.hijo) }} </td>
-                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">Docente: {{ (clasegenerica.cal) }} <br> IA: {{ (clasegenerica.calIA) }} </td>
-                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ (clasegenerica.PromedioValores) }} </td>
-                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabras(clasegenerica.Resumen) }} </td>
-                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ (clasegenerica.Palabras_Clave) }} </td>
-                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabras(clasegenerica.Introduccion) }} </td>
-                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabras(clasegenerica.Revision_de_la_Literatura) }} </td>
-                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabras(clasegenerica.Metodologia) }} </td>
-                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabras(clasegenerica.Resultados) }} </td>
-                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabras(clasegenerica.Discusion) }} </td>
-                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabras(clasegenerica.Conclusiones) }} </td>
-                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabras(clasegenerica.Agradecimientos) }} </td>
-                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabras(clasegenerica.Referencias) }} </td>
-                                    <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabras(clasegenerica.Anexos_o_Apendices) }} </td>
-                                <!-- <td v-if="props.numberPermissions > 1" class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.resultado_aprendizaje) }} </td> -->
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.nick) }} </td>
+<!--                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.version) }} </td>-->
+                                <td class="w-[600px] flex flex-wrap py-4 px-2 sm:py-3">{{ PrimerasPalabras(clasegenerica.Critica_string,66) }} </td>
+                                <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ (clasegenerica.hijo) }} </td>
+                                <td class="flex-wrap w-full py-4 px-2 sm:py-3">Docente: {{ (clasegenerica.cal) }} <br> IA: {{ (clasegenerica.calIA) }} </td>
+                                <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ (clasegenerica.PromedioValores) }} </td>
+                                <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabras(clasegenerica.Resumen) }} </td>
+                                <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ (clasegenerica.Palabras_Clave) }} </td>
+<!--                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ PrimerasPalabras(clasegenerica.Portada) }} </td>-->
+
+<!--                                <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabras(clasegenerica.Introduccion) }} </td>-->
+<!--                                <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabras(clasegenerica.Revision_de_la_Literatura) }} </td>-->
+<!--                                <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabras(clasegenerica.Metodologia) }} </td>-->
+<!--                                <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabras(clasegenerica.Resultados) }} </td>-->
+<!--                                <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabras(clasegenerica.Discusion) }} </td>-->
+<!--                                <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabras(clasegenerica.Conclusiones) }} </td>-->
+<!--                                <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabras(clasegenerica.Agradecimientos) }} </td>-->
+                                <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabras(clasegenerica.Referencias) }} </td>
+<!--                                <td class="flex-wrap w-full py-4 px-2 sm:py-3">{{ PrimerasPalabras(clasegenerica.Anexos_o_Apendices) }} </td>-->
+                            <!-- <td v-if="props.numberPermissions > 1" class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.resultado_aprendizaje) }} </td> -->
                             </tr>
                         </tbody>
                     </table>

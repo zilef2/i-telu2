@@ -44,8 +44,7 @@ class MateriasController extends Controller
 
 
     //! index functions () los filtros van primero ome
-    public function Filtros($request, &$materias)
-    {
+    public function Filtros($request, &$materias){
         if ($request->has('selectedUni') && $request->selectedUni != 0) {
             // dd($request->selectedUni);
             $carrerasid = Carrera::has('materias')->where('universidad_id', $request->selectedUni)->pluck('id')->toArray();
@@ -67,8 +66,7 @@ class MateriasController extends Controller
             $materias->orderBy('carrera_id')->orderBy('enum');
         }
     }
-    public function MapearClasePP(&$materias, $numberPermissions)
-    {
+    public function MapearClasePP(&$materias, $numberPermissions){
 
         $materias = $materias->get()->map(function ($materia) use ($numberPermissions) {
 
@@ -84,6 +82,7 @@ class MateriasController extends Controller
             $materia->muchos = $materia->users_nombres();
 
             $materia->objetivs = ($materia->objetivos()->count());
+            $materia->objetivos = ($materia->objetivos()->get());
 
             return $materia;
         })->filter();
@@ -94,8 +93,8 @@ class MateriasController extends Controller
         if ($numberPermissions <= 1) {
             $nombresTabla[2] = [null, null,      "enum",    "nombre",  "codigo", "carrera_id", null, null,       "descripcion"];
             $nombresTabla[0] = ["IA", "Archivos", "Semestre", "Nombre", "Codigo", "Carrera",   "Unidades", "Objetivos", "descripcion"];
-        } else { //not estudiante
-            if ($numberPermissions <= 2) {
+        } else {
+            if ($numberPermissions <= 1.5) {
                 $nombresTabla[2] = [null, null, null,             "enum",     "nombre", "codigo", "carrera_id", null,    null,        null, "descripcion"];
                 $nombresTabla[0] = ["Edicion", "IA", "Archivos",  "Semestre", "Nombre", "Codigo", "Carrera", "Unidades", "usuarios", "Objetivos", "descripcion"];
             } else {
@@ -122,8 +121,7 @@ class MateriasController extends Controller
             $materias = $materias->whereIn('carrera_id', $request->selectedcarr);
         }
 
-        // $carrerasSelect = Carrera::has('materias')->get();
-        if ($numberPermissions < intval(env('PERMISS_VER_FILTROS_SELEC'))) { //coorPrograma,profe,estudiante
+        if ($numberPermissions < (int)(env('PERMISS_VER_FILTROS_SELEC'))) { //coorPrograma,profe,estudiante
             $UniversidadSelect = Auth::user()->universidades;
             $MateriasRequisitoSelect = Auth::user()->materias;
         } else {
@@ -168,7 +166,6 @@ class MateriasController extends Controller
         $errorMessage = '';
 
 
-
         //# generarTodo.vue :> generar
 
         // $listaMaterias = Materia::where('carrera_id',$request->carrera_id)->pluck('nombre') ?? [];
@@ -179,7 +176,6 @@ class MateriasController extends Controller
             'temas' => $request->temas,
             'unidades' => $request->unidades,
         ]));
-
 
         //# generarTodo.vue :> buscarMateriasSelect
         if ($request->has('carrera_id_buscar') && $request->carrera_id_buscar != 0) {
@@ -208,7 +204,7 @@ class MateriasController extends Controller
     public function store(MateriumRequest $request)
     {
         DB::beginTransaction();
-        Myhelp::EscribirEnLog($this, get_called_class(), '', false);
+        $numberPermissions = Myhelp::getPermissionToNumber(Myhelp::EscribirEnLog($this, get_called_class(), '', false));
 
         $request->validate([
             'codigo' => 'required|unique:materias',
@@ -227,7 +223,7 @@ class MateriasController extends Controller
                 'codigo' => $request->codigo
             ]);
 
-            for ($i = 0; $i < intval($request->cuantosObj); $i++) {
+            for ($i = 0; $i < (int)($request->cuantosObj); $i++) {
                 Objetivo::create(['nombre' => $request->objetivo[$i], 'materia_id' => $materia->id]);
             }
             DB::commit();
@@ -253,7 +249,8 @@ class MateriasController extends Controller
     //usefull
     //generar materia
     public function materiaguardarGenerado(IA_MateriaRequest $request) {
-        Myhelp::EscribirEnLog($this, get_called_class(), '', false);
+        $numberPermissions = Myhelp::getPermissionToNumber(Myhelp::EscribirEnLog($this, get_called_class(), '', false));
+
         DB::beginTransaction();
         try {
             $materia = Materia::find($request->materia_id);
@@ -296,8 +293,7 @@ class MateriasController extends Controller
     }
 
 
-    public function show($id)
-    {
+    public function show($id){
         $materia = Materia::find($id);
         $unidads = $materia->unidads;
         $objetivos = $materia->objetivos;
@@ -320,12 +316,9 @@ class MateriasController extends Controller
             'breadcrumbs'    =>  [['label' => __('app.label.materias'), 'href' => route('materia.index')]],
         ]);
     }
-    public function edit(materia $materia)
-    {
-    }
+    public function edit(materia $materia){}
 
-    public function update(Request $request, $id)
-    {
+    public function update(Request $request, $id){
         $materia = Materia::find($id);
         $request->validate([
             'codigo' => 'required|unique:materias,codigo,' . $id,
@@ -336,7 +329,7 @@ class MateriasController extends Controller
         Myhelp::EscribirEnLog($this, get_called_class(), '', false);
         try {
 
-            $OriginalObj = intval($materia->objetivosString(true));
+            $OriginalObj = (int)($materia->objetivosString(true));
 
             $materia->update([
                 'nombre' => $request->nombre,
@@ -348,10 +341,12 @@ class MateriasController extends Controller
                 'activa' => $request->activar ?? 1
             ]);
 
-            $cuantosObj = intval($request->cuantosObj);
-            if ($cuantosObj >= $OriginalObj) {
+            $cuantosObj = (int)($request->cuantosObj);
+            if ($cuantosObj >= $OriginalObj) {//si agrego mas objetivos
                 for ($i = 0; $i < $OriginalObj; $i++) {
-                    $objetivos[$i]->update(['nombre' => $request->objetivo[$i]]);
+                    if(isset($objetivos[$i]) && isset($request->objetivo[$i])){
+                        $objetivos[$i]->update(['nombre' => $request->objetivo[$i]]);
+                    }
                 }
                 for ($i = $OriginalObj; $i <= $cuantosObj - 1; $i++) {
                     if (isset($request->objetivo[$i]))
@@ -404,12 +399,13 @@ class MateriasController extends Controller
 
     public function AsignarUsers(Request $request, $materiaid)
     {
+        $numberPermissions = Myhelp::getPermissionToNumber(Myhelp::EscribirEnLog($this, get_called_class(), '', false));
+        $user = Myhelp::AuthU();
         $titulo = 'Seleccione los estudiantes a matricular';
-        $permissions = Myhelp::EscribirEnLog($this, 'carrera');
-        if ($permissions === "estudiante") {
+
+//        $user->hasPermissionTo('matricularEnMateria');
+        if ($numberPermissions < 2) {
             return back()->with('error', __('app.label.no_permission'));
-        } else { // not estudiante
-            // $nombresTabla = $this->NombresTabla(0);
         }
 
         $materia = Materia::find($materiaid);
@@ -784,15 +780,8 @@ class MateriasController extends Controller
         $numberPermissions = Myhelp::getPermissionToNumber($permissions);
 
         $materia = Materia::find($materiaid);
-//        if ($permissions === "estudiante") {
-//        } else { // not estudiante
-//        }
-
         $archivos = Archivo::where('materia_id', $materiaid)->get();
 
-//        $AvisarPesoPDF = Inertia::lazy(fn () => $this->AvisarPesoPDF(
-//            'temas' => $request->archivo
-//        ));
         return Inertia::render('materia/docs/ArchivosIndex', [ //carpeta
             'breadcrumbs'               =>  [
                 ['label' => __('app.label.materias'), 'href' => route('materia.index')],
@@ -802,7 +791,6 @@ class MateriasController extends Controller
             'numberPermissions'         =>  $numberPermissions,
             'archivos'                  =>  $archivos,
             'materia'                   =>  $materia,
-//            'AvisarPesoPDF'                   =>  $AvisarPesoPDF,
         ]);
     }
 

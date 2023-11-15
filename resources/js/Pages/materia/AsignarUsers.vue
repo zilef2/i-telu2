@@ -87,10 +87,10 @@ const inscribirSubmit = () => {
                     <TextInput v-if="props.numberPermissions > 1" v-model="data.params.search" type="text"
                         class="my-4 mx-auto block w-4/6 md:w-3/6 lg:w-2/6 rounded-lg" placeholder="Nombre, correo" />
 
-                    <div class="flex space-x-2 text-center mx-auto">
-                        <InfoButton @click="inscribirSubmit" v-show="form.selectedId.length != 0 && can(['delete user'])"
+                    <div class="flex space-x-2 text-center mx-auto mt-6">
+                        <InfoButton @click="inscribirSubmit" v-show="form.selectedId.length !== 0"
                             class="px-3 py-1.5" v-tooltip="Asignar">
-                            <CheckCircleIcon class="w-5 h-5" />
+                            <CheckCircleIcon class="w-5 h-5" /> Asignar
                         </InfoButton>
                     </div>
                 </div>
@@ -145,4 +145,3 @@ const inscribirSubmit = () => {
 
     </AuthenticatedLayout>
 </template>
-    

@@ -1,22 +1,14 @@
 <script setup>
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import SecondaryButton from '@/Components/SecondaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
-import DatetimeInput from '@/Components/DatetimeInput.vue';
 import Generando from '@/Components/uiverse/Generando.vue';
 import GreenButton from '@/Components/GreenButton.vue';
 import { router, Link, useForm } from '@inertiajs/vue3';
-import { reactive, watchEffect, onMounted, watch } from 'vue';
-import Toast from '@/Components/Toast.vue';
-
-import { NoUnderLines, ContarPalabras } from '@/global.ts';;
+import { reactive, watchEffect, onMounted, watch } from 'vue'
+import Toast from '@/Components/Toast.vue'
+import { NoUnderLines, ContarPalabras } from '@/global.ts';
 import "vue-select/dist/vue-select.css";
 
 const props = defineProps({
     title: String,
-    breadcrumbs: Object,
     HijoSelec: Object,
 
     numberPermissions: Number,
@@ -26,17 +18,12 @@ const props = defineProps({
 });
 
 // const emit = defineEmits(["close"]);
-console.log(props.HijoSelec.universidades)
 const data = reactive({
     mostrarLoader: false,
     MensajeFinal: '',
     restarAlToken: 0,
     NumSujerencias: [],
     errorCarrera: [],
-
-    startTime: [],
-    endTime: [],
-    tiempoEscritura: [],
 
     campos: [
         { id: 'nick', etiqueta: 'Titulo del articulo', valor: [] },
@@ -60,6 +47,13 @@ const data = reactive({
     campoActivo: null,
 
 })
+const dataTime = reactive({
+    endTime: {},
+    startTime: {},
+    tiempoEscritura: {},
+    index:-1
+})
+
 const form = useForm({
     ...Object.fromEntries(data.campos.map(field => [field.id, []])),
 
@@ -71,12 +65,13 @@ const form = useForm({
     Discusion_integer:0,
     Conclusiones_integer:0,
     Metodologia_integer:0,
-    isArticulo:true
+    isArticulo:true,
 
 });
 
 
 onMounted(() => {
+    terminarEscritura(1)
     let ele;
     data.campos.forEach(element => {
         ele = element.id
@@ -100,20 +95,48 @@ onMounted(() => {
     }
 })
 
+
+const imprimirPagina = () => {
+    // this.isPrintable = true;
+    window.print(); // Esto abrirá el diálogo de impresión
+    // this.isPrintable = false; // Restaura el valor original después de imprimir
+}
+
 watchEffect(() => {})
 
 
 //zona blur textareas
 const empezarEscritura = (inde) => {
-    data.startTime[inde] = new Date();
+    dataTime.startTime[inde] = new Date();
     data.campoActivo = inde
 }
-const terminarEscritura = (inde) => {
-    data.campoActivo = null
-    data.endTime[inde] = new Date();
-    data.tiempoEscritura = data.endTime - data.startTime; // Tiempo en milisegundos
 
-    router.post('/guardarTiempoUser', data)
+
+
+//por conveccion: cuando inde = 1, es que acaba de entrar a la pagina,
+// cuando inde = 2 es que ya termino de redactar el articulo
+
+const terminarEscritura = (inde) => {
+    data.mostrarLoader = true
+    data.campoActivo = null
+    dataTime.index = inde
+
+    if(typeof dataTime.startTime[inde] === 'undefined') dataTime.startTime[inde] = new Date();
+
+    dataTime.endTime[inde] = new Date();
+    dataTime.tiempoEscritura[inde] = dataTime.endTime[inde] - dataTime.startTime[inde]; // Tiempo en milisegundos
+
+    if(typeof dataTime.startTime[inde] !== 'undefined')
+        router.post('/guardarTiempoUser', dataTime, {
+            preserveScroll: true,
+            onSuccess: () => {
+                data.mostrarLoader = true
+            },
+            onError: () => alert(JSON.stringify(dataTime.errors, null, 4)),
+            onFinish: () => {
+                data.mostrarLoader = false
+            }
+        })
 }
 
 watch(() => data.universidadid, (newX) => {
@@ -125,20 +148,15 @@ watch(() => data.carreraid, (newX) => {})
 function recibirRespuesta(newX){
     if (newX && newX.respuesta) {
         form[data.tipoTexto][1] = newX.respuesta
-        console.log("🧈 debu form:", form);
-        console.log("🧈 debu data.tipoTexto:", data.tipoTexto);
-        console.log("🧈 debu newX.respuesta:", newX.respuesta);
         form[data.tipoTexto][2] = form[data.tipoTexto][0]
         data.restarAlToken = newX.restarAlToken
         data.NumSujerencias[data.tipoTexto]++;
-        console.log("🧈 debu data.NumSujerencias:", data.NumSujerencias);
 
     }
 }
 
 watch(() => props.ValoresGenerarSeccion, (newX) => {
     // data.NumSujerencias[data.tipoTexto] = true
-    console.log("🧈 debu newX:", newX);
     recibirRespuesta(newX);
 })
 
@@ -160,6 +178,8 @@ const OptimizarResumenOIntroduccion = async (elTexto, tipoTexto) => {
     data.mostrarLoader = true;
     data.tipoTexto = tipoTexto
     const tamanoMinimo = 10
+    terminarEscritura(tipoTexto)
+
 
     let TieneSuficientesPalabras = elTexto && (ContarPalabras(elTexto) > tamanoMinimo || elTexto.length > (tamanoMinimo * 5))
     if (TieneSuficientesPalabras) {
@@ -204,25 +224,33 @@ const create = () => {
     form.carreraid = data.carreraid
     form.materiaid = data.materiaid
 
-    form.post(route('Articulo.store'), {
-        preserveScroll: true,
-        onSuccess: () => {
-            // emit("close")
-            form.reset()
-            data.MensajeFinal = 'Articulo guardado correctamente'
-        },
-        onError: () => alert(JSON.stringify(form.errors, null, 4)),
-        onFinish: () => null,
-    })
+    if(data.materiaid && data.materiaid.value !== 0) {
+        data.errorCarrera[0] = ''
+
+        terminarEscritura(2)
+
+        form.post(route('Articulo.store'), {
+            preserveScroll: true,
+            onSuccess: () => {
+                // emit("close")
+                form.reset()
+                data.MensajeFinal = 'Articulo guardado correctamente'
+            },
+            onError: () => alert(JSON.stringify(form.errors, null, 4)),
+            onFinish: () => null,
+        })
+    }else{
+        data.errorCarrera[0] = 'No hay materia seleccionada'
+    }
 }
 </script>
 
 
 <template>
-    <Toast :flash="$page.props.flash" />
+    <Toast v-if="$page.props.flash" :flash="$page.props.flash" />
     <section class="space-y-1 flex self-center">
-        <div class="flex-none w-14"> . </div>
-        <div class="grow mx-1 md:mx-12 xl:mx-20 text-center p-8">
+        <div class="flex-none w-1 md:w-14"> . </div>
+        <div class="grow mx-0 sm:mx-1 md:mx-12 xl:mx-24 text-center p-1 sm:p-8">
             <form @submit.prevent="create" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
                 <div class="grid grid-cols-1 gap-6">
                     <div class="container flex flex-col items-center justify-center px-6 mx-auto">
@@ -241,25 +269,30 @@ const create = () => {
                         </p>
 
                     </div>
-                    <div class="text-center flex mx-auto">
+                    <div class="text-center grid grid-cols-1 sm:flex mx-auto">
                         <button type="button" @click="scrollToBottom"
-                            class="w-22 xs:w-8 xs:text-xs xs:h-16 hover:bg-green-500 item-center px-6 py-2 mt-4 mx-8 text-md font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-sky-800 rounded-lg focus:outline-none focus:ring focus:ring-blue-300 focus:ring-opacity-50">
+                            class="px-6 py-2 mt-4 mx-6 w-22 xs:w-8 xs:text-xs xs:h-16 hover:bg-green-500 item-center text-md font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-sky-800 rounded-lg focus:outline-none focus:ring focus:ring-blue-300 focus:ring-opacity-50">
                          Ir al final ↓</button>
 
-                        <Link :href="route('Articulo.index')"
-                        class="w-22 xs:w-8 xs:text-xs h-12 hover:bg-gray-600 item-center px-6 py-2 mt-4 text-md font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-black rounded-lg focus:outline-none focus:ring focus:ring-blue-300 focus:ring-opacity-50">
+                        <button type="button" @click="imprimirPagina"
+                            class="px-6 py-2 mt-4 mx-6 w-22 xs:w-8 xs:text-xs xs:h-16 hover:bg-green-500 item-center  text-md font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-sky-800 rounded-lg focus:outline-none focus:ring focus:ring-blue-300 focus:ring-opacity-50">
+                         Imprimir</button>
+
+                        <Link :href="route('Articulo.index')" id="universidadSelecs3"
+                        class="px-6 py-2 mt-4 mx-6 w-22 xs:w-8 xs:text-xs h-12 hover:bg-gray-600 item-center text-md font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-black rounded-lg focus:outline-none focus:ring focus:ring-blue-300 focus:ring-opacity-50">
                             Regresar
                         </Link>
                     </div>
 
-                    <div class="flex items-center mt-6">
-                        <p v-if="data.errorCarrera[0]" class="text-red-500 dark:text-red-200 underline">
+                    <div v-if="data.errorCarrera[0]" class="flex items-center mt-6">
+                        <p class="text-red-500 dark:text-red-200 underline">
                             {{ data.errorCarrera[0] }}</p>
                     </div>
-                    <div class="flex text-center mt-6">
+                    <div id="universidadSelecs2" class="flex text-center mt-6">
                         <p class="text-gray-500 text-xl font-bold dark:text-gray-400">A que asignatura pertenecerá el articulo</p>
                     </div>
-                    <div class="mt-2 grid grid-cols-3 gap-8">
+                    <div id="universidadSelecs" class="mt-2 text-center grid grid-cols-1 sm:grid-cols-3 sm:gap-6 mx-auto">
+
                         <div id="opciones2U" class="mt-2 w-full">
                             <label name=""> </label>
                             <v-select :options="props.HijoSelec.universidades" label="title"
@@ -274,7 +307,7 @@ const create = () => {
                                 v-model="data.materiaid"></v-select>
                         </div>
                     </div>
-                    <div class="flex items-center mt-6">
+                    <div id="tokensConsumidos" class="flex items-center mt-6">
                         <p v-if="data.restarAlToken && data.restarAlToken != 0" class="text-sky-600 dark:text-gray-400">Se
                             consumió: {{ data.restarAlToken }} token</p>
                     </div>
@@ -297,12 +330,15 @@ const create = () => {
                                 </div>
                             </div>
                             <div class="">
-                                <label :for="campo.id" class="text-gray-500 text-xl font-bold dark:text-gray-400 mb-2">Sugerencia {{ campo.etiqueta }}</label>
+                                <label :for="campo.id" class="text-gray-500 text-xl font-bold dark:text-gray-400 mb-2">Sugerencia de la IA: {{ campo.etiqueta }}</label>
                                 <div class="relative rounded-md shadow-sm select-none">
                                     <div v-if="form[campo.id] && form[campo.id][1]"
-                                        class="block w-full px-5 py-3 mt-2 text-white font-sans bg-black border border-sky-600 select-none
-                                        rounded-lg dark:placeholder-gray-600 dark:bg-gray-200 dark:text-gray-800 dark:border-gray-700 focus:border-blue-400
-                                         dark:focus:border-blue-400 focus:ring-blue-400 focus:outline-none focus:ring focus:ring-opacity-40 text-justify" >
+                                        class="block w-full px-5 py-3 mt-2 font-sans
+                                         border border-sky-600 select-none rounded-lg
+                                        focus:border-blue-400 focus:ring-blue-400 focus:outline-none focus:ring focus:ring-opacity-40 text-justify
+                                        bg-sky-100 text-black
+                                        dark:placeholder-gray-600 dark:bg-gray-200 dark:text-gray-800 dark:border-gray-700 dark:focus:border-blue-400
+                                        ">
                                         {{ form[campo.id][1] }}
                                     </div>
                                 </div>
@@ -310,12 +346,14 @@ const create = () => {
                             <div class="col-span-2">
                                 <label :for="campo.id" class="text-gray-500 text-xl font-bold dark:text-gray-400 mb-2">{{ campo.etiqueta }} Final</label>
                                 <div class="relative rounded-md shadow-sm">
-                                    <textarea :id="campo.id + '2'" @focus="data.campoActivo = campo.id" rows="6" cols="33"
-                                        @blur="data.campoActivo = null" v-model="form[campo.id][2]"
+                                    <textarea :id="campo.id + '2'"
+                                        rows="6" cols="33"
+                                        @focus="empezarEscritura(campo.id)" @blur="terminarEscritura(campo.id)"
+                                        v-model="form[campo.id][2]"
                                         placeholder="Teniendo en cuenta la sugerencia de la IA..."
-                                        class="block w-full px-5 py-3 mt-2 text-gray-700 placeholder-gray-400 bg-white border border-gray-200
-                                        rounded-lg dark:placeholder-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 focus:border-blue-400
-                                         dark:focus:border-blue-400 focus:ring-blue-400 focus:outline-none focus:ring focus:ring-opacity-40 text-justify" />
+                                        class="px-5 py-3 mt-2 block w-full  text-gray-700 placeholder-gray-400 bg-white border border-gray-200
+                                        rounded-lg focus:border-blue-400 focus:ring-blue-400 focus:outline-none focus:ring focus:ring-opacity-40 text-justify
+                                        dark:placeholder-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 dark:focus:border-blue-400"/>
                                 </div>
                             </div>
                         </div>
@@ -371,6 +409,11 @@ const create = () => {
                         <hr class="border-2 border-sky-100 my-8">
                     </div>
 
+                    <div v-if="data.errorCarrera[0]" class="flex items-center mt-6">
+                        <p class="text-red-500 dark:text-red-200 underline text-xl">
+                            {{ data.errorCarrera[0] }}</p>
+                    </div>
+
                     <div class="grid grid-cols-1 sm:flex gap-12 text-center items-center">
                         <button @click="create"
                             class="w-5/6 sm:w-1/3 xs:mx-auto sm:mx-1 item-center px-6 py-3 mt-4 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-sky-500 rounded-lg hover:bg-blue-400 focus:outline-none focus:ring focus:ring-blue-300 focus:ring-opacity-50">
@@ -380,7 +423,7 @@ const create = () => {
                             class="w-5/6 sm:w-1/3 xs:mx-auto sm:mx-1 hover:bg-green-500 item-center px-6 py-3 mt-4 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-sky-800 rounded-lg focus:outline-none focus:ring focus:ring-blue-300 focus:ring-opacity-50">
                             Ir al Inicio</button>
 
-                        <Link :href="route('Articulo.index')"
+                        <Link :href="route('Articulo.index')" id="irIndex"
                             class="w-5/6 sm:w-1/3 xs:mx-auto sm:mx-1 item-center px-6 py-3 mt-4 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-black rounded-lg hover:bg-blue-400 focus:outline-none focus:ring focus:ring-blue-300 focus:ring-opacity-50">
                                 Regresar
                         </Link>
@@ -388,13 +431,13 @@ const create = () => {
                 </div>
             </form>
         </div>
-        <div class="flex-none w-14"> . </div>
+        <div class="flex-none w-0 md:w-14"> . </div>
     </section>
 
 
 
 
-    <section class="bg-gray-100 dark:bg-gray-100 my-8">
+    <section id="recuerdeome" class="bg-gray-100 dark:bg-gray-100 my-8">
         <div class="flex flex-col items-center justify-center px-6 mx-auto">
             <div class="flex justify-center mx-auto">
                 <img class="w-auto h-7 sm:h-8" src="https://merakiui.com/images/logo.svg" alt="">
@@ -416,4 +459,20 @@ const create = () => {
             </form>
         </div>
     </div>
-</section></template>
+</section>
+</template>
+
+<style scoped>
+@media print {
+    button, Link,
+    #recuerdeome,
+    #irIndex,
+    #universidadSelecs,
+    #universidadSelecs2,
+    #universidadSelecs3,
+    #tokensConsumidos
+    {
+        display: none;
+    }
+}
+</style>

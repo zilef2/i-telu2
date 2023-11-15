@@ -39,9 +39,9 @@ const form = useForm({
     objetivo: [],
 });
 
-watch(form.objetivo, (newValue, oldValue) => { 
+watch(form.objetivo, (newValue, oldValue) => {
     if (props.show) {
-        form.cuantosObj = 
+        form.cuantosObj =
             (typeof (form?.objetivo[0]) !== 'undefined') +
             (typeof (form?.objetivo[1]) !== 'undefined') +
             (typeof (form?.objetivo[2]) !== 'undefined') +
@@ -73,6 +73,9 @@ watchEffect(() => {
     if (props.show) {
         form.errors = {}
 
+        console.log(props.materia)
+        console.log('props.materia')
+
         if(data.unaVez){
             form.nombre = props.materia?.nombre
             form.descripcion = props.materia?.descripcion
@@ -80,11 +83,12 @@ watchEffect(() => {
             form.cuantosObj = props.materia?.objetivs
             form.enum = props.materia?.enum
             form.codigo = props.materia?.codigo
-            
-            props.materia?.objetivos.forEach((element,indexe) => {
-                
-                form.objetivo[indexe] = props.materia?.objetivos[indexe].nombre
-            });
+
+            if(props.materia?.objetivos)
+                props.materia?.objetivos.forEach((element,indexe) => {
+
+                    form.objetivo[indexe] = props.materia?.objetivos[indexe].nombre
+                });
 
             form.activar = Boolean(props.materia?.activa).valueOf()
 
@@ -96,7 +100,7 @@ watchEffect(() => {
 })
 
 //not used
-onMounted(()=>{ })
+onMounted(()=>{})
 
 </script>
 
@@ -120,7 +124,7 @@ onMounted(()=>{ })
                     <div>
                         <InputLabel for="enum" :value="lang().label.enum" />
                         <TextInput id="enum" type="number" class="mt-1 block w-full" v-model="form.enum" required
-                            :placeholder="lang().placeholder.enum" :error="form.errors.enum" 
+                            :placeholder="lang().placeholder.enum" :error="form.errors.enum"
                             :disabled="!materia.activa"
                             :class="{'bg-gray-300':!materia.activa}"
                             />
@@ -129,7 +133,7 @@ onMounted(()=>{ })
                     <div>
                         <InputLabel for="nombre" :value="lang().label.name" />
                         <TextInput id="nombre" type="text" class="mt-1 block w-full" v-model="form.nombre" required
-                            :placeholder="lang().placeholder.nombre" :error="form.errors.nombre" 
+                            :placeholder="lang().placeholder.nombre" :error="form.errors.nombre"
                             :disabled="!materia.activa"
                             :class="{'bg-gray-300':!materia.activa}"/>
                         <InputError class="mt-2" :message="form.errors.nombre" />
@@ -137,7 +141,7 @@ onMounted(()=>{ })
                     <div>
                         <InputLabel for="codigo" :value="lang().label.codigo" />
                         <TextInput id="codigo" type="text" class="mt-1 block w-full" v-model="form.codigo" required
-                            :placeholder="lang().placeholder.codigo" :error="form.errors.codigo" 
+                            :placeholder="lang().placeholder.codigo" :error="form.errors.codigo"
                             :disabled="!materia.activa"
                             :class="{'bg-gray-300':!materia.activa}"
                             />
@@ -146,27 +150,27 @@ onMounted(()=>{ })
                     <div>
                         <InputLabel for="descripcion" :value="lang().label.descripcion" />
                         <TextInput id="descripcion" type="text" class="mt-1 block w-full" v-model="form.descripcion" required
-                            :placeholder="lang().placeholder.descripcion" :error="form.errors.descripcion" 
+                            :placeholder="lang().placeholder.descripcion" :error="form.errors.descripcion"
                             :disabled="!materia.activa"
                             :class="{'bg-gray-300':!materia.activa}"
                             />
                         <InputError class="mt-2" :message="form.errors.descripcion" />
                     </div>
-                   
+
 
                     <!-- objetivos -->
                     <div>
                         <InputLabel for="cuantosObj" :value="lang().label.cuantosObj" />
-                        <TextInput id="cuantosObj" type="number" min=0 max=3 class="mt-1 block w-full" v-model.number="form.cuantosObj" required
+                        <TextInput id="cuantosObj" type="number" min=0 max=11 class="mt-1 block w-full" v-model.number="form.cuantosObj" required
                             :placeholder="lang().placeholder.cuantosObj"
                             :disabled="!materia.activa"
                             :class="{'bg-gray-300':!materia.activa}" />
                     </div>
-                   
-                    <div v-if="form.cuantosObj > 0" v-for="index in form.cuantosObj">
+
+                    <div v-if="form.cuantosObj > 0" v-for="index in form.cuantosObj" class="col-span-2">
                         <InputLabel for="" :value="lang().label.objetivo + index" />
-                        <TextInput id="objetivo" type="text" min=0 max=3 class="mt-1 block w-full" v-model="form.objetivo[index-1]" required
-                            :placeholder="lang().placeholder.objetivo" 
+                        <TextInput id="objetivo" type="text" class="mt-1 block w-full" v-model="form.objetivo[index-1]" required
+                            :placeholder="lang().placeholder.objetivo"
                             :disabled="!materia.activa"
                             :class="{'bg-gray-300':!materia.activa}"
                             />
@@ -182,7 +186,7 @@ onMounted(()=>{ })
                 <div class="flex justify-end">
                     <SecondaryButton :disabled="form.processing" @click="emit('close')"> {{ lang().button.close }} </SecondaryButton>
                     <PrimaryButton v-if="materia.activa || numberPermissions > 2"
-                     class="ml-3" :class="{ 'opacity-25': form.processing }" :disabled="form.processing" 
+                     class="ml-3" :class="{ 'opacity-25': form.processing }" :disabled="form.processing"
                         @click="update">
                         {{ form.processing ? lang().button.save + '...' : lang().button.save }}
                     </PrimaryButton>

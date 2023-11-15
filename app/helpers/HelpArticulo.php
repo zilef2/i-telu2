@@ -8,17 +8,36 @@ use App\Models\Calificacion;
 use App\Models\Materia;
 use App\Models\MedidaControl;
 use App\Models\Parametro;
+use DateTime;
 use Illuminate\Support\Facades\Auth;
 use OpenAI;
 
 class HelpArticulo {
     const respuestaLimite = 'Limite de tokens';
     const respuestaLarga = 'La respuesta es demasiado extensa';
+
+
+    public static function updatingDate($date) {
+        if ($date === null || $date == '1969-12-31') {
+            return null;
+        }
+        return date("Y-m-d", strtotime($date));
+    }
+    public static function updatingDateTime($dateT) {
+        if($dateT === 0) return (new DateTime())->format('Y-m-d H:i:s');
+
+        if ($dateT === null || $dateT == '1969-12-31') {
+            return null;
+        }
+        return (new DateTime(($dateT)))->format('Y-m-d H:i:s');
+    }
+
     /**
      * @param $texto
      * @param $materiaid
      * @param $tipoTexto
      * @param $debug
+     *
      * @return array
      */
     public static function MejorarResumen($texto, $materiaid, $tipoTexto, $debug = false): array{

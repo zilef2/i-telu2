@@ -6,22 +6,31 @@ php artisan make:crud Ensayo    "nombre:string, "
 php artisan make:crud Resumen   "nombre:string, "
 php artisan make:crud Plan "nombre:string, tipo:string, valor:integer, caducidad:datetime, tokens:integer"
 php artisan make:crud Calificacion "TipoPrueba:string, prompUsado:string, valor:float, tokens:integer"
-//its donest need a Model -> materia_user
 
 
 //6nov2023
 php artisan make:crud UsuarioPendientesPago "fecha_peticion:timestamp, fecha_aprovacion:timestamp, valorTotal:float, tokensComprados:integer"
 php artisan make:crud Cuotas "numeroDeLaCuota:integer, numeroDecuotas:integer, valor:float"
+//7nov
+php artisan make:crud TiemposArticulo "startTime:datetime, endTime:datetime, tiempoEscritura:float"
+
+//aun no se corren
+php artisan make:crud Quiz "TipoPrueba:string, prompUsado:string, calificacionMaxima:float, tokens:integer"
+php artisan make:crud QuizPreguntas "Pregunta:string, Respuesta:string"
 
 
 
+
+
+
+
+
+--------------------------------* INSTALACIONES *--------------------------------
+----***** PDF *****----
 //smalot pdfparser
 php artisan make:controller TemporalPdfReader
-
-
 //model for save pdf average
 php artisan make:crud RespuestaPDf " guardar_pdf:string, resumen:string, nivel:string, precisa:string, idExistente:string"
-
 
 ----***** laravel excel *****----
 php artisan make:Oimport PersonalImport --model=User

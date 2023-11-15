@@ -16,12 +16,10 @@ class RoleSeeder extends Seeder
 
         $superadmin = Role::create(['name' => 'superadmin']);
         $admin = Role::create(['name' => 'admin']);
-
-
-        $estudiante = Role::create(['name' => 'estudiante']);
-        $profesor = Role::create(['name' => 'profesor']);
-        $coordinador_de_programa = Role::create(['name' => 'coordinador_de_programa']);
         $coordinador_academico = Role::create(['name' => 'coordinador_academico']);
+        $coordinador_de_programa = Role::create(['name' => 'coordinador_de_programa']);
+        $profesor = Role::create(['name' => 'profesor']);
+        $estudiante = Role::create(['name' => 'estudiante']);
 
 
         $Models = [
@@ -94,7 +92,7 @@ class RoleSeeder extends Seeder
         ]);
 
         // $role->revokePermissionTo($permission); // $permission->removeRole($role);
-    
-    
+
+
     } // php artisan db:seed --class=RoleSeeder
 }

@@ -10,6 +10,9 @@ use App\Http\Requests\User\UserUpdateRequest;
 use App\Imports\CarreraImport;
 use App\Imports\PersonalImport;
 use App\Imports\PersonalUniversidadImport;
+use App\Models\Carrera;
+use App\Models\Materia;
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\Universidad;
 use App\Models\User;
@@ -18,6 +21,7 @@ use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Http\Middleware\ErrorHandlerMiddleware;
 use Maatwebsite\Excel\Validators\ValidationException;
 
 class UserController extends Controller
@@ -28,6 +32,8 @@ class UserController extends Controller
         $this->middleware('permission:read user', ['only' => ['index', 'show']]);
         $this->middleware('permission:update user', ['only' => ['edit', 'update']]);
         $this->middleware('permission:delete user', ['only' => ['destroy', 'destroyBulk']]);
+
+//        $this->middleware('ErrorHandlerMiddleware');
     }
 
     /**
@@ -495,5 +501,88 @@ class UserController extends Controller
             // $theTrace = Myhelp::cortarFrase($th->getTraceAsString(), 8);
             return back()->with('error', __('app.label.op_not_successfully') . 'codigo del error: ' . $larow2['codigo'] . ' error en la fila ' . $countfilas . ' ' . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi: ' . $th->getFile());
         }
+    }
+
+    public function VistaPrincipal()
+    {
+        $user = Myhelp::AuthU();
+        $numberpermissions = Myhelp::getPermissionToNumber();
+        if($numberpermissions < 2) return redirect('/materia');
+
+//        if($numberpermissions < 8) return redirect('/SeleccioneAsignatura');
+
+        $textoBotones=[
+          "Primer paso",
+          "Mis materias",
+        ];
+        $ExplicacionBotones=[
+          "Para empezar a aprender",
+          "Listado de tus asignaturas",
+        ];
+        $linkBotones=[
+          "SeleccioneAsignatura",
+          "materia.index",
+        ];
+        return Inertia::render('Dashboard', [
+            'users'         => (int) User::count(),
+            'roles'         => (int) Role::count(),
+            'permissions'   => (int) Permission::count(),
+            'textoBotones'  => $textoBotones,
+            'linkBotones'   => $linkBotones,
+            'ExplicacionBotones'   => $ExplicacionBotones,
+            'plan_id'       => (int) $user->plan_id, //si es cero no tiene plan
+        ]);
+    }
+
+    public function SeleccioneAsignatura()
+    {
+        $user = Myhelp::AuthU();
+        Myhelp::EscribirEnLog($this, ' SeleccioneAsignatura ');
+        $numberpermissions = Myhelp::getPermissionToNumber();
+        if($numberpermissions < 1.5) return redirect('/materia');
+
+//        if($numberpermissions < 8) return redirect('/SeleccioneAsignatura');
+
+        $IDmateriasDelUser = $user->materias()->pluck('materias.id');
+        $materias = Materia::WhereNotIn('id',$IDmateriasDelUser);
+
+        return Inertia::render('User/Autoasignacion/SeleccioneAsignatura', [
+            'title' => 1,
+            'perPage' => 1,
+            'numberPermissions' => 1,
+            'materias' => $materias->paginate(10),
+        ]);
+    }
+
+    public function ComprarAsignatura(Request $request)
+    {
+        $user = Myhelp::AuthU();
+        Myhelp::EscribirEnLog($this, ' ComprarAsignatura ');
+        $numberpermissions = Myhelp::getPermissionToNumber();
+        if($numberpermissions < 2) return redirect('/materia');
+
+        $lasCarreras = Carrera::WhereIn('id',$request->materias)->get();
+        $soloIdCarreras = $lasCarreras->pluck('id');
+        $soloIdUniversidades = $lasCarreras->pluck('universidad_id');
+
+        foreach ($soloIdUniversidades as $uniID){
+            if(!$user->ExistUniversidad($uniID)){
+                $user->universidades()->attach($uniID);
+            }
+        }
+        foreach ($soloIdCarreras as $carID){
+            if(!$user->ExistCarrera($carID)){
+                $user->carreras()->attach($carID);
+            }
+        }
+        foreach ($request->materias as $matID){
+            if(!$user->ExistMateria($matID)){
+                $user->materias()->attach($matID);
+            }
+        }
+//        $user->carreras()->attach($soloIdMaterias);
+//        $user->materias()->attach($request->materias);
+
+        return redirect()->route('materia.index')->with('success',"Usted ha matriculado". count($request->materias)." materias" );
     }
 }
