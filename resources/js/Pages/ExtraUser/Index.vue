@@ -113,7 +113,7 @@ watchEffect(() => {
                     <div class="flex space-x-2">
                         <SelectInput v-model="data.params.perPage" :dataSet="data.dataSet" />
                         <DangerButton @click="data.deleteBulkOpen = true"
-                            v-show="data.selectedId.length != 0 && can(['delete user'])" class="px-3 py-1.5"
+                            v-show="data.selectedId.length !== 0 && can(['delete user'])" class="px-3 py-1.5"
                             v-tooltip="lang().tooltip.delete_selected">
                             <TrashIcon class="w-5 h-5" />
                         </DangerButton>
@@ -146,21 +146,6 @@ watchEffect(() => {
                                         <ChevronUpDownIcon class="w-4 h-4" />
                                     </div>
                                 </th>
-<!--                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('identificacion')">-->
-<!--                                    <div class="flex justify-between items-center"> <span>{{ lang().label.identificacion }}</span>-->
-<!--                                        <ChevronUpDownIcon class="w-4 h-4" />-->
-<!--                                    </div>-->
-<!--                                </th>-->
-<!--                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('sexo')">-->
-<!--                                    <div class="flex justify-between items-center"> <span>{{ lang().label.sexo }}</span>-->
-<!--                                        <ChevronUpDownIcon class="w-4 h-4" />-->
-<!--                                    </div>-->
-<!--                                </th>-->
-<!--                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('fecha_nacimiento')">-->
-<!--                                    <div class="flex justify-between items-center"> <span>{{ lang().label.edad }}</span>-->
-<!--                                        <ChevronUpDownIcon class="w-4 h-4" />-->
-<!--                                    </div>-->
-<!--                                </th>-->
                                 <th class="px-2 py-4 cursor-pointer" v-on:click="order('pgrado')">
                                     <div class="flex justify-between items-center"> <span>{{ lang().label.pgrado }}</span>
                                         <ChevronUpDownIcon class="w-4 h-4" />
@@ -172,16 +157,10 @@ watchEffect(() => {
                                     </div>
                                 </th>
                                 <th class="px-2 py-4 cursor-pointer" v-on:click="order('limite_token_leccion')">
-                                    <div class="flex justify-between items-center"> <span>{{ lang().label.limite_token_lec }}</span>span
+                                    <div class="flex justify-between items-center"> <span>{{ lang().label.limite_token_lec }}</span>
                                         <ChevronUpDownIcon class="w-4 h-4" />
                                     </div>
                                 </th>
-                                <!-- <th class="px-2 py-4 cursor-pointer" v-on:click="order('pgrado')">
-                                    <div class="flex justify-between items-center"> <span>{{ lang().label.pgrado }}</span>
-                                        <ChevronUpDownIcon class="w-4 h-4" />
-                                    </div>
-                                </th> -->
-
                                 <!-- <th class="px-2 py-4">Accion</th> -->
                             </tr>
                         </thead>

@@ -2,8 +2,9 @@
 
 return [
     'label' => [
-
+        'PlanPendiente' => 'Plan Pendiente',
         //DASHBOARD
+        'hagaclick' => 'Haga click aqui',
         'materia.index' => 'Materias',
         'SeleccioneAsignatura' => 'Seleccione una Asignatura',
         //pendiente
@@ -86,8 +87,9 @@ return [
         //materia
         'activar' => 'Activar materia',
         'preguntaria' => 'Preguntar a la IA',
-        'cuantosObj' => 'Cuantos Objetivos?',
+        'cuantosObj' => 'Número de Objetivos',
         'objetivo' => 'Objetivo',
+        'objetivo_especifico' => 'objetivo especifico',
         'tieneRequisitos' => 'Tiene Requisitos?',
         'cuantosReq' => 'Cuantos Requisitos',
         'requisito1' => 'Requisito 1',
@@ -110,6 +112,7 @@ return [
         'limite_token_lec' => 'limite/leccion',
 
         //universidad
+        'enumU' => 'Numeración',
         'universidad' => 'Universidad',
         'Universidads' => 'Universidades',
         //carrera
@@ -188,6 +191,7 @@ return [
         'created_successfully2' => '<b>:nombre</b> creado satisfactoriamente.',
         'created_success' => 'operacion finalizada satisfactoriamente.',
         'created_error' => 'Error creando :name.',
+        'updated_successfully_plan_user' => '<b>:name</b>, ahora tiene un plan con <b>:tokens</b> tokens.',
         'updated_successfully' => '<b>:name</b> actualizado satisfactoriamente.',
         'updated_successfully2' => '<b>:nombre</b> actualizado satisfactoriamente.',
 
@@ -260,6 +264,7 @@ return [
     ],
     'tooltip' => [
         'ver' => 'ver',
+        'ediPlanOpen' => 'editar Plan',
         'inscribir' => 'inscribir',
         'preguntaria' => 'preguntar a la IA',
         'archivos' => 'Documentos',

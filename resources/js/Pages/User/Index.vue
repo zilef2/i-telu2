@@ -10,15 +10,16 @@ import { reactive, watch, watchEffect } from 'vue';
 import DangerButton from '@/Components/DangerButton.vue';
 import pkg from 'lodash';
 import Pagination from '@/Components/Pagination.vue';
-import { CheckCircleIcon, CheckBadgeIcon, ChevronUpDownIcon, PencilIcon, TrashIcon, UserCircleIcon } from '@heroicons/vue/24/solid';
+import { CheckBadgeIcon, ChevronUpDownIcon, PencilIcon, TrashIcon, UserCircleIcon,CurrencyDollarIcon } from '@heroicons/vue/24/solid';
 import Create from '@/Pages/User/Create.vue';
 import Edit from '@/Pages/User/Edit.vue';
+import EdiPlan from '@/Pages/User/EdiPlan.vue';
 import Delete from '@/Pages/User/Delete.vue';
 import DeleteBulk from '@/Pages/User/DeleteBulk.vue';
 import Checkbox from '@/Components/Checkbox.vue';
 import { router, usePage, useForm, Link } from '@inertiajs/vue3';
 
-import { number_format, formatDate, CalcularEdad, CalcularSexo }from '@/global.ts';;
+import { CalcularEdad }from '@/global.ts';;
 
 const { _, debounce, pickBy } = pkg
 const props = defineProps({
@@ -26,6 +27,7 @@ const props = defineProps({
     filters: Object,
     users: Object,
     roles: Object,
+    planes: Object,
     breadcrumbs: Object,
     perPage: Number,
     numberPermissions: Number,
@@ -42,6 +44,7 @@ const data = reactive({
     multipleSelect: false,
     createOpen: false,
     editOpen: false,
+    ediPlanOpen: false,
     deleteOpen: false,
     deleteBulkOpen: false,
     user: null,
@@ -75,7 +78,7 @@ const selectAll = (event) => {
     }
 }
 const select = () => {
-    if (props.users?.data.length == data.selectedId.length) {
+    if (props.users?.data.length === data.selectedId.length) {
         data.multipleSelect = true
     } else {
         data.multipleSelect = false
@@ -105,10 +108,16 @@ watchEffect(() => {
                     <PrimaryButton v-show="can(['create user'])" class="rounded-none" @click="data.createOpen = true">
                         {{ lang().button.add }}
                     </PrimaryButton>
+
                     <Create :show="data.createOpen" @close="data.createOpen = false" :roles="props.roles"
                         v-if="can(['create user'])" :title="props.title" />
+
                     <Edit :show="data.editOpen" @close="data.editOpen = false" :user="data.user" :roles="props.roles"
                         v-if="can(['update user'])" :title="props.title" />
+
+                    <EdiPlan :show="data.ediPlanOpen" @close="data.ediPlanOpen = false" :user="data.user" :planes="props.planes"
+                        v-if="can(['update user'])" :title="props.title" />
+
                     <Delete :show="data.deleteOpen" @close="data.deleteOpen = false" :user="data.user"
                         :title="props.title" />
                     <DeleteBulk :show="data.deleteBulkOpen"
@@ -121,7 +130,7 @@ watchEffect(() => {
                     <div class="flex space-x-2">
                         <SelectInput v-model="data.params.perPage" :dataSet="data.dataSet" />
                         <DangerButton @click="data.deleteBulkOpen = true"
-                            v-show="data.selectedId.length != 0 && can(['delete user'])" class="px-3 py-1.5"
+                            v-show="data.selectedId.length !== 0 && can(['delete user'])" class="px-3 py-1.5"
                             v-tooltip="lang().tooltip.delete_selected">
                             <TrashIcon class="w-5 h-5" />
                         </DangerButton>
@@ -207,7 +216,7 @@ watchEffect(() => {
                         <tbody>
                             <tr v-for="(user, index) in users.data" :key="index"
                                 class="border-t border-gray-200 dark:border-gray-700 hover:bg-sky-100 hover:dark:bg-gray-900/20"
-                                :class="index % 2 == 0 ? 'bg-gray-100 dark:bg-gray-800' : ''">
+                                :class="index % 2 === 0 ? 'bg-gray-100 dark:bg-gray-800' : ''">
 
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-center">
                                     <input
@@ -218,24 +227,22 @@ watchEffect(() => {
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">
                                     <span class="flex justify-start items-center">
                                         {{ user.name }}
-                                        
                                         <CheckBadgeIcon class="ml-[2px] w-4 h-4 text-primary dark:text-white"
                                             v-show="user.email_verified_at" />
                                     </span>
                                     <span class="flex justify-start items-center text-sm text-gray-600">
                                         {{ user.email }}
                                     </span>
-
                                 </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{
-                                                                    user.roles.length == 0 ? 'not selected' : user.roles[0].name
-                                                                    }}</td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">
+                                    {{ user.roles.length === 0 ? 'not selected' : user.roles[0].name }}
+                                </td>
                                 <!-- <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.created_at }}</td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.updated_at }}</td> -->
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.identificacion }}</td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.sexo }}</td>
-                                <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">{{
-                                                                    CalcularEdad(user.fecha_nacimiento) }}</td>
+                                <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">
+                                    {{ CalcularEdad(user.fecha_nacimiento) }}</td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.pgrado }}</td>
                                 <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">{{ user.semestre }}</td>
                                 <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">{{ user.limite_token_general }}
@@ -250,6 +257,11 @@ watchEffect(() => {
                                                 @click="(data.editOpen = true), (data.user = user)"
                                                 class="px-2 py-1.5 rounded-none" v-tooltip="lang().tooltip.edit">
                                                 <PencilIcon class="w-4 h-4" />
+                                            </InfoButton>
+                                            <InfoButton v-show="props.numberPermissions > 8 && can(['update user'])" type="button"
+                                                @click="(data.ediPlanOpen = true), (data.user = user)"
+                                                class="px-2 py-1.5 rounded-none" v-tooltip="lang().tooltip.ediPlanOpen">
+                                                <CurrencyDollarIcon class="w-4 h-4" />
                                             </InfoButton>
                                             <DangerButton v-show="can(['delete user'])" type="button"
                                                 @click="(data.deleteOpen = true), (data.user = user)"

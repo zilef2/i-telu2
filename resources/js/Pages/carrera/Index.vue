@@ -68,6 +68,22 @@ const data = reactive({
     dataSet: usePage().props.app.perpage,
 })
 
+
+onMounted(() => {
+    data.UniversidadSelect = vectorSelect(data.UniversidadSelect, props.UniversidadSelect, 'una')
+
+    data.params.selectedUniID = localStorage.getItem('universidadGuardada')
+    // {
+    //     label: universidad.nombre, value: universidad.id
+    // }
+    console.log('mounted: ' + data.params.selectedUniID)
+})
+
+watch(() => data.params.selectedUniID, (newX) => {
+    localStorage.setItem('universidadGuardada',newX)
+    console.log('newXX',newX)
+})
+
 const order = (field) => {
     if(field)
         data.params.field = field.replace(/ /g, "_")
@@ -75,8 +91,10 @@ const order = (field) => {
     data.params.order = data.params.order === "asc" ? "desc" : "asc"
 }
 
+// <!--<editor-fold desc="CloneDeep and selects">-->
 watch(() => _.cloneDeep(data.params), debounce(() => {
     let params = pickBy(data.params)
+
     router.get(route("carrera.index"), params, {
         replace: true,
         preserveState: true,
@@ -100,13 +118,9 @@ const select = () => {
         data.multipleSelect = false
     }
 }
+// <!--</editor-fold>-->
 
-onMounted(() => {
-    // if (typeof data.params.selectedUniID === 'undefined' || data.params.selectedUniID === null) data.params.selectedUniID = 0
-    // console.log("🧈 debu data.params.selectedUniID:", data.params.selectedUniID);
-    // console.log("🧈 selectedUniID:", props.selectedUniID);
-    data.UniversidadSelect = vectorSelect(data.UniversidadSelect, props.UniversidadSelect, 'una')
-})
+
 
 const irCarrera = (selectedUni, selectedcarr,cuantas) => {
     if (cuantas > 0) {
@@ -189,7 +203,7 @@ const PapaSelect = props.PapaSelect?.map(universidad => ({
                             <tr v-for="(clasegenerica, index) in fromController.data" :key="index"
                                 class="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-200/30 hover:dark:bg-gray-900/20"
                                 :class="index % 2 == 0 ? 'bg-gray-100 dark:bg-gray-800' : ''">
-                                
+
                                 <!-- <td v-if="can(['isCoorPrograma']) && numberPermissions > 2"
                                     class="whitespace-nowrap py-4 px-2 sm:py-3 text-center">
                                     <input type="checkbox" @change="select" :value="clasegenerica.id"
@@ -205,7 +219,7 @@ const PapaSelect = props.PapaSelect?.map(universidad => ({
                                                 :rutaMapa="'carrera.Mapa'"
                                                 :id1="clasegenerica.id"
 
-                                                @editar="(data.editOpen = true), (data.generico = clasegenerica)" 
+                                                @editar="(data.editOpen = true), (data.generico = clasegenerica)"
                                                 @justdelete="(data.deleteOpen = true), (data.generico = clasegenerica)"
                                                 @irHijo="irCarrera(clasegenerica.universidad_id, clasegenerica.id, clasegenerica.cuantasMaterias)"
                                             />

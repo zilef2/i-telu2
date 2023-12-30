@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\helpers\HelpGPT;
+use App\helpers\JustChatFunctionGPT;
 use App\helpers\ModelFunctions;
 use App\helpers\Myhelp;
 use Inertia\Inertia;
@@ -91,10 +92,10 @@ class UnidadsController extends Controller {
         return $nombresTabla;
     }
 
-    
+
     public function losSelect($numberPermissions) {
         // coordinador_academico = 4 | coorPrograma = 3 , profe ,estudiante
-        if ($numberPermissions < intval(env('PERMISS_VER_FILTROS_SELEC'))) { //5 
+        if ($numberPermissions < intval(env('PERMISS_VER_FILTROS_SELEC'))) { //5
             $MateriasSelect = Auth::user()->materias;
         } else {
             $MateriasSelect = Materia::all();
@@ -301,8 +302,7 @@ class UnidadsController extends Controller {
         return response()->json(['generatedText' => $respuesta]);
     }
 
-    public function gptPart($request, $materia, $usuario, $productio = true)
-    { //productio is for debugging
+    public function gptPart($request, $materia, $usuario, $productio = true){ //productio is for debugging
         if ($productio) {
 
             $plantillaPracticar = 'Ejercicios para practicar';
@@ -316,21 +316,23 @@ class UnidadsController extends Controller {
                     . '. Al finalizar la respuesta. sujiere 3 ejercicios para preguntarle a una inteligencia artificial(ponle de titulo ' . $plantillaPracticar . ') y seguir aprendiendo de ' . $materia->nombre,
                 'max_tokens' => 600 // Adjust the response length as needed
             ]);
+//            $result = JustChatFunctionGPT::Chat4($promptParaResumir);
+
             $respuesta = $result['choices'][0]["text"];
 
             $finishReason = $result['choices'][0];
             $finishingReason = $finishReason["finish_reason"] ?? '';
             // dd($respuesta,$finishReason,$finishingReason,$request->nivel);
-            if ($finishingReason == 'stop') {
+            if ($finishingReason === 'stop') {
                 // dd($result['usage']);
-                $usageRespuesta = intval($result['usage']["completion_tokens"]); //~ 260
-                $usageRespuestaTotal = intval($result['usage']["total_tokens"]); //~ 500
+                $usageRespuesta = (int)($result['usage']["completion_tokens"]); //~ 260
+                $usageRespuestaTotal = (int)($result['usage']["total_tokens"]); //~ 500
 
                 $restarAlToken = HelpGPT::CalcularTokenConsumidos($usageRespuesta, $usageRespuestaTotal);
-                $usuario->update(['limite_token_general' => (intval($usuario->limite_token_general)) - $restarAlToken]);
+                $usuario->update(['limite_token_general' => ((int)($usuario->limite_token_general)) - $restarAlToken]);
                 return [$respuesta, $restarAlToken];
             } else {
-                if ($finishingReason == 'length') {
+                if ($finishingReason === 'length') {
                     return [$this->respuestaLarga, 0];
                 } else {
                     return ['El servicio no esta disponible', 0];

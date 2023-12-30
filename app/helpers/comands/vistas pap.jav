@@ -25,6 +25,12 @@ php artisan make:crud QuizPreguntas "Pregunta:string, Respuesta:string"
 
 
 
+--------------------------------* comands laravel *--------------------------------
+
+php artisan db:seed --class=EstudianteIndependiente
+php artisan migrate
+
+
 --------------------------------* INSTALACIONES *--------------------------------
 ----***** PDF *****----
 //smalot pdfparser
@@ -36,3 +42,10 @@ php artisan make:crud RespuestaPDf " guardar_pdf:string, resumen:string, nivel:s
 php artisan make:Oimport PersonalImport --model=User
 php artisan make:Oimport PersonalUniversidadImport --model=User
 //fin laravel excel
+
+
+
+
+<div class="bg-white py-6 sm:py-8 lg:py-12">
+
+</div>

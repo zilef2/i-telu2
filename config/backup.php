@@ -1,7 +1,9 @@
 <?php
 
 return [
-
+    'logging' => [
+        'channels' => ['backupSpatie'], // Usa el canal de registro 'backup' definido en config/logging.php
+    ],
     'backup' => [
 
         /*
@@ -19,6 +21,8 @@ return [
                  */
                 'include' => [
                     // base_path(),
+                    base_path('app'),
+                    base_path('resources'),
                 ],
 
                 /*
@@ -29,13 +33,14 @@ return [
                 'exclude' => [
                     base_path('vendor'),
                     base_path('node_modules'),
+
                     base_path('git'),
                     base_path('vscode'),
                     base_path('.vscode'),
                     base_path('bootstrap'),
                     base_path('database'),
                     base_path('public'),
-                    base_path('routes'),
+//                    base_path('routes'),
                     base_path('tests'),
                     base_path('storage'),
                 ],
@@ -169,61 +174,62 @@ return [
      * the `Spatie\Backup\Notifications\Notifications` classes.
      */
     'notifications' => [
-        'enabled' => false,
-        'notifications' => [
-            \Spatie\Backup\Notifications\Notifications\BackupHasFailedNotification::class => [],
-            \Spatie\Backup\Notifications\Notifications\UnhealthyBackupWasFoundNotification::class => [],
-            \Spatie\Backup\Notifications\Notifications\CleanupHasFailedNotification::class => [],
-            \Spatie\Backup\Notifications\Notifications\BackupWasSuccessfulNotification::class => [],
-            \Spatie\Backup\Notifications\Notifications\HealthyBackupWasFoundNotification::class => [],
-            \Spatie\Backup\Notifications\Notifications\CleanupWasSuccessfulNotification::class => [],
-        ],
-
-        /*
-         * Here you can specify the notifiable to which the notifications should be sent. The default
-         * notifiable will use the variables specified in this config file.
-         */
-        // 'notifiable' => \Spatie\Backup\Notifications\Notifiable::class,
-
-        'mail' => [
-            'enabled' => false,
-            'to' => 'ajelof2@gmail.com',
-
-            'from' => [
-                'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
-                'name' => env('MAIL_FROM_NAME', 'Example'),
-            ],
-        ],
-
-        'slack' => [
-            'webhook_url' => '',
-
-            /*
-             * If this is set to null the default channel of the webhook will be used.
-             */
-            'channel' => null,
-
-            'username' => null,
-
-            'icon' => null,
-
-        ],
-
-        'discord' => [
-            'webhook_url' => '',
-
-            /*
-             * If this is an empty string, the name field on the webhook will be used.
-             */
-            'username' => '',
-
-            /*
-             * If this is an empty string, the avatar on the webhook will be used.
-             */
-            'avatar_url' => '',
-        ],
+//        'enabled' => false,
+//        'notifications' => [
+//            \Spatie\Backup\Notifications\Notifications\BackupHasFailedNotification::class => [],
+//            \Spatie\Backup\Notifications\Notifications\UnhealthyBackupWasFoundNotification::class => [],
+//            \Spatie\Backup\Notifications\Notifications\CleanupHasFailedNotification::class => [],
+//            \Spatie\Backup\Notifications\Notifications\BackupWasSuccessfulNotification::class => [],
+//            \Spatie\Backup\Notifications\Notifications\HealthyBackupWasFoundNotification::class => [],
+//            \Spatie\Backup\Notifications\Notifications\CleanupWasSuccessfulNotification::class => [],
+//        ],
+//
+//        /*
+//         * Here you can specify the notifiable to which the notifications should be sent. The default
+//         * notifiable will use the variables specified in this config file.
+//         */
+//         'notifiable' => \Spatie\Backup\Notifications\Notifiable::class,
+//
+//        'mail' => [
+//            'enabled' => false,
+//            'to' => 'ajelof2@gmail.com',
+//
+//            'from' => [
+//                'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
+//                'name' => env('MAIL_FROM_NAME', 'Example'),
+//            ],
+//        ],
+//
+//        'slack' => [
+//            'webhook_url' => '',
+//
+//            /*
+//             * If this is set to null the default channel of the webhook will be used.
+//             */
+//            'channel' => null,
+//
+//            'username' => null,
+//
+//            'icon' => null,
+//
+//        ],
+//
+//        'discord' => [
+//            'webhook_url' => '',
+//
+//            /*
+//             * If this is an empty string, the name field on the webhook will be used.
+//             */
+//            'username' => '',
+//
+//            /*
+//             * If this is an empty string, the avatar on the webhook will be used.
+//             */
+//            'avatar_url' => '',
+//        ],
     ],
 
+    //fin notifications
     /*
      * Here you can specify which backups should be monitored.
      * If a backup does not meet the specified requirements the

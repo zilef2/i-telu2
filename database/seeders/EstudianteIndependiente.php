@@ -65,4 +65,3 @@ class EstudianteIndependiente extends Seeder
         ]);
     }
 }
-//php artisan db:seed --class=EstudianteIndependiente

@@ -100,10 +100,11 @@ const select = () => {
     }
 }
 
-const irCarrera = (carreraid, cuantas) => {
+const irCarrera = (uniId, cuantas) => {
     if (cuantas > 0) {
+        localStorage.setItem('universidadGuardada',uniId)
 
-        data.params2.selectedUniID = carreraid
+        data.params2.selectedUniID = uniId
         let params = pickBy(data.params2)
         router.get(route("carrera.index"), params, {
             replace: true,

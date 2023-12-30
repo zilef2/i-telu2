@@ -35,7 +35,32 @@ class ExtraUser extends Controller {
     public function MapearClasePP($request, &$users, $numberPermissions) {
 
         if ($request->has(['field', 'order'])) {
-            $users = $users->orderBy($request->field, $request->order);
+            if($request->field === 'pgrado'){
+                if($request->order === 'asc'){
+
+                    $users = $users->orderByRaw("
+                        CASE
+                            WHEN pgrado = 'postgrado' THEN 1
+                            WHEN pgrado = 'pregrado' THEN 2
+                            WHEN pgrado = 'bachiller' THEN 3
+                            ELSE 4
+                        END
+                    ");
+                }else{
+                    $users = $users->orderByRaw("
+                        CASE
+                            WHEN pgrado = 'postgrado' THEN 3
+                            WHEN pgrado = 'pregrado' THEN 2
+                            WHEN pgrado = 'bachiller' THEN 1
+                            ELSE 4
+                        END
+                    ");
+
+                }
+
+            }else{
+                $users = $users->orderBy($request->field, $request->order);
+            }
         }
         $users = $users->get()->map(function ($user) use ($numberPermissions) {
             $rol = $user->roles->pluck('name')[0];

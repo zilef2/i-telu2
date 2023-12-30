@@ -41,8 +41,8 @@ class GuardarResumirArchivoPDF implements ShouldQueue {
             $promptParaResumir = 'Resume el siguiente texto, asumiendo que eres un experto en la materia :'.$Materia->nombre.'. el texto es el siguiente: '.$resumen;
             $justGPT = new JustChatFunctionGPT();
             $ChatResumen = $justGPT->Chat35turbo0613($promptParaResumir);
-//            $ChatResumen = $justGPT->Chat35($promptParaResumir);
-            (new Myhelp())->EscribirEnLogJobs($this,0, $ChatResumen[1].' - | - ' .$ChatResumen[2]);
+            //$ChatResumen = $justGPT->Chat35($promptParaResumir);
+            Myhelp::SoloJobLog($this, $ChatResumen[1].' - | - ' .$ChatResumen[2]);
 
              if($ChatResumen[2] === 'stop'){
                  MedidaControl::create([
@@ -71,11 +71,11 @@ class GuardarResumirArchivoPDF implements ShouldQueue {
                  ]);
                  // $ChatResumen = [0,'Fallo al resumir','No stop'];
              }
-            (new Myhelp())->EscribirEnLogJobs($this,0, 'exito en la el resumen de archivo');
+            Myhelp::SoloJobLog($this, 'exito en la el resumen de archivo');
 
         } catch (\Throwable $th) {
             $problema = $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile();
-            (new Myhelp())->EscribirEnLogJobs($this,2, $problema);
+            Myhelp::SoloJobLog($this, $problema,true);
             $this->fail();
         }
     }

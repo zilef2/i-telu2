@@ -9,6 +9,13 @@ import SwitchLangNavbar from '@/Components/SwitchLangNavbar.vue'
 
 const emit = defineEmits(["open"])
 
+
+const planesDefinidos =[
+    'Demo',
+    'Básico',
+    'Intermedio',
+    'Premium',
+];
 </script>
 
 <template>
@@ -30,6 +37,16 @@ const emit = defineEmits(["open"])
                         <Link :href="route('dashboard')" class="flex items-center space-x-2">
                         <ApplicationLogo class="hidden md:block h-5 w-auto fill-current" />
                         <p>{{ $page.props.app.name }}</p>
+                        </Link>
+                    </div>
+                    <div v-if="$page.props.auth.user.plan_id" class="flex mx-3">
+                        <Link :href="route('dashboard')" class="flex items-center space-x-2">
+                            <p class="font-bold"> {{planesDefinidos[$page.props.auth.user.plan_id]}} </p>
+                        </Link>
+                    </div>
+                    <div v-else class="flex mx-3">
+                        <Link :href="route('dashboard')" class="flex items-center space-x-2">
+                            <p class="font-bold"> {{planesDefinidos[0]}} </p>
                         </Link>
                     </div>
                 </div>
@@ -67,7 +84,7 @@ const emit = defineEmits(["open"])
                                                 v-show="$page.props.auth.user.email_verified_at" />
                                         </span>
                                         <span class="block text-sm font-medium text-gray-500 truncate dark:text-gray-400">
-                                            {{ $page.props.auth.user.email }} 
+                                            {{ $page.props.auth.user.email }}
                                         </span>
                                         <!-- <span class="block text-sm font-medium text-gray-500 truncate dark:text-gray-400">
                                             {{ $page.props.auth.user.id }}
@@ -75,6 +92,7 @@ const emit = defineEmits(["open"])
                                     </div>
                                     <DropdownLink :href="route('profile.edit')"> {{ lang().label.profile }}
                                     </DropdownLink>
+                                    <DropdownLink > 0.9.9</DropdownLink>
                                     <DropdownLink :href="route('logout')" method="post" as="button">
                                         {{ lang().label.logout }}
                                     </DropdownLink>

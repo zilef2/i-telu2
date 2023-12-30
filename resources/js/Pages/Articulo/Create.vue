@@ -2,14 +2,18 @@
 import Generando from '@/Components/uiverse/Generando.vue';
 import GreenButton from '@/Components/GreenButton.vue';
 import { router, Link, useForm } from '@inertiajs/vue3';
-import { reactive, watchEffect, onMounted, watch } from 'vue'
+import { reactive, watchEffect, onMounted, onBeforeMount, watch } from 'vue'
 import Toast from '@/Components/Toast.vue'
 import { NoUnderLines, ContarPalabras } from '@/global.ts';
 import "vue-select/dist/vue-select.css";
 
+
+
+//<editor-fold desc="props - data - dataTime -useform ">
+
 const props = defineProps({
     title: String,
-    HijoSelec: Object,
+    AutoSelect: Object,
 
     numberPermissions: Number,
 
@@ -40,12 +44,21 @@ const data = reactive({
         { id: 'Referencias', etiqueta: NoUnderLines('Referencias'), valor: [] },
         { id: 'Anexos_o_Apendices', etiqueta: NoUnderLines('Anexos_o_Apendices'), valor: [] },
     ],
-    universidadid: props.HijoSelec.universidades[1],
-    carreraid: props.HijoSelec.carreras[1],
-    materiaid: props.HijoSelec.materias[1],
     tipoTexto: '',
     campoActivo: null,
 
+    //selects dependientes
+
+    universidadid: { title: "Seleccione una universidad", value: 0 },
+    carreraid: [],
+    materiaid: [],
+    unis:props.AutoSelect.map(item => {
+        // Crear un nuevo objeto excluyendo la propiedad 'depend'
+        const { depend, ...newItem } = item;
+        return newItem;
+    }),
+    carrs:null,
+    mats:null,
 })
 const dataTime = reactive({
     endTime: {},
@@ -68,7 +81,28 @@ const form = useForm({
     isArticulo:true,
 
 });
+//</editor-fold>
 
+
+//<editor-fold desc="before - mount - watcheffect">
+
+onBeforeMount(() => {
+    //autoselecionar si el vector es de tamaño 1
+    if(props.AutoSelect.length > 1){
+        data.universidadid = props.AutoSelect[1]
+        let primerDepend = props.AutoSelect[1].depend
+        if(primerDepend.length > 1){
+            data.carreraid = primerDepend[1]
+
+            let primerDependCarrera = primerDepend[1].depend
+
+            if(primerDependCarrera.length > 1){
+                data.materiaid = primerDependCarrera[1]
+
+            }
+        }
+    }
+})
 
 onMounted(() => {
     terminarEscritura(1)
@@ -93,98 +127,163 @@ onMounted(() => {
         form.Referencias[0] = 'asd'
         form.Anexos_o_Apendices[0] = 'asd'
     }
+    data.mostrarLoader = false
+
 })
 
-
-const imprimirPagina = () => {
-    // this.isPrintable = true;
-    window.print(); // Esto abrirá el diálogo de impresión
-    // this.isPrintable = false; // Restaura el valor original después de imprimir
-}
-
+const imprimirPagina = () => window.print();
 watchEffect(() => {})
+//</editor-fold>
 
 
-//zona blur textareas
+//<editor-fold desc="blur textareas">
 const empezarEscritura = (inde) => {
     dataTime.startTime[inde] = new Date();
     data.campoActivo = inde
+    data.mostrarLoader = true
+
 }
-
-
 
 //por conveccion: cuando inde = 1, es que acaba de entrar a la pagina,
 // cuando inde = 2 es que ya termino de redactar el articulo
 
-const terminarEscritura = (inde) => {
+const terminarEscritura = (inde,FromCall = null) => {
     data.mostrarLoader = true
     data.campoActivo = null
     dataTime.index = inde
 
-    if(typeof dataTime.startTime[inde] === 'undefined') dataTime.startTime[inde] = new Date();
+    if(typeof dataTime.startTime[inde] === 'undefined'){
+        inde = 1
+        dataTime.startTime[inde] = new Date();
+    }
 
     dataTime.endTime[inde] = new Date();
     dataTime.tiempoEscritura[inde] = dataTime.endTime[inde] - dataTime.startTime[inde]; // Tiempo en milisegundos
 
-    if(typeof dataTime.startTime[inde] !== 'undefined')
-        router.post('/guardarTiempoUser', dataTime, {
-            preserveScroll: true,
-            onSuccess: () => {
-                data.mostrarLoader = true
-            },
-            onError: () => alert(JSON.stringify(dataTime.errors, null, 4)),
-            onFinish: () => {
-                data.mostrarLoader = false
-            }
-        })
+    if(typeof dataTime.startTime[inde] !== 'undefined'){
+        if(FromCall === 'porBlur'){
+            setTimeout(()=> {
+                EnviarTiempoAlServidor()
+            }, 100);
+            setTimeout(()=> data.mostrarLoader = false, 2800);
+        }else{
+            EnviarTiempoAlServidor()
+        }
+    }
+
 }
+
+const EnviarTiempoAlServidor = ()=>{
+    console.log(dataTime)
+    router.post('/guardarTiempoUser', dataTime, {
+        preserveScroll: true,
+        onSuccess: () => {},
+        onError: () => alert(JSON.stringify(dataTime.errors, null, 4)),
+        onFinish: () => {}
+    })
+}
+//</editor-fold>
+
+
+//<editor-fold desc="Universidad y Carrera">
 
 watch(() => data.universidadid, (newX) => {
-    data.carreraid = props.HijoSelec.carreras[1]
-})
-
-watch(() => data.carreraid, (newX) => {})
-
-function recibirRespuesta(newX){
-    if (newX && newX.respuesta) {
-        form[data.tipoTexto][1] = newX.respuesta
-        form[data.tipoTexto][2] = form[data.tipoTexto][0]
-        data.restarAlToken = newX.restarAlToken
-        data.NumSujerencias[data.tipoTexto]++;
-
+    let tempCarreras = props.AutoSelect[newX.value].depend
+    if(tempCarreras){
+        data.carrs = tempCarreras.map(x => {
+            const { depend,...newItem } = x;
+            return newItem;
+        })
     }
-}
-
-watch(() => props.ValoresGenerarSeccion, (newX) => {
-    // data.NumSujerencias[data.tipoTexto] = true
-    recibirRespuesta(newX);
+    // data.carreraid = data.carrs[0]
 })
+
+watch(() => data.carreraid, (newX) => {
+    let tempMaterias = props.AutoSelect[data.universidadid.value].depend[newX.value].depend
+    if(tempMaterias === 0 && data.carreraid){
+        if(data.carreraid.value !== 0){
+            data.errorCarrera[0] = 'No hay materias asociadas'
+        }
+    } else{
+        data.errorCarrera[0] = ''
+        data.mats = tempMaterias.map(x => {
+            const { depend,...newItem } = x;
+            return newItem;
+        })
+        // data.materiaid = data.mats[0]
+    }
+})
+//</editor-fold>
+
+
+//<editor-fold desc="Revisaar ValoresGenerarSeccion">
+
+async function recibirRespuesta(newX){
+
+    return new Promise((res,rej) => {
+        if (newX && newX.respuesta) {
+            form[data.tipoTexto][1] = newX.respuesta
+            form[data.tipoTexto][2] = form[data.tipoTexto][0]
+            data.restarAlToken = newX.restarAlToken
+            data.NumSujerencias[data.tipoTexto]++;
+            res(1500)
+        }else{
+            rej(0)
+        }
+    })
+
+
+
+}
 
 const scrollToBottom = () => {
     window.scrollTo({
         top: document.body.scrollHeight - 10,
         behavior: 'smooth'
-      });
+    });
 }
 const scrollToTop = () => {
-      window.scrollTo({
+    window.scrollTo({
         top: 0,
         behavior: 'smooth'
-      });
+    });
 }
 
-const OptimizarResumenOIntroduccion = async (elTexto, tipoTexto) => {
-    data.errorCarrera = [];
+watch(() => props.ValoresGenerarSeccion, (newX) => {
+    let theTiempo;
+    recibirRespuesta(newX)
+    .then((tiempo) => {
+        theTiempo = tiempo
+    })
+    .catch((err) => {
+        console.log(err)
+    })
+    .finally(() => {
+        data.mostrarLoader = false
+        console.log(data.mostrarLoader)
+    });
+})
+
+const OptimizarResumenOIntroduccion = (elTexto, tipoTexto) => {
     data.mostrarLoader = true;
+    data.errorCarrera = [];
     data.tipoTexto = tipoTexto
     const tamanoMinimo = 10
-    terminarEscritura(tipoTexto)
 
 
     let TieneSuficientesPalabras = elTexto && (ContarPalabras(elTexto) > tamanoMinimo || elTexto.length > (tamanoMinimo * 5))
+
+    // console.log(elTexto )
+    // console.log('El texto tiene = ' + ContarPalabras(elTexto) + ' palabras')
+    // console.log('Tamano Minimo en palabras = ' + tamanoMinimo)
+    // console.log('Tamano Minimo en letras = ' + tamanoMinimo * 5 )
+
     if (TieneSuficientesPalabras) {
         if (data.materiaid && data.materiaid.value) {
             form[data.tipoTexto][0] = form[data.tipoTexto][2] ? form[data.tipoTexto][2] : form[data.tipoTexto][0]
+
+            data.mostrarLoader = true;
+
             router.reload({
                 only: [
                     'ValoresGenerarSeccion',
@@ -193,41 +292,62 @@ const OptimizarResumenOIntroduccion = async (elTexto, tipoTexto) => {
                     elTexto: elTexto,
                     materia: data.materiaid.value,
                     tipoTexto: tipoTexto,
+
+                    //medirtiempo
+                    startTime: dataTime.startTime,
+                    index: dataTime.index,
+                    endTime: dataTime.endTime,
+                    tiempoEscritura: dataTime.tiempoEscritura,
                 },
             }, {
                 preserveScroll: true,
-                onSuccess: () => {
-                    data.mostrarLoader = false
-                },
+                onSuccess: () => {data.mostrarLoader = true},
                 onError: () => alert(JSON.stringify(form.errors, null, 4)),
-                onFinish: () => {
-                    data.mostrarLoader = false
-                }
+                onFinish: () => {data.mostrarLoader = true}
             })
+            data.mostrarLoader = true;
+
         } else {
             data.errorCarrera[0] = 'Seleccione una asignatura primero';
         }
     } else {
         data.errorCarrera[tipoTexto] = 'El texto a perfeccionar es muy corto';
     }
-    data.mostrarLoader = false;
 }
+//</editor-fold>
+
+
+//<editor-fold desc="validate and create">
+
+
+const ValidateCreate = () =>{
+    return(
+    data.universidadid.value !== 0
+    && data.carreraid.value !== 0
+    && data.materiaid.value !== 0
+    && data.NumSujerencias['Introduccion'] !== ''
+    && data.NumSujerencias['Resumen'] !== ''
+    && data.NumSujerencias['Conclusiones'] !== ''
+)}
 
 const create = () => {
-    form.Resumen_integer = data.NumSujerencias['Resumen']
-    form.Introduccion_integer = data.NumSujerencias['Introduccion']
-    form.Discusion_integer = data.NumSujerencias['Discusion']
-    form.Conclusiones_integer = data.NumSujerencias['Conclusiones']
-    form.Metodologia_integer = data.NumSujerencias['Metodologia']
 
-    form.universidadid = data.universidadid
-    form.carreraid = data.carreraid
-    form.materiaid = data.materiaid
+    if(ValidateCreate()){
 
-    if(data.materiaid && data.materiaid.value !== 0) {
+        form.Resumen_integer = data.NumSujerencias['Resumen']
+        form.Introduccion_integer = data.NumSujerencias['Introduccion']
+        form.Discusion_integer = data.NumSujerencias['Discusion']
+        form.Conclusiones_integer = data.NumSujerencias['Conclusiones']
+        form.Metodologia_integer = data.NumSujerencias['Metodologia']
+
+
+        form.universidadid = data.universidadid
+        form.carreraid = data.carreraid
+        form.materiaid = data.materiaid
+
         data.errorCarrera[0] = ''
 
-        terminarEscritura(2)
+        // terminarEscritura(2)
 
         form.post(route('Articulo.store'), {
             preserveScroll: true,
@@ -240,17 +360,20 @@ const create = () => {
             onFinish: () => null,
         })
     }else{
-        data.errorCarrera[0] = 'No hay materia seleccionada'
+        data.errorCarrera[0] = 'Faltan campos obligatorios (Introduccion o Resumen o Conclusiones)'
     }
 }
+
+//</editor-fold>
+
 </script>
 
 
 <template>
     <Toast v-if="$page.props.flash" :flash="$page.props.flash" />
     <section class="space-y-1 flex self-center">
-        <div class="flex-none w-1 md:w-14"> . </div>
-        <div class="grow mx-0 sm:mx-1 md:mx-12 xl:mx-24 text-center p-1 sm:p-8">
+        <div class="flex-none w-1 md:w-4"> . </div>
+        <div class="grow mx-0 md:mx-1 lg:mx-12 xl:mx-24 text-center p-1 sm:p-8">
             <form @submit.prevent="create" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
                 <div class="grid grid-cols-1 gap-6">
                     <div class="container flex flex-col items-center justify-center px-6 mx-auto">
@@ -279,7 +402,7 @@ const create = () => {
                          Imprimir</button>
 
                         <Link :href="route('Articulo.index')" id="universidadSelecs3"
-                        class="px-6 py-2 mt-4 mx-6 w-22 xs:w-8 xs:text-xs h-12 hover:bg-gray-600 item-center text-md font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-black rounded-lg focus:outline-none focus:ring focus:ring-blue-300 focus:ring-opacity-50">
+                            class="px-6 pt-4 mt-4 mx-6 w-22 xs:w-8 xs:text-xs h-16 hover:bg-gray-600 item-center text-md font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-black rounded-lg focus:outline-none focus:ring focus:ring-blue-300 focus:ring-opacity-50">
                             Regresar
                         </Link>
                     </div>
@@ -291,25 +414,28 @@ const create = () => {
                     <div id="universidadSelecs2" class="flex text-center mt-6">
                         <p class="text-gray-500 text-xl font-bold dark:text-gray-400">A que asignatura pertenecerá el articulo</p>
                     </div>
+
                     <div id="universidadSelecs" class="mt-2 text-center grid grid-cols-1 sm:grid-cols-3 sm:gap-6 mx-auto">
 
                         <div id="opciones2U" class="mt-2 w-full">
                             <label name=""> </label>
-                            <v-select :options="props.HijoSelec.universidades" label="title"
+                            <v-select :options="data.unis" label="title"
                                 v-model="data.universidadid"></v-select>
                         </div>
-                        <div v-if="data.universidadid && data.universidadid.value !== 0" id="carrera" class="mt-2 w-full">
-                            <v-select :options="props.HijoSelec.carreras" label="title"
+                        <div v-if="data.universidadid && data.carrs && data.universidadid.value !== 0" id="carrera" class="mt-2 w-full">
+                            <v-select :options="data.carrs" label="title"
                                 v-model="data.carreraid"></v-select>
                         </div>
-                        <div v-if="data.carreraid && data.carreraid.value !== 0" id="asignatura" class="mt-2 w-full">
-                            <v-select :options="props.HijoSelec.materias" label="title"
-                                v-model="data.materiaid"></v-select>
+                        <div v-if="data.carreraid && data.mats && data.carreraid.value !== 0 && props.AutoSelect[data.universidadid.value].depend" id="asignatura" class="mt-2 w-full">
+                            <v-select :options="props.AutoSelect[data.universidadid.value].depend[data.carreraid.value].depend"
+                                label="title"
+                                v-model="data.materiaid">
+                            </v-select>
                         </div>
                     </div>
                     <div id="tokensConsumidos" class="flex items-center mt-6">
-                        <p v-if="data.restarAlToken && data.restarAlToken != 0" class="text-sky-600 dark:text-gray-400">Se
-                            consumió: {{ data.restarAlToken }} token</p>
+                        <p v-if="data.restarAlToken && data.restarAlToken !== 0" class="text-sky-600 dark:text-gray-400">
+                            Se consumió: {{ data.restarAlToken }} token</p>
                     </div>
 
 
@@ -345,14 +471,16 @@ const create = () => {
                             </div>
                             <div class="col-span-2">
                                 <label :for="campo.id" class="text-gray-500 text-xl font-bold dark:text-gray-400 mb-2">{{ campo.etiqueta }} Final</label>
-                                <div class="relative rounded-md shadow-sm">
+                                <div class="relative rounded-md shadow-2xl ">
                                     <textarea :id="campo.id + '2'"
                                         rows="6" cols="33"
-                                        @focus="empezarEscritura(campo.id)" @blur="terminarEscritura(campo.id)"
+                                        @focus="empezarEscritura(campo.id)" @blur="terminarEscritura(campo.id,'porBlur')"
                                         v-model="form[campo.id][2]"
                                         placeholder="Teniendo en cuenta la sugerencia de la IA..."
-                                        class="px-5 py-3 mt-2 block w-full  text-gray-700 placeholder-gray-400 bg-white border border-gray-200
+                                        class="px-5 py-3 mt-2 block w-full border
+                                        hover:bg-gray-200
                                         rounded-lg focus:border-blue-400 focus:ring-blue-400 focus:outline-none focus:ring focus:ring-opacity-40 text-justify
+                                        placeholder-gray-400 bg-gray-100 text-black  border-gray-200
                                         dark:placeholder-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 dark:focus:border-blue-400"/>
                                 </div>
                             </div>
@@ -365,12 +493,12 @@ const create = () => {
                                 <div class="relative rounded-md shadow-sm">
                                     <textarea :id="campo.id"
                                         rows="5" cols="33"
-                                        @focus="empezarEscritura(campo.id)" @blur="terminarEscritura(campo.id)"
+                                        @focus="empezarEscritura(campo.id)" @blur="terminarEscritura(campo.id,'porBlur')"
                                         v-model="form[campo.id][0]"
                                         class="block w-full px-5 py-3 mt-2 text-gray-700 placeholder-gray-400 bg-white border border-gray-200
                                         rounded-lg dark:placeholder-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 focus:border-blue-400
                                          dark:focus:border-blue-400 focus:ring-blue-400 focus:outline-none focus:ring focus:ring-opacity-40" />
-                                    <div v-if="data.campoActivo === campo.id && form[campo.id][0] == ''"
+                                    <div v-if="data.campoActivo === campo.id && form[campo.id][0] === ''"
                                         class="absolute inset-y-0 left-0 pl-3 flex items-center cursor-progress text-gray-400">
                                         Puede preguntar a la IA, haciendo click en Generar o Refinar
                                     </div>
@@ -385,18 +513,19 @@ const create = () => {
                                     {{ data.errorCarrera[0] }}</p>
                             </div>
                             <div class="flex items-center mt-2">
-                                <p v-if="data.restarAlToken && data.restarAlToken != 0" class="text-sky-600 text-lg dark:text-gray-600">Se
+                                <p v-if="data.restarAlToken && data.restarAlToken !== 0" class="text-sky-600 text-lg dark:text-gray-600">Se
                                     consumió: {{ data.restarAlToken }} token</p>
                             </div>
 
-                            <GreenButton
-                                :class="{ 'opacity-25': data.mostrarLoader }" :disabled="data.mostrarLoader"
+
+                            <GreenButton :disabled="data.mostrarLoader"
+                                :class="{ 'opacity-25': data.mostrarLoader }"
                                 @click="OptimizarResumenOIntroduccion(form[campo.id][2] ? form[campo.id][2] : form[campo.id][0], campo.id)"
                                 class="ml-3 mt-1 px-10 py-3 outline outline-offset-2 ring-2 ring-green-700">
-                                    {{ data.mostrarLoader ? 'Revisando...' : 'Revisar' }}
+                                    {{ data.mostrarLoader ? 'Espere un momento...' : 'Revisar' }}
                             </GreenButton>
-                            <div class="mt-8">
-                                <Generando v-if="data.mostrarLoader" />
+                            <div class="flex-wrap-reverse fixed top-8 left-1/2 scale-75">
+                                <Generando v-if="data.mostrarLoader" :isfix="true" />
                             </div>
 
                             <div class="flex items-center mt-6">
@@ -431,7 +560,7 @@ const create = () => {
                 </div>
             </form>
         </div>
-        <div class="flex-none w-0 md:w-14"> . </div>
+        <div class="flex-none w-1 md:w-4"> . </div>
     </section>
 
 

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -11,9 +12,10 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable
-{
+class User extends Authenticatable{
     use HasApiTokens, HasFactory, Notifiable, HasRoles, SoftDeletes;
+
+
 
     /**
      * The attributes that are mass assignable.
@@ -24,7 +26,6 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-
         'identificacion',
         'sexo',
         'fecha_nacimiento',
@@ -32,11 +33,11 @@ class User extends Authenticatable
         'semestre_mas_bajo',
         'limite_token_general',
         'limite_token_leccion', //zona asignatura
-
         'pgrado', //bachiller, pregrado, postgrado
-
         'email_verified_at',
-        'plan',
+        'plan_id',
+        'planVence',
+        'AdquirioXTokensUltimaVez',
     ];
     /**
      * The attributes that should be hidden for serialization.
@@ -71,12 +72,11 @@ class User extends Authenticatable
     }
 
     public function ExistUniversidad($id): Bool {
-//        $this->universidades();
         return $this->universidades->contains($id);
     }
 
     public function carreras(): BelongsToMany {
-        return $this->BelongsToMany(Carrera::class);
+        return $this->BelongsToMany(Carrera::class,'carrera_user');
     }
     public function ExistCarrera($id): Bool {
         return $this->carreras->contains($id);
@@ -88,6 +88,8 @@ class User extends Authenticatable
     public function materias(): BelongsToMany {
         return $this->BelongsToMany(Materia::class);
     }
+
+
     public function MedidaControl(): HasMany {
         return $this->HasMany(MedidaControl::class);
     }
@@ -123,5 +125,11 @@ class User extends Authenticatable
         }
 
         return $matrizMateriasEstudiantes;
+    }
+
+
+    //30dic2023
+    public function plan(): BelongsTo {
+        return $this->BelongsTo(Plan::class);
     }
 }

@@ -60,4 +60,12 @@ class Universidad extends Model {
         return $result;
     }
 
+    public function materiasInteluGenerica()
+    {
+        $inteluid = $this->Where('nombre','Intelu')->first();
+        $carreras = Carrera::Where('universidad_id',$inteluid->id)->get()->pluck('id');
+        $materias = Materia::WhereIn('carrera_id',$carreras)->get();
+        return $materias;
+    }
+
 }

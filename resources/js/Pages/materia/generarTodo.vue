@@ -10,8 +10,7 @@ import TextInput from '@/Components/TextInput.vue';
 import { router, useForm } from '@inertiajs/vue3';
 import { reactive, watch, watchEffect, onMounted } from 'vue'; //ref
 import SelectInput from '@/Components/SelectInput.vue';
-
-
+import vSelect from "vue-select"; import "vue-select/dist/vue-select.css";
 import { PrimerasPalabras, vectorSelect, formatDate } from '@/global.ts';
 
 const props = defineProps({
@@ -21,6 +20,7 @@ const props = defineProps({
     MateriasRequisitoSelect: Object,
     ValoresGenerarMateria: Object,
 })
+const MAX_ELEMENTS = 57
 const emit = defineEmits(["close"]);
 
 const data = reactive({
@@ -31,42 +31,29 @@ const data = reactive({
     vacia: '',
     recuerdeCodigo: '',
     mostrarLoader: false,
+    RecomendacionTemaUnidades: '',
 })
 
 const form = useForm({
     // descripcion: '',
     nombre_mat: '',
-    carrera_id: 0,//tempForm
+    carrera_id: '',//tempForm
     materia_id: 0,//tempForm
-    objetivo: '',
+    // objetivo: '',
     nombre_unidad: [[]],
-    Cuantas_u: "2",
+    Cuantas_u: "0",
     Array_nombre_tema: [],
-    Cuantas_t: "2",
+    Cuantas_t: "0",
     Array_RA: [[]],
     totalUT: 11,
 
     //loader
     errorCarrera: false,
 })
-const create = () => {
-    if (form.codigo_mat !== '') {
-        data.errorCarrera = '';
 
-        form.post(route('materia.guardarGenerado'), {
-            preserveScroll: true,
-            onSuccess: () => {
-                emit("close")
-                form.reset()
-            },
-            // onError: () => null,
-            onError: () => alert(JSON.stringify(form.errors, null, 4)),
-            onFinish: () => null,
-        })
-    } else {
-        data.errorCarrera = 'Falta el codigo de la materia';
-    }
-}
+onMounted(() => {})
+
+
 const cerrarForm = () => props.ValoresGenerarMateria = null
 
 
@@ -92,11 +79,11 @@ const generar = async () => {
 }
 
 const validar = () => {
-    if (form.carrera_id == 0) {
+    if (form.carrera_id === 0) {
         data.errorCarrera = 'Seleccione una carrera primero';
         return false
     }
-    if (form.materia_id == 0) {
+    if (form.materia_id === 0) {
         data.errorCarrera = 'Seleccione una materia primero';
         return false
     }
@@ -111,26 +98,23 @@ const validar = () => {
         data.errorCarrera = 'Demasiados tenas';
         return false
     }
-    if (total > 35) {
-        data.errorCarrera = 'Los elementos generados deben ser menor a 35.';
+    if (total > MAX_ELEMENTS) {
+        data.errorCarrera = 'Se estan generando demasiadas unidades y demasiados temas por unidad.';
+        data.RecomendacionTemaUnidades = 'Una cantidad recomendada puede ser 5 unidades y 5 temas por unidad o 6 unidades y 4 temas por unidad';
         return false
     }
-    if (Cunidades < 1 || Ctemas < 1) {
-        data.errorCarrera = 'Debe existir al menos un tema y una unidad';
+    if (Cunidades < 0 || Ctemas < 0) {
+        data.errorCarrera = 'Error con los temas o unidades';
         return false
     }
-
     return true
 }
 
-onMounted(() => {
-
-})
 watchEffect(() => {
     if (props.show) {
         form.errors = {}
 
-        form.totalUT = 1 + parseInt(form.Cuantas_u) * ( 2 * parseInt(form.Cuantas_t) + 1)
+        form.totalUT = parseInt(form.Cuantas_u) * ( 2 * parseInt(form.Cuantas_t) + 1) //tempo: se borro el +1
         data.contadorRespuesta = 0
         if (props.ValoresGenerarMateria != null) {
             console.log("🧈 debu props.ValoresGenerarMateria:", props.ValoresGenerarMateria);
@@ -138,8 +122,8 @@ watchEffect(() => {
 
             form.nombre_mat = props?.ValoresGenerarMateria['respuesta'][data.contadorRespuesta]
             data.contadorRespuesta++ // 2
-            form.objetivo = props?.ValoresGenerarMateria['respuesta'][data.contadorRespuesta]
-            data.contadorRespuesta++ // 4
+            // form.objetivo = props?.ValoresGenerarMateria['respuesta'][data.contadorRespuesta]
+            // data.contadorRespuesta++ // 4
 
             let uni = parseInt(props.ValoresGenerarMateria['Cuantas_unidades'])
             console.log("🧈 debu uni:", uni);
@@ -169,6 +153,7 @@ watchEffect(() => {
                     // inputElement.focus();
                 } else{
                     data.recuerdeCodigo = 'Hubo error en la generacion de texto. intente otra vez'
+                    console.log(props.ValoresGenerarMateria)
                 }
             }, 900);
         }
@@ -183,8 +168,15 @@ let Succes_buscarMats = () =>{
         data.MateriasRequisitoSelect.unshift({ label: 'No hay asignaturas', value: 0 })
 }
 
-const buscarMateriasSelect = () => {
+// watch(() => data.carreraid, (newX) => {
+
+watch(() => form.carrera_id,(newx) => {
+    //validar que si se conserve la universidad muevase donde se mueva
+    //poner el titulo en generarTodo
+    //cambiar el titulo de donde se estudia, poner el titulo de la materia mas grande
+    console.log('asd')
     data.errorCarrera = '';
+    form.materia_id = 0
     if (form.carrera_id) {
         let isSucces = false
 
@@ -193,7 +185,7 @@ const buscarMateriasSelect = () => {
                 'MateriasRequisitoSelect',
             ],
             data: {
-                carrera_id_buscar: form.carrera_id,
+                carrera_id_buscar: newx,
             },
             onSuccess: () => {
                 isSucces = true
@@ -206,15 +198,32 @@ const buscarMateriasSelect = () => {
             onFinish: () => {
                 console.log("🧈 debu isSucces:", isSucces);
                 Succes_buscarMats();
-
             },
         })
     }else{
         data.errorCarrera = 'Seleccione una carrera';
     }
+})
+
+
+const create = () => {
+    if (form.codigo_mat !== '') {
+        data.errorCarrera = '';
+
+        form.post(route('materia.guardarGenerado'), {
+            preserveScroll: true,
+            onSuccess: () => {
+                emit("close")
+                form.reset()
+            },
+            // onError: () => null,
+            onError: () => alert(JSON.stringify(form.errors, null, 4)),
+            onFinish: () => null,
+        })
+    } else {
+        data.errorCarrera = 'Falta el codigo de la materia';
+    }
 }
-
-
 
 </script>
 
@@ -225,21 +234,19 @@ const buscarMateriasSelect = () => {
                 <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
                     Generación de {{ props.title }}
                 </h2>
-                <!-- <div v-for=" (ele) in props?.ValoresGenerarMateria">
-                    <section v-for=" (el, ind) in ele">
-                        <p v-if="ind < 3" class="text-sky-500">{{ ind }}.-. {{ el }} </p>
-                        <p v-else-if="ind < (3 + parseInt(form.Cuantas_u))" class="text-sky-900">{{ ind }}.-. {{ el }} </p>
-                        <p v-else class="text-green-800">{{ ind }}.-. {{ el }} </p>
-                        <br>
-                    </section>
-                </div> -->
+                <h4>Puede dejar el número de unidades y temas en cero</h4>
                 <div class="my-6 grid grid-cols-1 sm:grid-cols-8 md:grid-cols-8 gap-6">
 
                     <div class="sm:col-span-8 md:col-span-3">
                         <InputLabel for="carrera_id" :value="lang().label.carrera" class="my-3" />
-                        <SelectInput @change="buscarMateriasSelect" name="carrera_id" class="mt-1 block w-full" v-model="form.carrera_id" required
-                            :dataSet="props.carrerasSelect"> </SelectInput>
-                        <InputError class="mt-2" :message="form.errors.carrera_id" />
+                        <vSelect
+                            @change="buscarMateriasSelect"
+                            label="label"
+                            :options="props.carrerasSelect"
+                            class="dark:bg-gray-400 w-full my-1 py-1"
+                            v-model="form.carrera_id"
+                        >
+                        </vSelect>
                     </div>
                     <div class="sm:col-span-8 md:col-span-3">
                         <InputLabel for="materia_id" :value="lang().label.materia" class="my-3" />
@@ -261,8 +268,19 @@ const buscarMateriasSelect = () => {
                             v-model="form.Cuantas_t"> </TextInput>
                         <InputError class="mt-2" :message="form.errors.Cuantas_t" />
                     </div>
+
+
+                    <div class="mt-3 col-span-8">
+                        <h4>Objetivos que guiaran la generación de las unidades y temas</h4>
+                    </div>
+                    <div v-if="form.materia_id" class="my-2 col-span-8 ml-8">
+                        <ul class="list-decimal">
+                            <li v-for="obj in props.MateriasRequisitoSelect[0].objetivous">
+                                {{ obj }}</li>
+                        </ul>
+                    </div>
                 </div>
-                <p class="my-6">Elementos generados: {{ form.totalUT }}</p>
+<!--                <p class="my-6">Elementos generados: {{ form.totalUT }}</p>-->
                 <!-- cosas generadas -->
                 <div v-show="props?.ValoresGenerarMateria" class="my-6 grid grid-cols-1 sm:grid-cols-6 gap-6">
 
@@ -275,14 +293,14 @@ const buscarMateriasSelect = () => {
                         <InputError class="mt-2" :message="form.errors.nombre_mat" />
                     </div>
 
-                    <div class="col-span-6">
-                        <InputLabel for="" :value="lang().label.objetivo" />
-                        <TextInput id="objetivo" type="text" v-model="form.objetivo" required
-                            :placeholder="lang().placeholder.objetivo"
-                            :class="props?.ValoresGenerarMateria ? 'bg-gray-50' : 'bg-gray-300 invisible'"
-                            class="mt-1 block w-full" />
-                        <InputError class="mt-2" :message="form.errors.objetivo" />
-                    </div>
+<!--                    <div class="col-span-6">-->
+<!--                        <InputLabel for="" :value="lang().label.objetivo" />-->
+<!--                        <TextInput id="objetivo" type="text" v-model="form.objetivo" required-->
+<!--                            :placeholder="lang().placeholder.objetivo"-->
+<!--                            :class="props?.ValoresGenerarMateria ? 'bg-gray-50' : 'bg-gray-300 invisible'"-->
+<!--                            class="mt-1 block w-full" />-->
+<!--                        <InputError class="mt-2" :message="form.errors.objetivo" />-->
+<!--                    </div>-->
                 </div>
 
 
@@ -325,6 +343,7 @@ const buscarMateriasSelect = () => {
 
                 <p v-if="data.recuerdeCodigo" class="text-lg">{{ data.recuerdeCodigo }}</p>
                 <p v-if="data.errorCarrera" class="text-lg text-red-600 my-4">{{ data.errorCarrera }}</p>
+                <p v-if="data.errorCarrera" class="text-lg text-gray-500 my-4">{{ data.RecomendacionTemaUnidades }}</p>
 
                 <div class="flex justify-end">
                     <SecondaryButton :disabled="form.processing" @click="emit('close'), form.reset(), cerrarForm()"> {{
@@ -345,3 +364,17 @@ const buscarMateriasSelect = () => {
         </Modal>
     </section>
 </template>
+<style scoped>
+>>> {
+    //--vs-controls-color: #664cc3;
+    //--vs-border-color: #664cc3;
+    //--vs-dropdown-bg: #282c34;
+    //--vs-dropdown-color: #cc99cd;
+    //--vs-dropdown-option-color: #cc99cd;
+    //--vs-selected-bg: #664cc3;
+    //--vs-selected-color: #eeeeee;
+    --vs-search-input-color: #000a8b;
+    --vs-dropdown-option--active-bg: #0033ff;
+    --vs-dropdown-option--active-color: #ffffff;
+}
+</style>

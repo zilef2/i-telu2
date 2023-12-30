@@ -4,44 +4,32 @@ import InputLabel from '@/Components/InputLabel.vue';
 import Modal from '@/Components/Modal.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
+import SelectInput from '@/Components/SelectInput.vue';
 import TextInput from '@/Components/TextInput.vue';
-import DatetimeInput from '@/Components/DatetimeInput.vue';
-
 import { useForm } from '@inertiajs/vue3';
-import { watchEffect, reactive } from 'vue';
-import Checkbox from '@/Components/Checkbox.vue';
+import { watchEffect } from 'vue';
+import VueDatePicker from '@vuepic/vue-datepicker';
 
 const props = defineProps({
     show: Boolean,
     title: String,
-    universidad: Object,
-})
-
-const data = reactive({
-    multipleSelect: false,
+    user: Object,
+    planes: Object,
 })
 
 const emit = defineEmits(["close"]);
 
 const form = useForm({
-    nombre: '',
-    enum: '',
-    codigo: '',
+    name: '',
+    plan_id:0,
 });
 
-const printForm = [
-    {idd: 'enum',label: 'enumU', type:'number', value:form.enum},
-    {idd: 'nombre',label: 'nombre', type:'text', value:form.nombre},
-    {idd: 'codigo',label: 'codigo', type:'text', value:form.codigo},
-];
-
 const update = () => {
-    form.put(route('universidad.update', props.universidad?.id), {
+    form.put(route('user.updatePlan', props.user?.id), {
         preserveScroll: true,
         onSuccess: () => {
             emit("close")
             form.reset()
-            data.multipleSelect = false
         },
         onError: () => null,
         onFinish: () => null,
@@ -51,11 +39,14 @@ const update = () => {
 watchEffect(() => {
     if (props.show) {
         form.errors = {}
-        form.nombre = props.universidad?.nombre
-        form.enum = props.universidad?.enum
-        form.codigo = props.universidad?.codigo
+        form.name = props.user?.name
+        form.errors = {}
     }
 })
+
+const planess = props.planes?.map(plan => ({ label: plan.nombre, value: plan.id }))
+
+console.log(planess)
 </script>
 
 <template>
@@ -65,15 +56,21 @@ watchEffect(() => {
                 <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
                     {{ lang().label.edit }} {{ props.title }}
                 </h2>
-                <div class="my-6 grid grid-cols-2 gap-6">
-                    <div v-for="(atributosform, indice) in printForm" :key="indice">
-                        <InputLabel :for="atributosform.label" :value="lang().label[atributosform.label]" />
+                <div class="my-6 space-y-4">
+                    <div>
+                        <InputLabel for="name" :value="lang().label.name" />
+                        <TextInput id="name" type="text" class="mt-1 block w-full" v-model="form.name" required
+                            :placeholder="lang().placeholder.name" :error="form.errors.name" />
+                        <InputError class="mt-2" :message="form.errors.name" />
+                    </div>
 
-                        <TextInput :id="atributosform.idd" :type="atributosform.type" class="mt-1 block w-full"
-                            v-model="form[atributosform.idd]" required :placeholder="atributosform.label"
-                            :error="form.errors[atributosform.idd]" />
-                        <InputError class="mt-2" :message="form.errors[atributosform.idd]" />
-
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <InputLabel for="role" :value="lang().label.Plan" />
+                            <SelectInput id="role" class="mt-1 block w-full"
+                                 v-model="form.plan_id" required :dataSet="planess"> </SelectInput>
+                            <InputError class="mt-2" :message="form.errors.plan_id" />
+                        </div>
                     </div>
                 </div>
                 <div class="flex justify-end">

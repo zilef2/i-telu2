@@ -12,7 +12,17 @@ import pkg from 'lodash';
 import { router, usePage, Link } from '@inertiajs/vue3';
 
 import Pagination from '@/Components/Pagination.vue';
-import { ArrowSmallRightIcon, ChevronUpDownIcon, QuestionMarkCircleIcon, EyeIcon, PencilIcon, TrashIcon, UserCircleIcon, BookmarkIcon} from '@heroicons/vue/24/solid';
+import {
+    ArrowSmallRightIcon,
+    ChevronUpDownIcon,
+    QuestionMarkCircleIcon,
+    EyeIcon,
+    PencilIcon,
+    TrashIcon,
+    UserCircleIcon,
+    BookmarkIcon,
+    InformationCircleIcon, XMarkIcon
+} from '@heroicons/vue/24/solid';
 
 import Create from '@/Pages/materia/Create.vue';
 import Edit from '@/Pages/materia/Edit.vue';
@@ -50,9 +60,12 @@ const props = defineProps({
     UniversidadSelect: Object,
     numberPermissions: Number,
     ValoresGenerarMateria: Object,
+
+    flash: Object, //solo para avisar la compra
 })
 
 
+// <!--<editor-fold desc="Data Onmounted">-->
 const data = reactive({
     params: {
         search: props.filters.search,
@@ -81,10 +94,27 @@ const data = reactive({
     MateriasRequisitoSelect: [],
     numeroCarreras: 0,
     MessageNoHijos: false,
+    isVisibleToast: true,
+    GUni:0,
 })
+onMounted(() => {
+  if (typeof data.params.selectedcarr === 'undefined' || data.params.selectedcarr === null) data.params.selectedcarr = 0
+
+  data.UniversidadSelect = vectorSelect(data.UniversidadSelect, props.UniversidadSelect, 'una')
+  data.carrerasDeUSel = vectorSelect(data.carrerasDeUSel, props.carrerasSelect, 'una')
+  // data.MateriasRequisitoSelect = vectorSelect(data.MateriasRequisitoSelect,props.MateriasRequisitoSelect,'una')
+
+
+  if(data.params.selectedUni){
+    console.log(data.carrerasDeUSel)
+  }
+})
+// <!--</editor-fold>-->
 
 // MessageNoHijos: controla el modal que advierte al usuario que no tiene hijos
 function closeModal() { data.MessageNoHijos = false }
+
+
 const IrTemas = (materiaid, cuantas) => {
     console.log("🧈 debu cuantas:", cuantas);
     if (cuantas > 0) {
@@ -123,10 +153,18 @@ watchEffect(() => {
     )
     data.carrerasDeUSel.unshift({ label: 'Seleccione carrera', value: 0 })
 
-
     if(typeof (data.params.selectedUni) == 'undefined' || typeof (data.params.selectedUni) == 'object'){
-        data.params.selectedUni = "0";
+        data.GUni = localStorage.getItem('universidadGuardada')
+        if(data.GUni){
+            data.params.selectedUni = localStorage.getItem('universidadGuardada')
+        }else{
+            data.params.selectedUni = "0";
+        }
     }
+})
+
+watch(() => data.params.selectedUni, (newX) => {
+    localStorage.setItem('universidadGuardada',newX)
 })
 const selectAll = (event) => {
     if (event.target.checked === false) {
@@ -138,20 +176,14 @@ const selectAll = (event) => {
     }
 }
 const select = () => {
-    if (props.fromController?.data.length == data.selectedId.length) {
+    if (props.fromController?.data.length === data.selectedId.length) {
         data.multipleSelect = true
     } else {
         data.multipleSelect = false
     }
 }
 
-onMounted(() => {
-    if (typeof data.params.selectedcarr === 'undefined' || data.params.selectedcarr === null) data.params.selectedcarr = 0
 
-    data.UniversidadSelect = vectorSelect(data.UniversidadSelect, props.UniversidadSelect, 'una')
-    data.carrerasDeUSel = vectorSelect(data.carrerasDeUSel, props.carrerasSelect, 'una')
-    // data.MateriasRequisitoSelect = vectorSelect(data.MateriasRequisitoSelect,props.MateriasRequisitoSelect,'una')
-})
 
 </script>
 
@@ -173,6 +205,7 @@ onMounted(() => {
                     <PrimaryButton class="rounded-none" @click="data.generarOpen = true" v-if="can(['create materia'])">
                         Generar Materia
                     </PrimaryButton>
+
                     <generarTodo :show="data.generarOpen" @close="data.generarOpen = false" :title="props.title"
                         v-if="can(['create materia'])" :carrerasSelect="data.carrerasDeUSel"
                         :ValoresGenerarMateria="props.ValoresGenerarMateria"
@@ -205,7 +238,7 @@ onMounted(() => {
                         <div class="bg-gray-100">
                             <SelectInput v-model="data.params.selectedUni" id="uni" :dataSet="data.UniversidadSelect" />
                         </div>
-                        <div v-if="data.params.selectedUni != 0 && props.numberPermissions > 1" class="bg-gray-100">
+                        <div v-if="data.params.selectedUni !== 0 && props.numberPermissions > 1" class="bg-gray-100">
                             <SelectInput v-model="data.params.selectedcarr" id="carrer" :dataSet="data.carrerasDeUSel" />
                         </div>
 

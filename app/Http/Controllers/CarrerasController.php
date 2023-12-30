@@ -22,13 +22,13 @@ class CarrerasController extends Controller {
     //! funciones del index
     public function MapearClasePP(&$Carreras, $numberPermissions) {
         $Carreras = $Carreras->get()->map(function ($carrera) use ($numberPermissions) {
-
+            $userloged = Myhelp::AuthU();
             if ($numberPermissions < 5) { //coordinador_academico = 4
-                $universidadUser = Auth::user()->universidades()->pluck('universidad_id')->toArray();
+                $universidadUser = $userloged->universidades()->pluck('universidad_id')->toArray();
                 if (!in_array($carrera->universidad_id, $universidadUser)) return null;
 
                 if ($numberPermissions < 4) { //estudiante o profesor o coordinador_de_programa
-                    $carreraUser = Auth::user()->carreras()->pluck('carrera_id')->toArray();
+                    $carreraUser = $userloged->carreras()->pluck('carrera_id')->toArray();
                     if (!in_array($carrera->id, $carreraUser)) return null;
                 }
             }
@@ -349,12 +349,12 @@ class CarrerasController extends Controller {
         $permissions = Myhelp::EscribirEnLog($this, 'carrera');
         $numberPermissions = Myhelp::getPermissionToNumber($permissions);
         $Carrera = Carrera::findOrFail($id);
-        
+
         $Unidades =[];
         foreach ($Carrera->materias_enum as $key => $value) {
             $Unidades[] = $value->unidads;
         }
-        
+
         // dd(
         //     $Carrera->materias_enum,
         //     $Carrera,

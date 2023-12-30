@@ -99,17 +99,27 @@ class ArticulosController extends Controller{
 
         $myhelp = new Myhelp();
         if($numberPermissions < 8){
-            $selecs = $myhelp->Vector_TurnInSelectID_AUTH(
-                ['universidades','carreras','materias'],
-                ['a universidad', 'a carrera', 'a materia'],
+            /* retorna en formato Selectvue, los modelos que tengan relacion con el usuario.
+            por ejemplo, si le mandas universidades, carreras, te retornara las universidades y carreras que sean del usuario
+            */
+            $selecs = $myhelp::ModelToSelectEnArbol(
+                ['universidades',['carreras',['materias']]],
+                ['a universidad', ['a carrera', ['a materia']]],
             );
         }else{
-            $selecs['universidades'] = Myhelp::NEW_turnInSelectID(Universidad::all(),'a universidad');
-            $selecs['carreras'] =      Myhelp::NEW_turnInSelectID(Carrera::all(),'a carrera');
-            $selecs['materias'] =      Myhelp::NEW_turnInSelectID(Materia::all(),'a materia');
-            $selecs['aviso'] = true;
-        }
+            $selecs = Myhelp::NEW_turnInSelectID(Universidad::all(),'a universidad');
 
+            //todo
+            foreach ($selecs as $index => $selec) {
+                if($index !== 0){
+                    $selecs[$index]['depend'] = Myhelp::NEW_turnInSelectID(Carrera::all(),'a carrera');
+                    $temporaly = $selecs[$index]['depend'];
+                    foreach ($temporaly as $inde2 => $item) {
+                        $selecs[$index]['depend'][$inde2]['depend'] = Myhelp::NEW_turnInSelectID(Materia::all(),'a materia');
+                    }
+                }
+            }
+        }
         return $selecs;
     }
 
@@ -138,7 +148,6 @@ class ArticulosController extends Controller{
             ['path' => request()->url()]
         );
 
-        $HijoSelec = $this->AutoSelect($numberPermissions);
 
         return Inertia::render('Articulo/Index', [ //carpeta
             'breadcrumbs'           =>  [['label' => __('app.label.Articulos'), 'href' => route('Articulo.index')]],
@@ -148,7 +157,7 @@ class ArticulosController extends Controller{
                                     ]),
             'perPage'               =>  (int) $perPage,
             'fromController'        =>  $paginated,
-            'HijoSelec'             =>  $HijoSelec,
+            'AutoSelect'            =>  $this->AutoSelect($numberPermissions),
             'numberPermissions'     =>  $numberPermissions,
         ]);
     } //fin index
@@ -204,8 +213,26 @@ class ArticulosController extends Controller{
         ]);
     } //fin index
 
-    public function ArticuloResumen() {
-       return redirect()->route('Articulo.index')->with('error', 'no hay ningun problema');
+    public function ArticuloResumen() {return redirect()->route('Articulo.index')->with('error', 'no hay ningun problema');}
+
+    private function SinMateriasNoEntras($numberPermissions){
+        $AutoSelect = $this->AutoSelect($numberPermissions);
+        $tieneMaterias = true;
+        foreach($AutoSelect as $autos){
+            if(!isset($autos['depend'])) continue;
+
+            $carreras = $autos['depend']; //array or (int) 0
+            if($carreras === 0 ||  count($carreras) <= 0){
+                $tieneMaterias = false;
+                continue;
+            }else{
+                $tieneMaterias = true;
+            }
+
+            $materiaUno = $carreras[1]['depend'];
+            $tieneMaterias = !($materiaUno === 0 || count($materiaUno) <= 1);
+        }
+        return [$AutoSelect, $tieneMaterias];
     }
 
     public function create(Request $request) {
@@ -215,32 +242,38 @@ class ArticulosController extends Controller{
             return redirect()->route('Articulo.index')->with('error','Usted aun no esta inscrito en una universidad');
         }
 
-        if($numberPermissions < 9){
-            $universidades = auth()->user()->universidades();
-        }else{
-            $universidades = Universidad::all();
-        }
+        [$AutoSelect, $tieneMaterias] = $this->SinMateriasNoEntras($numberPermissions);
+        if(!$tieneMaterias && $numberPermissions < 8)
+            return redirect()->route('Articulo.index')
+                ->with('error','Usted aun no esta inscrito en una materia');
 
-        $HijoSelec = $this->AutoSelect($numberPermissions);
         //# generar()
+        $elFoo =[
+            'startTime' => $request->startTime,
+            'index' => $request->index,
+            'endTime' => $request->index,
+            'tiempoEscritura' => $request->endTime,
+        ];
         $ValoresGenerarSeccion = Inertia::lazy(fn () => HelpArticulo::MejorarResumen(
             $request->elTexto,
             $request->materia,
-            $request->tipoTexto
+            $request->tipoTexto,
+            $elFoo
         ));
 
         return Inertia::render('Articulo/Create', [ //carpeta
             'breadcrumbs'               =>  [['label' => __('app.label.Articulos'), 'href' => route('Articulo.create')]],
             'title'                     =>  'Creando nuevo articulo',
-            'HijoSelec'                 =>  $HijoSelec,
             'numberPermissions'         =>  $numberPermissions,
             'ValoresGenerarSeccion'     =>  $ValoresGenerarSeccion,
+            'AutoSelect'                =>  $AutoSelect,
+
         ]);
     }
 
     public function store(ArticuloRequest $request) {
         DB::beginTransaction();
-        $numberPermissions = Myhelp::getPermissionToNumber(Myhelp::EscribirEnLog($this, ' Articulo'));
+        Myhelp::getPermissionToNumber(Myhelp::EscribirEnLog($this, ' Articulo'));
         $rutaRedirect = 'Articulo.index';
         try {
             $OwnUser = Myhelp::AuthU();
@@ -251,8 +284,12 @@ class ArticulosController extends Controller{
                 $huellaArticulo = session('huellaArticulo');
                 $tiempos = [];
                 if($huellaArticulo){
-                    $tiempos = TiemposArticulo::Where('huellaArticulo',$huellaArticulo)->Where('user_id',$OwnUser->id)->get();
+                    $tiempos = TiemposArticulo::Where('huellaArticulo','<=',$huellaArticulo)
+                        ->WhereNull('articulo_id')
+                        ->Where('user_id',$OwnUser->id)
+                        ->get();
                 }
+
 
                 $finalInput = $myhelp->GuardarInput($request,$OwnUser);
                 $rutaRedirect = 'Articulo.create';
@@ -318,24 +355,31 @@ class ArticulosController extends Controller{
             $opcionesCarreras[$value->id] = Myhelp::NEW_turnInSelectID($queryCarrera->get(), ' una carrera');
         }
 
+        [$AutoSelect, $tieneMaterias] = $this->SinMateriasNoEntras($numberPermissions);
+        if(!$tieneMaterias)
+            return redirect()->route('Articulo.index')->with('error','Usted aun no esta inscrito en una materia');
+
         //# generar()
         $ValoresGenerarSeccion = Inertia::lazy(fn () => HelpArticulo::MejorarResumen(
             $request->elTexto,
             $request->materia,
-            $request->tipoTexto
+            $request->tipoTexto,
+            [
+                'startTime' => $request->startTime,
+                'index' => $request->index,
+                'endTime' => $request->endTime,
+                'tiempoEscritura' => $request->tiempoEscritura,
+                'articuloid' => $request->articuloid,
+            ]
         ));
         return Inertia::render('Articulo/Edit', [ //carpeta
-            'breadcrumbs'       =>  [['label' => __('app.label.Articulos'), 'href' => route('Articulo.create')]],
-            'title'             =>  'Creando nuevo articulo',
-            'Selects'           =>  [
-                'opcionesU'             =>  $opcionesU,
-                'opcionesCarreras'      =>  $opcionesCarreras,
-                'opcionesAsignatura'    =>  $opcionesAsignatura,
-            ],
+            'breadcrumbs'               =>  [['label' => __('app.label.Articulos'), 'href' => route('Articulo.create')]],
+            'title'                     =>  'Editando articulo',
 
             'articulo'                  =>  $Articulo,
             'numberPermissions'         =>  $numberPermissions,
             'ValoresGenerarSeccion'     =>  $ValoresGenerarSeccion,
+            'AutoSelect'                =>  $AutoSelect,
         ]);
     }
 
@@ -439,34 +483,47 @@ class ArticulosController extends Controller{
     public function guardarTiempoUser(Request $request) {
         try {
 
-            $user = Myhelp::AuthU();
-//            dd($request->index,
-//                $request->startTime,
-//                $request->endTime,
-//            );
-            $tiempo = HelpArticulo::updatingDateTime(
-                $request->startTime[$request->index]);
+            $elFoo =[
+                'startTime'         => $request->startTime,
+                'index'             => $request->index,
+                'endTime'           => $request->endTime,
+                'tiempoEscritura'   => $request->tiempoEscritura,
+                'articuloid'        => $request->articuloid ?? null
+            ];
 
-            if($request->index == 1){
+            self::GuardarTiempoUserPrivate($elFoo,$this);
+
+        } catch (\Throwable $th) {
+            $problema = $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile();
+            Myhelp::EscribirEnLog($this, ' guardarTiempoUser ','Tiempo guardado incorrectamente: '.$problema);
+        }
+    }
+
+    public static function GuardarTiempoUserPrivate(Array $foo,$esteControlador) {
+        try {
+            $user = Myhelp::AuthU();
+            $tiempo = HelpArticulo::updatingDateTime(
+                $foo['startTime'][$foo['index']]
+            );
+            if($foo['index'] == 1){
                 $huella = $tiempo;
-                session(['huellaArticulo',$tiempo]);
+                session(['huellaArticulo' => $tiempo]);
             }else{
                 $huella = session('huellaArticulo');
             }
-
             TiemposArticulo::create([
                 'startTime' => $tiempo,
-                'endTime' => HelpARticulo::updatingDateTime($request->endTime[$request->index]),
-                'tiempoEscritura' => ($request->tiempoEscritura[$request->index]),
+                'endTime' => HelpARticulo::updatingDateTime($foo['endTime'][$foo['index']]),
+                'tiempoEscritura' => ($foo['tiempoEscritura'][$foo['index']]),
                 'user_id' => $user->id,
-                'articulo_id' => null,
+                'articulo_id' => $foo['articuloid'] ?? null,
                 'huellaArticulo' => $huella
             ]);
 
         } catch (\Throwable $th) {
             $problema = $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile();
-            dd($problema);
-            Myhelp::EscribirEnLog($this, ' guardarTiempoUser','Tiempo guardado incorrectamente: '.$problema);
+            Myhelp::EscribirEnLog($esteControlador, ' guardarTiempoUser ','Tiempo guardado incorrectamente: '.$problema);
         }
     }
+
 }

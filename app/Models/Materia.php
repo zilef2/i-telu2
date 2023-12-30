@@ -8,9 +8,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Materia extends Model {
-    use HasFactory;
+    use HasFactory,SoftDeletes;
 
     protected $fillable = [
         'nombre',
@@ -71,7 +72,16 @@ class Materia extends Model {
             return 'Sin objetivos';
 
         if($cuantos) return $cuantosObjetivosTiene;
-        return implode(". ", $pluc);
+        return implode(". ", $pluc) . '.';
+    }
+    public function objetivosArray($cuantos = false) {
+        $pluc = $this->objetivos->pluck('nombre')->toArray();
+        $cuantosObjetivosTiene = count($pluc);
+        if($cuantosObjetivosTiene === 0)
+            return ['Sin objetivos'];
+
+        if($cuantos) return $cuantosObjetivosTiene;
+        return $pluc;
     }
     public function requisito1_nombre() {
         return $this->requisito1 != null ? $this->requisito1->nombre : '';

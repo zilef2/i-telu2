@@ -57,12 +57,23 @@ return [
             'ignore_exceptions' => false,
         ],
 
+        'backupSpatie' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/backupSpatie.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+        ],
         'soloadmin' => [
             'driver' => 'single',
             'path' => storage_path('logs/Adminlaravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
         ],
-        
+        'soloCoordinadores' => ['driver' => 'single', 'level' => env('LOG_LEVEL', 'debug'),
+            'path' => storage_path('logs/Coordinadores.log'),
+        ],
+        'soloJobs' => ['driver' => 'single', 'level' => env('LOG_LEVEL', 'debug'),
+            'path' => storage_path('logs/Jobs.log'),
+        ],
+
         'single' => [
             'driver' => 'single',
             'path' => storage_path('logs/laravel.log'),

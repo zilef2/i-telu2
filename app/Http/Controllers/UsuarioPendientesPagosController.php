@@ -17,6 +17,7 @@ use App\Models\Role;
 use App\Models\Universidad;
 use App\Models\User;
 use App\Models\UsuarioPendientesPago;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
@@ -89,9 +90,15 @@ class UsuarioPendientesPagosController extends Controller
         $numberPermissions = Myhelp::getPermissionToNumber($permissions); // retorna un numero referente a los permisos(0:error, 1:estudiante,  2: profesor, 3:++ )
 
         $titulo = __('app.label.Pendientes');
-        $pendientes = UsuarioPendientesPago::query();
 //        $this->Filtros($request, $pendientes, $permissions);
 
+//        dd($request->pasaitos);
+        if($request->pasaitos){
+            $haceDosMeses = Carbon::now()->addMonths(-2)->format('Y-m-d');
+            $pendientes = UsuarioPendientesPago::Where('fecha_peticion','<=',$haceDosMeses);
+        }else{
+            $pendientes = UsuarioPendientesPago::query();
+        }
         $perPage = $request->has('perPage') ? $request->perPage : 10;
 
         $nombresTabla = $this->fNombresTabla($numberPermissions);
@@ -114,7 +121,7 @@ class UsuarioPendientesPagosController extends Controller
         return Inertia::render('pendiente/Index', [ //carpeta
             'breadcrumbs'       =>  [['label' => __('app.label.Pendientes'), 'href' => route('pendiente.index')]],
             'title'             =>  $titulo,
-            'filters'           =>  $request->all(['search', 'field', 'order']),
+            'filters'           =>  $request->all(['search', 'field', 'order','pasaitos']),
             'perPage'           =>  (int) $perPage,
             'fromController'    =>  $paginated,
             'nombresTabla'      =>  $nombresTabla,

@@ -66,7 +66,7 @@ watchEffect(() => {
                 </h2>
                 <div class="my-6 grid grid-cols-2 gap-6">
                     <div>
-                        <InputLabel for="enum" :value="lang().label.enum" />
+                        <InputLabel for="enum" :value="lang().label.enumU" />
                         <TextInput id="enum" type="number" class="mt-1 block w-full" v-model="form.enum" required
                             :placeholder="lang().placeholder.enum" :error="form.errors.enum" />
                         <InputError class="mt-2" :message="form.errors.enum" />
@@ -84,7 +84,7 @@ watchEffect(() => {
                         <InputError class="mt-2" :message="form.errors.codigo" />
                     </div>
                 </div>
-                
+
                 <div class="flex justify-end">
                     <SecondaryButton :disabled="form.processing" @click="emit('close')"> {{ lang().button.close }}
                     </SecondaryButton>

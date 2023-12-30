@@ -18,6 +18,7 @@ class CriticarArticulo implements ShouldQueue{
 
     public $Articulo;
     private $userLogueado;
+    private $MyHelpBro;
 
     /**
      * Create a new job instance.
@@ -25,6 +26,7 @@ class CriticarArticulo implements ShouldQueue{
     public function __construct($ArticuloID,$userLogueado){
         $this->Articulo = Articulo::find($ArticuloID);
         $this->$userLogueado = $userLogueado;
+        $this->MyHelpBro = new Myhelp();
     }
 
     /**
@@ -44,11 +46,12 @@ class CriticarArticulo implements ShouldQueue{
             $this->Articulo->update([
                 'Critica_string' => $ChatR['respuesta']
             ]);
-            (new Myhelp())->EscribirEnLogJobs($this,0, 'exito en la critica');
+            Myhelp::SoloJobLog($this,'exito en la critica. ArticuloID = '.$this->Articulo->id);
         } catch (\Throwable $th) {
 //            $this->warn('Error'. $th->getMessage());
             $problema = ' - ' . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile();
-            (new Myhelp())->EscribirEnLogJobs($this,2, $problema);
+
+            $this->MyHelpBro::SoloJobLog($this, $problema, true);
 
             // return ['respuesta' => $ChatR['respuesta'], 'restarAlToken' => $ChatR['restarAlToken']];
             //dd($th->getMessage());

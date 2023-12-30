@@ -42,6 +42,7 @@ const data = reactive({
         search: props.filters.search,
         field: props.filters.field,
         order: props.filters.order,
+        pasaitos: props.filters.pasaitos,
         perPage: props.perPage,
         selectedUniID: props.filters.selectedUniID,
     },
@@ -107,6 +108,9 @@ onMounted(() => {
                 <div class="rounded-lg overflow-hidden w-fit">
                     <PrimaryButton class="rounded-none" @click="data.createOpen = true" v-if="can(['create pendiente'])">
                         {{ lang().button.add }}
+                    </PrimaryButton>
+                    <PrimaryButton class="rounded-none" @click="data.params.pasaitos = !data.params.pasaitos">
+                        Buscar Peticiones de +2 meses
                     </PrimaryButton>
                     <Create :show="data.createOpen" @close="data.createOpen = false" :title="props.title"
                         v-if="can(['create pendiente'])" :PapaSelect="PapaSelect" />

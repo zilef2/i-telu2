@@ -14,7 +14,7 @@ class PlanSeeder extends Seeder
      * @return void
      */
     public function run() {
-        
+
         $planes = ['Basico', 'Intermedio','Premium'];
         $planesCaducidad = ['Un mes', 'Dos meses','Tres meses'];
         $parametro = Parametro::find(3);
@@ -30,8 +30,8 @@ class PlanSeeder extends Seeder
                 'tipo' => '',
                 'valor' => $parametroValores[$key],
                 'caducidad' => $planesCaducidad[$key],
-                'caducidad_meses' => $key,
-                'tokens' => 30 * 12 * $key,
+                'caducidad_meses' => ($key+1),
+                'tokens' => 30 * 6 * ($key+1), //6 preguntas por 30 dias
             ]);
         }
 

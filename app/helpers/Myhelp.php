@@ -5,11 +5,13 @@
 // LARAVEL
 // ESCRIBIRLOG
 // VARIABLEINVARIABLE
-// dates
+// the_dates_bro
 
 namespace App\helpers;
 
 use App\Models\Materia;
+use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -26,8 +28,7 @@ class Myhelp {
             3 => 400,
         ];
     }
-    public static function AuthU()
-    {
+    public static function AuthU() {
         $TheUser = Auth::user();
         if($TheUser){
             return $TheUser;
@@ -51,9 +52,16 @@ class Myhelp {
     //END JUST THIS PROJECT
 
     public static function buscarMaterias($carrera_id_buscar) {
-        return Materia::Where('carrera_id', (int)($carrera_id_buscar))
+        $carrera_id = (int)$carrera_id_buscar['value'];
+        $materiasEncontradas = Materia::Where('carrera_id', $carrera_id)
+            ->has('objetivos')
             ->Where('activa',1)
             ->get();
+        $materiasEncontradas->map(function($materia){
+            $materia->objetivous = $materia->objetivosArray();
+            return $materia;
+        });
+        return $materiasEncontradas;
     }
 
 
@@ -174,12 +182,17 @@ class Myhelp {
 
     public static function EscribirEnLog($thiis, $clase = '', $mensaje = '', $returnPermission = true, $critico = false) {
         $permissions = $returnPermission ? auth()->user()->roles->pluck('name')[0] : null;
-        $ListaControladoresYnombreClase = (explode('\\', get_class($thiis)));
-        $nombreC = end($ListaControladoresYnombreClase);
-        if (!$critico) {
-
+        if(is_string($thiis)){
+            $nombreC = $thiis;
+            $nombreP = 'nuse';
+        }else{
+            $ListaControladoresYnombreClase = (explode('\\', get_class($thiis)));
+            $nombreC = end($ListaControladoresYnombreClase);
             $Elpapa = (explode('\\', get_parent_class($thiis)));
             $nombreP = end($Elpapa);
+        }
+
+        if (!$critico) {
 
             if ($permissions === 'admin' || $permissions === 'superadmin') {
                 $ElMensaje = $mensaje != '' ? ' Mensaje: ' . $mensaje : '';
@@ -193,6 +206,24 @@ class Myhelp {
         Log::critical('Vista: ' . $nombreC . 'U:' . Auth::user()->name . ' ||' . $clase . '|| ' . ' Mensaje: ' . $mensaje);
         return $permissions;
     }
+    public static function SoloJobLog($thiis, $mensaje = '', $critico = false) {
+        //        soloCoordinadores
+        //        $permissions = $returnPermission ? auth()->user()->roles->pluck('name')[0] : null;
+
+        $ListaControladoresYnombreClase = (explode('\\', get_class($thiis)));
+        $nombreC = end($ListaControladoresYnombreClase);
+        $Elpapa = (explode('\\', get_parent_class($thiis)));
+        $nombreP = end($Elpapa);
+
+        $ElMensaje = $mensaje != '' ? ' Mensaje: ' . $mensaje : '';
+        $MensajeCompleto = 'Clase: ' . $nombreC .' Padre: ' . $nombreP .' || Mensaje: ' . $ElMensaje;
+        if (!$critico) {
+            Log::channel('soloJobs')->info($MensajeCompleto);
+        }else{
+            Log::channel('soloJobs')->critical($MensajeCompleto);
+        }
+    }
+
     public function LogWithTrace($thiis,$throw,$mensaje = '') {
         $ListaControladoresYnombreClase = (explode('\\', get_class($thiis)));
         $nombreC = end($ListaControladoresYnombreClase);
@@ -207,18 +238,7 @@ class Myhelp {
 
         Log::alert("Alerta del problemon, " . $nombreC. ' problema = '. $mensaje);
     }
-    public function EscribirEnLogJobs($thiis,$infoAlertError, $mensaje = '') {
-        $ListaControladoresYnombreClase = (explode('\\', get_class($thiis)));
-        $nombreC = end($ListaControladoresYnombreClase);
 
-        $Elpapa = (explode('\\', get_parent_class($thiis)));
-        $nombreP = end($Elpapa);
-
-        if($infoAlertError === 0) Log::info('Vista: ' . $nombreC . ' Padre: ' . $nombreP . '|| ' . ' Mensaje: ' . $mensaje);
-        if($infoAlertError === 1) Log::alert('Vista: ' . $nombreC . ' Padre: ' . $nombreP . '|| ' . ' Mensaje: ' . $mensaje);
-        if($infoAlertError === 2) Log::error('Vista: ' . $nombreC . ' Padre: ' . $nombreP . '|| ' . ' Mensaje: ' . $mensaje);
-
-    }
 
     //LARAVEL
         public function redirect($ruta, $seconds = 1) {
@@ -256,6 +276,58 @@ class Myhelp {
 
     // VARIABLEINVARIABLE
 
+    public static function ModelToSelectEnArbol($collections, $VectorGenero, $IdMetodoAnterior = 0){
+
+        if(!isset($collections[0])) return 0;
+        $nombreMetodo = $collections[0];
+
+        if($IdMetodoAnterior === 0){
+
+            $MuchosAMuchos = auth()->user()
+                ->{$nombreMetodo}()
+                ->get();
+        }else{
+            $anterio = substr($nombreMetodo,0,strlen($nombreMetodo) -1 );
+            $MuchosAMuchos = auth()->user()
+                ->{$nombreMetodo}()
+                ->Where($anterio.'_id',$IdMetodoAnterior)
+                ->get();
+
+        }
+        if(0 == (count($MuchosAMuchos))) {
+            $result = [
+                ['title' => 'No hay registros', 'value' => 0,'depend' => 0]
+            ];
+        }else{
+            $result = [
+                [
+                    'title' => 'Selecciona un'.$VectorGenero[0],
+                    'value' => 0,
+                    'depend' => 0
+                ]
+            ];
+
+            foreach ($MuchosAMuchos as $value) {
+                if(isset($collections[1]))
+                $result[] = [
+                        'title' => $value->nombre,
+                        'value' => $value->id,
+                        'depend' => self::ModelToSelectEnArbol(
+                            $collections[1],
+                            $VectorGenero[1],
+                            $value->id,
+                        )
+                    ];
+                else
+                    $result[] = [
+                        'title' => $value->nombre,
+                        'value' => $value->id,
+                    ];
+            }
+        }
+        return $result;
+    }
+
     public function Vector_TurnInSelectID_AUTH($collections,$VectorGenero,$VectorNombreVariables = null){
         $aviso = true;
         foreach($collections as $key => $coll){
@@ -273,15 +345,16 @@ class Myhelp {
         return $resultado;
     }
     public static function NEW_turnInSelectID($theArrayofStrings,$selecc,$theName = 'nombre') {
-        if(self::EstaVacio($theArrayofStrings))
+        if(self::EstaVacio($theArrayofStrings)) {
             return [
-                [  'title' => 'No hay registros', 'value' => 0,]
+                ['title' => 'No hay registros', 'value' => 0,]
                 // 'filtro' => 'General'
             ];
+        }
 
         $result = [
             [
-                'title' => 'Selecciona un'.$selecc, //todo: URGENTE, validar que no se vea feo
+                'title' => 'Selecciona un'.$selecc, //todo: validar que no se vea feo
                 'value' => 0,
                 // 'filtro' => 'General'
             ]
@@ -296,8 +369,6 @@ class Myhelp {
         }
         return $result;
     }
-
-
 
     public function GuardarInputSiTermina(Request $request): array{
         $input = $request->all();
@@ -345,13 +416,17 @@ class Myhelp {
 
     //END VARIABLEINVARIABLE
 
-    //the dates bro
+    //the_dates_bro
         public function ValidarFecha($laFecha) {
             if (strtotime($laFecha)) {
                 return $laFecha;
             }
             return '';
         }
-    //fin the dates bro
+        public static function TextoDateTime($NumeroMeses) {
+            return Carbon::now()->addMonths($NumeroMeses);
+        }
+
+    //fin the_dates_bro
 
 }

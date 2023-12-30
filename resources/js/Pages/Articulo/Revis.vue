@@ -38,7 +38,13 @@ const data = reactive({
     MensajeFinal: '',
     calificacionBackend: '',
     restarAlToken: 0,
-    NumSujerencias: [],
+    NumSujerencias: {
+        'Resumen_integer' : props.articulo.Resumen_integer,
+        'Introduccion_integer' : props.articulo.Introduccion_integer,
+        'Discusion_integer' : props.articulo.Discusion_integer,
+        'Conclusiones_integer' : props.articulo.Conclusiones_integer,
+        'Metodologia_integer' : props.articulo.Metodologia_integer,
+    },
     errorCarrera: [],
     campos: [
         { id: 'nick', etiqueta: 'Titulo del articulo', valor: [] },
@@ -99,33 +105,22 @@ function inicializarForm(){
 }
 
 onMounted(() => {
-    let ele;
-    data.campos.forEach(element => {
-        ele = element.id
-        data.NumSujerencias[ele] = 0
-    });
+    console.log(data.NumSujerencias)
 
     inicializarForm()
 })
 watchEffect(() => {})
 watch(() => props.ValoresGenerarSeccion, (newX) => {
-
+    data.mostrarLoader = true;
     // console.log("🧈 debu newX:", newX);
     if (newX && newX.respuesta) {
         data.calificacionBackend = newX.respuesta
         data.CalifiActual = props.CalifiConslta
         //todo: newX.restarAlToken
-        // form[data.tipoTexto][2] = form[data.tipoTexto][0]
-        // data.restarAlToken = newX.restarAlToken
-        // data.NumSujerencias[data.tipoTexto]++;
-        // console.log("🧈 debu data.NumSujerencias:", data.NumSujerencias);
 
-        setTimeout(function() {
-            data.mostrarLoader = false;
-            window.location.reload();
-        },500)
+            // data.mostrarLoader = false;
+        window.location.reload();
     }
-
 })
 
 const scrollToBottom = () => {
@@ -140,6 +135,7 @@ const scrollToTop = () => {
         behavior: 'smooth'
       });
 }
+
 const CalificarArticulo = (notaManual = null) => {
 
     data.errorCarrera = [];
@@ -158,16 +154,9 @@ const CalificarArticulo = (notaManual = null) => {
         },
     }, {
         preserveScroll: true,
-        onSuccess: () => {},
+        onSuccess: () => {data.mostrarLoader = true;},
         onError: () => alert(JSON.stringify(form.errors, null, 4)),
-        onFinish: () => {
-            setTimeout(function() {
-                data.mostrarLoader = false;
-            },500)
-        }
-        // setTimeout(function() {
-        //     data.mostrarLoader = false;
-        // }, 500);
+        onFinish: () => {data.mostrarLoader = true;}
     })
 
 }
@@ -319,49 +308,10 @@ const update = () => {
 
 
                     <div v-for="(campo) in data.campos" :key="campo.id">
-<!--                        aquiiiiii: traer el las sejerencias y ya, no se necesita data.NumSujerencias[campo.id]-->
-                        <div v-if="data.NumSujerencias[campo.id]" class="grid grid-cols-2 gap-8">
+<!--                        aquiiiiii: asegurarse que esta guardando las correciones,
+                            ademas no esta trayendo las correciones ya guardadas-->
 
-                            <div class="">
-                                <label :for="campo.id" class="text-gray-500 text-xl font-bold dark:text-gray-400 mb-2">{{ campo.etiqueta }}</label>
-                                <div class="relative rounded-md shadow-sm">
-                                    <textarea :id="campo.id + '0'" @focus="data.campoActivo = campo.id" rows="8" cols="33"
-                                        @blur="data.campoActivo = null" v-model="form[campo.id][0]" disabled
-                                        class="block w-full px-5 py-3 mt-2 bg-gray-50 text-gray-700 placeholder-gray-400 border border-gray-200
-                                        rounded-lg dark:placeholder-gray-600 dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700 focus:border-blue-400
-                                         dark:focus:border-blue-400 focus:ring-blue-400 focus:outline-none focus:ring focus:ring-opacity-40 text-justify" />
-                                    <div v-if="data.campoActivo === campo.id && form[campo.id][0] === ''"
-                                        class="absolute inset-y-0 left-0 pl-3 flex items-center cursor-progress text-gray-400">
-                                        Puede preguntar a la IA, haciendo click en Generar o Refinar
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="">
-                                <label :for="campo.id" class="text-gray-500 text-xl font-bold dark:text-gray-400 mb-2">
-                                    Sugerencia {{ campo.etiqueta }}</label>
-                                <div class="relative rounded-md shadow-sm select-none">
-                                    <div :id="campo.id + '1'"
-                                        class="block w-full px-5 py-3 mt-2 text-white font-sans bg-black border border-sky-600 select-none
-                                        rounded-lg dark:placeholder-gray-600 dark:bg-gray-200 dark:text-gray-800 dark:border-gray-700 focus:border-blue-400
-                                         dark:focus:border-blue-400 focus:ring-blue-400 focus:outline-none focus:ring focus:ring-opacity-40 text-justify" >
-                                        {{ form[campo.id][1][0] }}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-span-2">
-                                <label :for="campo.id" class="text-gray-500 text-xl font-bold dark:text-gray-400 mb-2">
-                                    {{ campo.etiqueta }} Final</label>
-                                <div class="relative rounded-md shadow-sm">
-                                    <textarea :id="campo.id + '2'" @focus="data.campoActivo = campo.id" rows="6" cols="33"
-                                        @blur="data.campoActivo = null" v-model="form[campo.id][2]"
-                                        placeholder="Teniendo en cuenta la sugerencia de la IA..."
-                                        class="block w-full px-5 py-3 mt-2 text-gray-700 placeholder-gray-400 bg-white border border-gray-200
-                                        rounded-lg dark:placeholder-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 focus:border-blue-400
-                                         dark:focus:border-blue-400 focus:ring-blue-400 focus:outline-none focus:ring focus:ring-opacity-40 text-justify" />
-                                </div>
-                            </div>
-                        </div>
-                        <div v-else>
+                        <div >
                             <div class="">
                                 <label :for="campo.id" class="rounded-2xl px-10 text-gray-500 text-xl font-bold dark:text-gray-400 shadow-sm bg-gradient-to-r from-gray-50 via-gray-100 to-sky-100 mb-2">
                                     {{ campo.etiqueta }}

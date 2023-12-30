@@ -7,6 +7,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Plan;
 use App\helpers\HelpPlan;
 use App\helpers\Myhelp;
+use App\Models\UsuarioPendientesPago;
+use Carbon\Carbon;
 use Inertia\Inertia;
 
 use Illuminate\Support\Facades\DB;
@@ -46,13 +48,13 @@ class PlansController extends Controller{
                 return $query->whereNotIn('name', ['superadmin','admin']);
             })->get();
         }
-
         return [
             'HijoSelec' => $UserSelect
         ];
     }
 
     public function index(Request $request) {
+
         $permissions = Myhelp::EscribirEnLog($this, 'Plan');
         $numberPermissions = Myhelp::getPermissionToNumber($permissions);
 
@@ -82,6 +84,7 @@ class PlansController extends Controller{
             'numberPermissions' =>  $numberPermissions,
         ]);
     } //fin index
+
 
     public function create(Request $request) {
         $numberPermissions = Myhelp::getPermissionToNumber(Myhelp::EscribirEnLog($this, 'Plan'));
@@ -172,6 +175,59 @@ class PlansController extends Controller{
             return back()->with('error', __('app.label.updated_error', ['nombre' => $Plan->nombre]) . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
         }
     }
+
+    public function ComprarPlan(Request $request) {
+        DB::beginTransaction();
+        $Plan = Plan::find($request->planid);
+        $userAu = Myhelp::AuthU();
+        try {
+            $YaTienePendiente = UsuarioPendientesPago::Where('user_id', $userAu)->get()->count();
+            if($YaTienePendiente === 0){
+
+                UsuarioPendientesPago::create([
+                    'fecha_peticion' => Carbon::now(),
+                    'fecha_aprovacion' => null,
+                    'valorTotal' => $Plan->valor,
+                    'tokensComprados' => $Plan->tokens,
+                    'user_id' => $userAu->id,
+                    'plan_id' => $Plan->id,
+                ]);
+                Log::info("U -> " . Auth::user()->name . " esta pendiente por pagar el Plan " . $Plan->nombre . "");
+                session(['SuPlan' => 'Para activar el plan, realize la transferencia a la siguiente cuenta de ahorros 123456, Banco: Su plan sera activado el siguiente dia habil']);
+            }else{
+                Log::info("U -> " . Auth::user()->name . " Quiso comprar el plan " . $Plan->nombre . ". Pero ya tenia pendiente uno");
+                session(['SuPlan' => 'Para activar el plan, realize la transferencia a la siguiente cuenta de ahorros 123456, Banco: Su plan sera activado el siguiente dia habil']);
+            }
+            DB::commit();
+
+            return redirect()->route('MensajePlanPendiente');
+        } catch (\Throwable $th) {
+            DB::rollback();
+            Log::alert("U -> " . $userAu->name . " fallo en actualizar Plan " . $Plan->nombre . " - " . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
+            return back()->with('error', __('app.label.updated_error', ['nombre' => $Plan->nombre]) . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
+        }
+    }
+
+    public function MensajePlanPendiente(Request $request) {
+
+        $numberPermissions = Myhelp::getPermissionToNumber(Myhelp::EscribirEnLog($this, 'Plan'));
+        $titulo = __('app.label.PlanPendiente');
+        $elUsuario = Myhelp::AuthU();
+
+
+        return Inertia::render('Plan/PlanPendiente', [ //carpeta
+            'breadcrumbs'       =>  [['label' => __('app.label.Plans'), 'href' => route('Plan.index')]],
+            'title'             =>  $titulo,
+            'filters'           =>  $request->all([
+                'search',
+                'field',
+                'order'
+            ]),
+            'numberPermissions' =>  $numberPermissions,
+            'elUsuario'         => $elUsuario,
+            'SuPlan'         => session('SuPlan') ?? ''
+        ]);
+    } //fin MensajePlanPendiente
 
     public function destroy($id) {
         Myhelp::EscribirEnLog($this, get_called_class(), '', false);

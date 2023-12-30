@@ -2,7 +2,7 @@
 
 namespace App\helpers;
 
-use App\Jobs\GenerarTituloArticulo;
+use App\Http\Controllers\ArticulosController;
 use App\Models\Articulo;
 use App\Models\Calificacion;
 use App\Models\Materia;
@@ -17,12 +17,18 @@ class HelpArticulo {
     const respuestaLarga = 'La respuesta es demasiado extensa';
 
 
-    public static function updatingDate($date) {
+    /**
+     * @param $date
+     * @return string|null
+     */
+    public static function updatingDate($date): ?string
+    {
         if ($date === null || $date == '1969-12-31') {
             return null;
         }
         return date("Y-m-d", strtotime($date));
     }
+
     public static function updatingDateTime($dateT) {
         if($dateT === 0) return (new DateTime())->format('Y-m-d H:i:s');
 
@@ -40,26 +46,33 @@ class HelpArticulo {
      *
      * @return array
      */
-    public static function MejorarResumen($texto, $materiaid, $tipoTexto, $debug = false): array{
+    public static function MejorarResumen($texto, $materiaid, $tipoTexto, $elFoo, $debug = false): array{
         $usuario = Auth::user();
-        $materia = Materia::find($materiaid);
-        $carrera = $materia->carrera()->get()->first();
-        if (!$debug) {
-            $Instruccion = Parametro::find(2)->prompEjercicios;
-            $elpromp =
-                $Instruccion.
-                ", genere un numero caracteres similar a los del texto".
-                ". El contexto es de la carrera universitaria ". $carrera->nombre. ',' .
-                " de la asignatura: $materia->nombre,".
-                " el texto es un ".$tipoTexto.
-                ". El texto es el siguiente: ". $texto.
-                ""
-                ;
+        ArticulosController::GuardarTiempoUserPrivate($elFoo,'MejorarResumen');
 
-            $ChatR = self::davinci($elpromp, $usuario,$materia,'Solicito un Resumen de articulo (el id es de la materia)');
+        if($usuario->limite_token_leccion < 1){
+            $ChatR = ['respuesta' => 'No hay suficientes tokens ', 'restarAlToken' => 0];
         }else{
-            //debugin
-            $ChatR = ['respuesta' => 'un texto de prueba = MejorarResumen ', 'restarAlToken' => 0];
+
+            $materia = Materia::find($materiaid);
+            $carrera = $materia->carrera()->get()->first();
+            if ($debug) { //todo: izzi
+                $Instruccion = Parametro::find(2)->prompEjercicios;
+                $elpromp =
+                    "Teniendo en cuenta que, una asignatura pertenece a una carrera. ".
+                    $Instruccion.
+                    ", tenga en cuenta que, no debe mencionar la carrera, ni la asignatura".
+                    ". El contexto es de la carrera universitaria ". $carrera->nombre. ',' .
+                    " de la asignatura: $materia->nombre,".
+                    " el texto es un ".$tipoTexto.
+                    ". El texto es el siguiente: ". $texto;
+
+                $ChatR = self::davinci($elpromp, $usuario,$materia,'Solicito un Resumen de articulo (el id es de la materia)');
+            }else{
+                //debugin
+                sleep(2);
+                $ChatR = ['respuesta' => 'un texto de prueba = MejorarelResumen ', 'restarAlToken' => 0];
+            }
         }
         return $ChatR;
     }
@@ -165,6 +178,8 @@ class HelpArticulo {
         //     'respuesta' => [$elpromp.' Respondiendo cualquier cosa temporalmente. mucho texto'],
         //     'restarAlToken' => 0,
         // ];
+
+
         $client = OpenAI::client(env('GTP_SELECT'));
         $result = $client->completions()->create([
             'model' => 'text-davinci-003',
@@ -182,8 +197,9 @@ class HelpArticulo {
             $restarAlToken = HelpGPT::CalcularTokenConsumidos($usageRespuesta, $usageRespuestaTotal);
 
             if($usuario){
-                $tokensAntes = ($usuario->limite_token_leccion);
-                $usuario->update(['limite_token_leccion' => ($tokensAntes) - $restarAlToken]);
+                $totalNuevo = $usuario->limite_token_leccion - $restarAlToken;
+                $totalNuevo = $totalNuevo < 0 ? 0 : $totalNuevo;
+                $usuario->update(['limite_token_leccion' => $totalNuevo]);
 
                 MedidaControl::create([
                     'pregunta' => $elpromp,

@@ -1,10 +1,14 @@
 <script setup>
-defineProps({
-    type: {
-        type: String,
-        default: 'button',
-    },
-});
+    defineProps({
+        type: {
+            type: String,
+            default: 'button',
+        },
+        isfix: {
+            type: Boolean,
+            default: false,
+        }
+    });
 </script>
 
 <template>
@@ -31,22 +35,22 @@ defineProps({
 .loader {
     --path: #2f3545;
     --dot: #5628ee;
-    --duration: 3s;
-    width: 44px;
-    height: 44px;
+    --duration: 2s;
+    width: 49px;
+    height: 49px;
     position: relative;
 }
 
 .loader:before {
     content: '';
-    width: 6px;
-    height: 6px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
     position: absolute;
     display: block;
     background: var(--dot);
-    top: 37px;
-    left: 19px;
+    top: 40px;
+    left: 21px;
     transform: translate(-18px, -18px);
     animation: dotRect var(--duration) cubic-bezier(0.785, 0.135, 0.15, 0.86) infinite;
 }
@@ -76,7 +80,7 @@ defineProps({
 .loader svg rect {
     stroke-dasharray: 192 64 192 64;
     stroke-dashoffset: 0;
-    animation: pathRect 3s cubic-bezier(0.785, 0.135, 0.15, 0.86) infinite;
+    animation: pathRect 2s cubic-bezier(0.785, 0.135, 0.15, 0.86) infinite;
 }
 
 .loader svg circle {

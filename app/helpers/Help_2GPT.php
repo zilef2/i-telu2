@@ -19,31 +19,29 @@ class Help_2GPT
         $finishReason = $result['choices'][0];
         $finishingReason = $finishReason["finish_reason"] ?? '';
 
-        if ($finishingReason == 'stop') {
-            $usageRespuesta = intval($result['usage']["completion_tokens"]); //~ 260
-            $usageRespuestaTotal = intval($result['usage']["total_tokens"]); //~ 500
+        if ($finishingReason === 'stop') {
+            $usageRespuesta = (int)($result['usage']["completion_tokens"]); //~ 260
+            $usageRespuestaTotal = (int)($result['usage']["total_tokens"]); //~ 500
 
             $restarAlToken = HelpGPT::CalcularTokenConsumidos($usageRespuesta, $usageRespuestaTotal);
 
-            $totalTokens = (intval($usuario->limite_token_leccion)) - $restarAlToken;
+            $totalTokens = ((int)($usuario->limite_token_leccion)) - $restarAlToken;
             $totalTokens = $totalTokens < 0 ? 0 : $totalTokens;
             $usuario->update(['limite_token_leccion' => $totalTokens]);
 
-
             //$soloEjercicios = HelpGPT::ApartarSujerencias($respuesta, $plantillaPracticar);
             return ['respuesta' => $respuesta, 'restarAlToken' => $restarAlToken, 'funciono' => true];
+        }
+
+        if ($finishingReason === 'length') {
+            return ['respuesta' => self::respuestaLarga, 'restarAlToken' => 0, 'funciono' => false];
         } else {
-            if ($finishingReason == 'length') {
-                return ['respuesta' => self::respuestaLarga, 'restarAlToken' => 0, 'funciono' => false];
-            } else {
-                return ['respuesta' => self::servicioNOdisponible, 'restarAlToken' => 0, 'funciono' => false];
-            }
+            return ['respuesta' => self::servicioNOdisponible, 'restarAlToken' => 0, 'funciono' => false];
         }
     }
 
 
-    public static function BorrarEspaciosDelArrayRespuesta(&$Array)
-    {
+    public static function BorrarEspaciosDelArrayRespuesta(&$Array){
 
         unset($Array[0]);
         $pattern = '/^\d+\.\s/';
@@ -52,7 +50,7 @@ class Help_2GPT
 
             $value = str_replace('  ', '', $value);
 
-            if ($value == '.') unset($Array[$key]);
+            if ($value === '.') unset($Array[$key]);
             else if ($value == '')  unset($Array[$key]);
 
 
@@ -63,24 +61,23 @@ class Help_2GPT
                 'I', 'J', 'K', 'L',
                 'M', 'N', 'O', 'P',
                 'Q', 'R', 'S', 'T',
+                'U', 'V', 'W', 'X',
 
                 'a', 'b', 'c', 'd',
                 'e', 'f', 'g', 'h',
                 'i', 'j', 'k', 'l',
                 'm', 'n', 'o', 'p',
-            ]; //todo: calcular cuanto es el maximo de temas que se generarian
+                'q', 'r', 's', 't',
+                'u', 'v', 'w', 'x',
+            ];
 
-            for ($i = 35; $i > 0; $i--) {
-                $value = str_replace('. ', '', $value);
-                $value = str_replace('.', '', $value);
-                $value = str_replace(':', '', $value);
-
-                $value = str_replace($i, '', $value);
-                $value = str_replace($i . ')', '', $value);
-
-                $value = str_replace($vectorLetras[$i] . ')  ', '', $value);
-                $value = str_replace($vectorLetras[$i] . ') ', '', $value);
-                $value = str_replace($vectorLetras[$i] . ')', '', $value);
+            for ($i = 48; $i > 0; $i--) {
+                $value = str_replace(array(
+                    '. ', '.', ':',': ','-','- ', $i, $i . ')',
+                    $vectorLetras[$i] . ' ) ',
+                    $vectorLetras[$i] . ') ',
+                    $vectorLetras[$i] . ')'
+                ), '', $value);
             }
 
             $palabrasBorradas = [
@@ -91,10 +88,10 @@ class Help_2GPT
                 'Resultado de Aprendizaje ',
                 'Resultado de aprendizaje ',
                 'resultado de aprendizaje ',
-                'Tema ',
-                'tema ',
-                'Unidad  ',
-                'unidad  ',
+//                'Tema ',
+//                'tema ',
+//                'Unidad  ',
+//                'unidad  ',//todo: solo borrar si estan al principio de la palabra
             ];
 
             foreach ($palabrasBorradas as $palabra) {
@@ -109,9 +106,7 @@ class Help_2GPT
 
     public static function Materias_Unidades_Temas(&$ArrayRespuesta, $numeroRenglones)
     {
-
         $ArrayRespuesta['respuesta'] = explode("\n", $ArrayRespuesta['respuesta']);
-
         self::BorrarEspaciosDelArrayRespuesta($ArrayRespuesta['respuesta']);
 
         $ArrayRespuesta['funciono'] =

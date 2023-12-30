@@ -1,26 +1,12 @@
 <script setup>
 import { reactive, watch, onMounted, ref } from 'vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head } from '@inertiajs/vue3';
+import {Head, useForm} from '@inertiajs/vue3';
 import Breadcrumb from '@/Components/Breadcrumb.vue';
-import TextInput from '@/Components/TextInput.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
-import SelectInput from '@/Components/SelectInput.vue';
-import DangerButton from '@/Components/DangerButton.vue';
 import pkg from 'lodash';
 import { router, usePage, Link } from '@inertiajs/vue3';
 
-import Pagination from '@/Components/Pagination.vue';
-import { ChevronUpDownIcon, EyeIcon, PencilIcon, TrashIcon, UserCircleIcon, ArrowSmallRightIcon } from '@heroicons/vue/24/solid';
-
-
-import Create from '@/Pages/Plan/Create.vue';
-import Edit from '@/Pages/Plan/Edit.vue';
-import Delete from '@/Pages/Plan/Delete.vue';
-
-import Checkbox from '@/Components/Checkbox.vue';
-// import InfoButton from '@/Components/InfoButton.vue';
-import GroupButtonsIndex from '@/Components/uiverse/GroupButtonsIndex.vue';
 import {
     TransitionRoot,
     TransitionChild,
@@ -65,6 +51,23 @@ const data = reactive({
     }
 
 })
+
+const form = useForm({
+    planid: 0,
+})
+
+const create = (planid) => {
+    form.planid = planid
+    form.post(route('ComprarPlan'), {
+        preserveScroll: true,
+        onSuccess: () => {
+            // emit("close")
+            // form.reset()
+        },
+        onError: () => null,
+        onFinish: () => null,
+    })
+}
 
 const order = (field) => {
     console.log("🧈 debu field:", field);
@@ -143,7 +146,7 @@ const BeneVector = [
                                     </div>
                                     <div class="flex items-center gap-2">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 16 16"> <circle cx="8" cy="8" r="8" fill="currentColor" class="text-gray-300" /> <circle cx="8" cy="8" r="3" fill="currentColor" class="text-gray-500" /> </svg>
-                                        <span class="text-gray-600">{{ plan.valor }} tokens</span>
+                                        <span class="text-gray-600 text-xl">{{ plan.tokens }} tokens</span>
                                     </div>
                                     <div v-for="ben in BeneVector[plan.id]" class="space-y-4">
                                         <!-- check - start -->
@@ -154,14 +157,20 @@ const BeneVector = [
                                     </div>
                                 </div>
 
-                                <div class="mt-auto">
-                                    <a v-if="plan.valor !== 0" href="#" class="block rounded-lg bg-indigo-500 px-8 py-3 text-center text-sm font-semibold text-white outline-none ring-indigo-300 transition duration-100 hover:bg-indigo-600 focus-visible:ring active:bg-indigo-700 md:text-base">
-                                        $ {{ plan.valor }} 000 / Mes
-                                    </a>
-                                    <a v-if="plan.valor === 0" href="#" class="block rounded-lg bg-indigo-500 px-8 py-3 text-center text-sm font-semibold text-white outline-none ring-indigo-300 transition duration-100 hover:bg-indigo-600 focus-visible:ring active:bg-indigo-700 md:text-base">
-                                        Gratis por 15 dias
-                                    </a>
-                                </div>
+                                <a v-if="plan.valor === 0" href="#" class="block rounded-lg bg-indigo-500 px-8 py-3 text-center text-sm font-semibold text-white outline-none ring-indigo-300 transition duration-100 hover:bg-indigo-600 focus-visible:ring active:bg-indigo-700 md:text-base">
+                                    Gratis por 15 dias
+                                </a>
+                                <form v-else  @submit.prevent="create" class="mt-auto p-1">
+                                    <PrimaryButton v-if="plan.valor !== 0" class="ml-3" :class="{ 'opacity-25': form.processing }" :disabled="form.processing"
+                                                   @click="create(plan.id)">
+                                        {{ form.processing ? '...' : '' }} $ {{ plan.valor }} 000 / Mes
+                                    </PrimaryButton>
+
+<!--                                    <Link  :href="route('ComprarPlan')" class="block rounded-lg bg-indigo-500 px-8 py-3 text-center text-sm font-semibold text-white outline-none ring-indigo-300 transition duration-100 hover:bg-indigo-600 focus-visible:ring active:bg-indigo-700 md:text-base">-->
+<!--                                        -->
+<!--                                    </Link>-->
+                                </form>
+
 <!--                                <div v-if="plan.id == 2" class="mt-auto my-8">
                                     <a href="#"
                                         class="block rounded-lg bg-indigo-400 px-8 py-1 text-center text-sm font-semibold text-white outline-none ring-indigo-800 transition duration-100 hover:bg-gray-300 focus-visible:ring active:text-gray-700">

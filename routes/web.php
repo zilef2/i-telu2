@@ -18,6 +18,7 @@ use App\Http\Controllers\ParametrosController;
 use App\Http\Controllers\PlansController;
 use App\Http\Controllers\UsuarioPendientesPagosController;
 use App\Http\Controllers\TemporalPdfReader;
+use App\Http\Controllers\VistasCompraController;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
@@ -29,7 +30,7 @@ use Inertia\Inertia;
 require __DIR__ . '/auth.php';
 
 Route::get('/', function () { return redirect('/login'); });
-Route::get('/dashboard', [UserController::class,'VistaPrincipal'])->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [VistasCompraController::class,'VistaPrincipal'])->middleware(['auth', 'verified'])->name('dashboard');
 //Route::get('/dashboard', function () { })
 
 
@@ -60,12 +61,15 @@ Route::middleware('auth', 'verified')->group(function () {
     //# user
     Route::resource('/user', UserController::class)->except('create', 'show', 'edit');
     Route::post('/user/destroy-bulk', [UserController::class, 'destroyBulk'])->name('user.destroy-bulk');
+    Route::put('/user/updatePlan/{userid}', [UserController::class, 'updatePlan'])->name('user.updatePlan');
     Route::get('/subirexceles', [UserController::class, 'subirexceles'])->name('subirexceles');
     Route::post('/uploadEstudiantes', [UserController::class, 'uploadEstudiantes'])->name('user.uploadEstudiantes');
     Route::post('/uploadUniversidad', [UserController::class, 'uploadUniversidad'])->name('user.uploadUniversidad');
     Route::post('/uploadCarreras', [UserController::class, 'uploadCarreras'])->name('user.uploadCarreras');
 
-    $rutasUsers = ['VerTiemposEstudiantes'];
+    $rutasUsers = [
+        'VerTiemposEstudiantes'
+    ];
     foreach ($rutasUsers as $key => $value) {
         Route::get('/'.$value, [ExtraUser::class, $value])->name($value);
     }
@@ -160,15 +164,17 @@ Route::middleware('auth', 'verified')->group(function () {
 
     //#plan
     Route::resource('/Plan', PlansController::class);
-    // #pendientes
+    Route::post('/ComprarPlan', [PlansController::class,'ComprarPlan'])->name('ComprarPlan');
+    Route::get('/MensajePlanPendiente', [PlansController::class,'MensajePlanPendiente'])->name('MensajePlanPendiente');
+    // #pendientes por pagar plan
     Route::resource('/pendiente', UsuarioPendientesPagosController::class);
     Route::post('/pendiente/destroy-bulk', [UsuarioPendientesPagosController::class, 'destroyBulk'])->name('pendiente.destroy-bulk');
     Route::get('/AceptarUsersPendiente/{pendienteid}', [UsuarioPendientesPagosController::class, 'AceptarUsers'])->name('pendiente.AceptarUsers');
 
 
     // #SeleccioneAsignatura (parte inicial para un usuario que compro la subscripcion
-    Route::get('/SeleccioneAsignatura', [UserController::class, 'SeleccioneAsignatura'])->name('SeleccioneAsignatura');
-    Route::post('/ComprarAsignatura', [UserController::class, 'ComprarAsignatura'])->name('ComprarAsignatura');
+    Route::get('/SeleccioneAsignatura', [VistasCompraController::class, 'SeleccioneAsignatura'])->name('SeleccioneAsignatura');
+    Route::post('/ComprarAsignatura', [VistasCompraController::class, 'ComprarAsignatura'])->name('ComprarAsignatura');
 });
 
 

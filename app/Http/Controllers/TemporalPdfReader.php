@@ -170,12 +170,12 @@ class TemporalPdfReader extends Controller
         $materia = Materia::find($archivo->materia_id);
 
         $TheUser = Auth()->user();
-        $materiasController = new materiasController();
+        $materiasController = new MateriasController();
         [$tokensConsumidos, $puedeHacerlo,$text] = $materiasController->AvisarPesoPDF(null,$TheUser,$archivoid);
 
         if($puedeHacerlo){
 
-            $resumen = substr($text,0,env('MAX_TOKEN_LECTURA_PDF'));
+            $resumen = substr($text,0,env('MAX_TOKEN_LECTURA_PDF')); //MAX_TOKEN_LECTURA_PDF = 2000
             $promptParaResumir = $this->OpcionResumenesPDF((int)$opcion,$materia,$resumen);
             //# buscando el prompt
             $YaEstabaGuardada = GrabarGPT::BuscarPDFPromt($promptParaResumir);

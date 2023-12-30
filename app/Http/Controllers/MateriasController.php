@@ -69,9 +69,9 @@ class MateriasController extends Controller
     public function MapearClasePP(&$materias, $numberPermissions){
 
         $materias = $materias->get()->map(function ($materia) use ($numberPermissions) {
-
+        $logeduser = Myhelp::AuthU();
             if ($numberPermissions < 8) {
-                $materiasUser = Auth::user()->materias()->pluck('materias.id')->toArray();
+                $materiasUser = $logeduser->materias()->pluck('materias.id')->toArray();
                 if (!in_array($materia->id, $materiasUser)) return null;
             }
 
@@ -88,8 +88,7 @@ class MateriasController extends Controller
         })->filter();
         // dd($materias);
     }
-    public function fNombresTabla($numberPermissions)
-    {
+    public function fNombresTabla($numberPermissions){
         if ($numberPermissions <= 1) {
             $nombresTabla[2] = [null, null,      "enum",    "nombre",  "codigo", "carrera_id", null, null,       "descripcion"];
             $nombresTabla[0] = ["IA", "Archivos", "Semestre", "Nombre", "Codigo", "Carrera",   "Unidades", "Objetivos", "descripcion"];
@@ -127,6 +126,7 @@ class MateriasController extends Controller
         } else {
             $UniversidadSelect = Universidad::has('carreras')->get();
             $MateriasRequisitoSelect = Materia::all();
+
         }
     }
 
@@ -165,14 +165,11 @@ class MateriasController extends Controller
         );
         $errorMessage = '';
 
-
         //# generarTodo.vue :> generar
-
         // $listaMaterias = Materia::where('carrera_id',$request->carrera_id)->pluck('nombre') ?? [];
-        $materiaNombre = Materia::find($request->materia_id);
-        $materiaNombre = $materiaNombre->nombre ?? '';
+        $materia = Materia::find($request->materia_id);
         $laCarrera = Carrera::find($request->carrera_id) ?? null;
-        $ValoresGenerarMateria = Inertia::lazy(fn () => HelpGpt::ValoresGenerarMateria($laCarrera->nombre, $materiaNombre, [
+        $ValoresGenerarMateria = Inertia::lazy(fn () => HelpGpt::ValoresGenerarMateria($laCarrera->nombre, $materia, [
             'temas' => $request->temas,
             'unidades' => $request->unidades,
         ]));
@@ -205,7 +202,7 @@ class MateriasController extends Controller
     {
         DB::beginTransaction();
         $numberPermissions = Myhelp::getPermissionToNumber(Myhelp::EscribirEnLog($this, get_called_class(), '', false));
-
+        $loguser = Myhelp::AuthU();
         $request->validate([
             'codigo' => 'required|unique:materias',
         ]);
@@ -226,6 +223,16 @@ class MateriasController extends Controller
             for ($i = 0; $i < (int)($request->cuantosObj); $i++) {
                 Objetivo::create(['nombre' => $request->objetivo[$i], 'materia_id' => $materia->id]);
             }
+
+            $loguser->materias()->attach($materia->id);
+            $adminis = User::whereHas('roles', function ($query) {
+                return $query->whereIn('name', ['superadmin','admin']);
+            })->get();
+
+            foreach ($adminis as $index => $admini) {
+                $admini->materias()->attach($materia->id);
+            }
+
             DB::commit();
             Log::info("U -> " . Auth::user()->name . " Guardo materia " . $request->nombre . " correctamente");
             return back()->with('success', __('app.label.created_successfully2', ['nombre' => $materia->nombre]));
@@ -242,7 +249,7 @@ class MateriasController extends Controller
             return $requeEnum;
         } else {
             $modelInstance = resolve('App\\Models\\' . $this->modelName);
-            return intval($modelInstance::latest('enum')->first()->enum) + 1 ?? 1;
+            return (int)($modelInstance::latest('enum')->first()->enum) + 1 ?? 1;
         }
     }
 
@@ -250,16 +257,18 @@ class MateriasController extends Controller
     //generar materia
     public function materiaguardarGenerado(IA_MateriaRequest $request) {
         $numberPermissions = Myhelp::getPermissionToNumber(Myhelp::EscribirEnLog($this, get_called_class(), '', false));
-
         DB::beginTransaction();
         try {
             $materia = Materia::find($request->materia_id);
-            Objetivo::create(['nombre' => $request->objetivo, 'materia_id' => $materia->id]);
+//            Objetivo::create(['nombre' => $request->objetivo, 'materia_id' => $materia->id]);
             $contadorUnidad = 0;
-
+            $ArraySubtopicosModels = [];
             $codigo_mat = $request->codigo_mat === null ? 'Generica_' . $materia->id : $request->codigo_mat;
+            $cuantast = count($request->Array_nombre_tema[0]);
 
             foreach ($request->nombre_unidad as $unidad) {
+                if($unidad == '')continue;
+                if(in_array("",$request->Array_nombre_tema[$contadorUnidad]))continue;
                 $unid = Unidad::create([
                     'nombre' => $unidad,
                     'descripcion' => '',
@@ -268,7 +277,8 @@ class MateriasController extends Controller
                     'enum' => $contadorUnidad + 1,
                 ]);
 
-                for ($i = 0; $i < intval($request->Cuantas_t); $i++) {
+                for ($i = 0; $i < $cuantast; $i++) {
+                    if($request->Array_nombre_tema[$contadorUnidad][$i] == '')continue;
                     $ArraySubtopicosModels[] = Subtopico::create([
                         'nombre' => $request->Array_nombre_tema[$contadorUnidad][$i],
                         'descripcion' => '',
@@ -280,14 +290,15 @@ class MateriasController extends Controller
                 }
                 $contadorUnidad++;
             }
-            HelpGPT::MedidaGenerarMateria($materia, $ArraySubtopicosModels);
+            $materia->update(['activa'=> false]);
 
+            HelpGPT::MedidaGenerarMateria($materia, $ArraySubtopicosModels);
             DB::commit();
             Log::info("U -> " . Auth::user()->name . " Operación de generar datos de la materia: " . $materia->nombre . " finalizada correctamente");
             return back()->with('success', __('app.label.created_successfully2', ['nombre' => $materia->nombre]));
         } catch (\Throwable $th) {
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en Generar la materia " . $materia->nombre . " - " . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi: ' . $th->getFile());
+            Log::alert("U -> " . Auth::user()->name . " fallo en Generar la materia " . ($materia->nombre??'sin_nombre') . " - " . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi: ' . $th->getFile());
             return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.materia')]) . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi: ' . $th->getFile());
         }
     }
@@ -506,7 +517,7 @@ class MateriasController extends Controller
     {
         $permissions = Myhelp::EscribirEnLog($this, ' VistaTem ');
         $numberPermissions = Myhelp::getPermissionToNumber($permissions);
-        $usuario = Auth::user();
+        $usuario = Myhelp::AuthU();
         $restarAlToken = 0;
         set_time_limit(180);
         $unidad = Unidad::where('materia_id', $materiaid)->first();
@@ -520,7 +531,7 @@ class MateriasController extends Controller
                     $ChosenNivel = '';
                 }
                 $materia = Materia::find($materiaid);
-                $limite = intval($usuario->limite_token_leccion);
+                $limite = (int)($usuario->limite_token_leccion);
                 $soloEjercicios = [];
 
                 $opcion = 1; //primer pantallazo
@@ -607,7 +618,7 @@ class MateriasController extends Controller
                     'opcion'                => $opcion,
                     'ListaPromp'            => $ListaPromp,
                     'numberPermissions'     => $numberPermissions,
-                    'selectedPrompID'       => intval($selectedPrompID),
+                    'selectedPrompID'       => (int)($selectedPrompID),
                     'selectedReasonString'  => $selectedReasonString,
 
                     'notvalidbyteacher'     => $respuesta != env('NOTVALIDATEDBYTEACHER'),
@@ -623,9 +634,9 @@ class MateriasController extends Controller
             }
         } else { //solo estudiante | numberpermission == 1
 
-            $limite = intval($usuario->limite_token_leccion);
+            $limite = (int)($usuario->limite_token_leccion);
             $materia = Materia::find($materiaid);
-            $temasYValores = $this->lookForTemas(intval($materiaid));
+            $temasYValores = $this->lookForTemas((int)($materiaid));
             $selectedReasonString = Parametro::first()->prompExplicarTema;
             if ($limite > 0) {
 
@@ -671,7 +682,7 @@ class MateriasController extends Controller
     {
         $permissions = Myhelp::EscribirEnLog($this, ' materia');
         $numberPermissions = Myhelp::getPermissionToNumber($permissions);
-        $usuario = Auth::user();
+        $usuario = Myhelp::AuthU();
         try {
 
             $SubtopicoEsString = is_string($request->subtopicoSelec);
@@ -740,7 +751,7 @@ class MateriasController extends Controller
             }
 
             $restarAlToken = $gpt['restarAlToken'];
-            $limite = intval($usuario->limite_token_leccion);
+            $limite = (int)($usuario->limite_token_leccion);
 
             return Inertia::render('materia/EQH', [ //carpeta
                 'breadcrumbs'           =>  [['label' => __('app.label.materias'), 'href' => route('materia.index')]],

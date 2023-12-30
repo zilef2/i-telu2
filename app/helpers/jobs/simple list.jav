@@ -5,8 +5,10 @@
     php artisan make:crud clasificacionUser "nombre:string, descripcion:string"
 
 //correr jobs
-php artisan queue:work
-php artisan queue:listen
+php artisan queue:work //solo ejecuta los jobs('default')
+php artisan queue:listen //creo q ejecuta todo
 
 php artisan queue:work database --queue=secondary
 
+
+//tendra su propio log

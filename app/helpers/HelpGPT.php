@@ -23,96 +23,123 @@ class HelpGPT
     const PreguntaCorta = 'PreguntaCorta';
     const MAX_USAGE_RESPUESTA = 550;
     const MAX_USAGE_TOTAL = 600;
-    const TOKEN_GENERAR_MATERIA = 2000;
+    const TOKEN_GENERAR_MATERIA = 3000;
 
 
-    //? goes to materiascontroller.index
-    public static function ValoresGenerarMateria($stringCarreraNombre, $materiaNombre, $numero, $debug = false)
+    public function RangoTemasUnidades($numero){
+        $minumou=2;
+        $maximou=5;
+        $contador = 0;
+
+        $unidades = (int)($numero['unidades']);
+        $temas = (int)($numero['temas']);
+        $temas = $temas === 0 ? random_int($minumou,($maximou-1)) : $temas;
+        $unidades = $unidades === 0 ? random_int($minumou,$maximou) : $unidades;
+        $numeroRenglones = $unidades + ($temas * 2 * $unidades);
+
+        while($numeroRenglones > 57){//MAX_ELEMENTS
+            $temas = $temas === 0 ? random_int($minumou,($maximou-1)) : $temas;
+            $unidades = $unidades === 0 ? random_int($minumou,$maximou) : $unidades;
+            $numeroRenglones = $unidades + ($temas * 2 * $unidades);
+            $contador++;
+            if($contador > 10){
+                $maximou--;
+                $contador = 0;
+            }
+        }
+        return [$temas,$unidades,$numeroRenglones];
+    }
+
+    //memodo usado para: generar materias en el index de materias(generarTodo.vue)
+    public static function ValoresGenerarMateria($stringCarreraNombre, $ModelMateria, $numero, $debug = false)
     {
         if (!$debug) {
-            $renglon = 2;
-            // $listMaterias = implode(", ", $listaMaterias->toArray());
-
-            $unidades = intval($numero['unidades']);
-            $temas = intval($numero['temas']);
-            $numeroRenglones = 1 + $unidades + ($temas * 2 * $unidades);
+            $myclass = new HelpGPT();
+            [$temas,$unidades,$numeroRenglones] = $myclass->RangoTemasUnidades($numero);
 
             for ($i = 0; $i < $unidades; $i++) {
-
-                $renglonesUnidad[$i] = 2 + $i * (2 * $temas + 1);
+                $renglonesUnidad[$i] = 1 + $i * (2 * $temas + 1);
                 for ($j = 0; $j < $temas * 2; $j++) {
                     $renglonesTema[] = $renglonesUnidad[$i] + ($j + 1);
                     $j++;
                     $renglonesRA[] = $renglonesUnidad[$i] + ($j + 1);
                 }
             }
+
             $renglonesUnidad = implode(", ", $renglonesUnidad);
             $renglonesTema = implode(", ", $renglonesTema);
             $renglonesRA = implode(", ", $renglonesRA);
 
+            $StringObjetivos = $ModelMateria->objetivosString();
             $elpromp =
-                "Actua como un rector universitario. Las asignaturas tienen muchas unidades, las unidades tienen muchos temas y un tema tiene un resultado de aprendizaje"
+                "Genera la siguiente informacion, teniendo en cuenta que,
+                las asignaturas tienen muchas unidades, las unidades tienen muchos temas y cada tema tiene un resultado de aprendizaje"
                 . " para este caso se piden " . $unidades . " unidades y " . $temas . " temas"
                 . " Divide la respuesta en  $numeroRenglones renglones, con el siguiente patron"
-                // ". En el renglon 1 Genera el nombre de una asignatura que se encuentre en la carrera universitaria :".$stringCarreraNombre.
-                // ". No puede ser una de las siguientes materias: ".$listMaterias.
-                . ". En el renglon 1 genera el objetivo de la asignatura " . $materiaNombre
                 . ". En los renglones " . $renglonesUnidad . " genera el nombre de una unidad que pertenesca a dicha asignatura"
                 . ". En los renglones  " . $renglonesTema . " genera los temas respectivos que pertenescan a las unidades del siguiente modo."
                 . ". En los renglones  " . $renglonesRA . " genera los resultados de aprendizaje respectivos que del tema."
-                . " si el numero de temas es " . $temas . " cada unidad tendrá " . $temas . " temas exactamente"
-                . ". Adicionalmente, si el numero de temas es " . $temas . " cada unidad tendrá " . $temas . " resultados de aprendizaje exactamente";
+                . " Si el numero de temas es " . $temas . " cada unidad tendrá " . $temas . " temas exactamente"
+                . ". Si el numero de temas es " . $temas . " cada unidad tendrá " . $temas . " resultados de aprendizaje exactamente."
+                . " Las unidades y los temas deben estar alineados con los siguientes objetivos: ".$StringObjetivos
+                . " Cada renglon debe tener solo 1 unidad o 1 un tema o 1 resultado de aprendizaje. Se muy estricto con los renglones. No dejes renglones vacios."
+            ;
 
+
+            //si no funciona por Materias_Unidades_Temas() se repite
+            $funcionoPorConteo = true;
+            $ConteodeGPT = 0;
             $client = OpenAI::client(env('GTP_SELECT'));
-
-            // $result = $client->chat()->create([
-            //     "model" => "gpt-4",
-            //     'messages' => [
-            //         ['role' => 'system', 'content' => 'Eres un profesor universitario con 20 años de experiencia'],
-            //         ['role' => 'user', 'content' => $elpromp],
-            //     ],
-            //     'max_tokens' => HelpGPT::maxTokenPDF()
-            // ]);
-
-            $result = $client->completions()->create([
-                'model' => 'text-davinci-003',
-                'prompt' => $elpromp,
-                'max_tokens' => self::TOKEN_GENERAR_MATERIA
-            ]);
-
-            $usuario = Auth::user();
-            $ArrayRespuesta = Help_2GPT::PostRespuestaIADavinci($result, $usuario);
-            if ($ArrayRespuesta['funciono']) {
-
-                MedidaControl::create([
-                    'pregunta' => $ArrayRespuesta['respuesta'],
-                    'respuesta_guardada' => '',
-                    'subtopico_id' => null, // 1 ocasion en la que el subtopico es null
-                    'RazonNOSubtopico' => 'Generó unidades y temas',
-
-                    'tokens_usados' => $ArrayRespuesta['restarAlToken'],
-                    'user_id' => $usuario->id
+            $TokensGastados = 0;
+            while($funcionoPorConteo && $ConteodeGPT < 5){ //todo: make this a parameter
+                $ConteodeGPT++;
+                $result = $client->completions()->create([
+                    'model' => 'text-davinci-003',
+                    'prompt' => $elpromp,
+                    'max_tokens' => self::TOKEN_GENERAR_MATERIA
                 ]);
 
-                $ArrayRespuesta['Cuantas_unidades'] = $unidades;
-                $ArrayRespuesta['Cuantas_temas'] = $temas;
-                Help_2GPT::Materias_Unidades_Temas($ArrayRespuesta, $numeroRenglones);
+                $usuario = Auth::user();
+                $ArrayRespuesta = Help_2GPT::PostRespuestaIADavinci($result, $usuario);
+                $theUser = Myhelp::AuthU();
+                if ($ArrayRespuesta['funciono']) {
+                    $TokensGastados += (int)$ArrayRespuesta['restarAlToken'];
+                    MedidaControl::create([
+                        'pregunta' => $ArrayRespuesta['respuesta'],
+                        'respuesta_guardada' => '',
+                        'subtopico_id' => null, // 1 ocasion en la que el subtopico es null
+                        'RazonNOSubtopico' => 'Generó unidades y temas',
+
+                        'tokens_usados' => $TokensGastados,
+                        'user_id' => $theUser->id
+                    ]);
+
+                    $ArrayRespuesta['Cuantas_unidades'] = $unidades;
+                    $ArrayRespuesta['Cuantas_temas'] = $temas;
+                    Help_2GPT::Materias_Unidades_Temas($ArrayRespuesta, $numeroRenglones);
+                    $funcionoPorConteo = !$ArrayRespuesta['funciono'];
+                }else{
+                    break;
+                }
             }
-            array_unshift($ArrayRespuesta['respuesta'], $materiaNombre);
+            session(['ConteodeGPT',$ConteodeGPT]);//todo: usar de alguna manera (no se esta usando aquiiiii)
+            array_unshift($ArrayRespuesta['respuesta'], $ModelMateria->nombre);
             return $ArrayRespuesta;
         }
+        //de aqui,es si se esta debugiando
 
         $ArrayRespuesta['respuesta'] = [
-            1 => "Objetivo: Comprender el concepto básico del movimiento lineal y sus leyes ",
-            2 => "Unidad 1: Movimiento y Leyes de Newton",
-            3 => "Tema: Siguientes Leyes de Newton",
-            4 => "Resultado de aprendizaje: Interpretar los conceptos fundamentales de la Mecánica Clásica para aplicar las Leyes de Newton al movimiento lineal de los cuerpos.",
+            1 => "Unidad 1: Movimiento y Leyes de Newton",
+            2 => "Tema: Siguientes Leyes de Newton",
+            3 => "Resultado de aprendizaje: Interpretar los conceptos fundamentales de la Mecánica Clásica para aplicar las Leyes de Newton al movimiento lineal de los cuerpos.",
+            4 => "Hola",
+            5 => "Adios",
         ];
         $ArrayRespuesta['Cuantas_unidades'] = 1;
         $ArrayRespuesta['Cuantas_temas'] = 1;
         $ArrayRespuesta['restarAlToken'] = 0;
         $ArrayRespuesta['funciono'] = true;
-        array_unshift($ArrayRespuesta['respuesta'], $materiaNombre);
+        array_unshift($ArrayRespuesta['respuesta'], $ModelMateria->nombre);
         return $ArrayRespuesta;
     }
     //usado para sacar los ejercicios que traer GPT y ponerlos en un vector

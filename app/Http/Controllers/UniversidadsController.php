@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use App\helpers\Myhelp;
 use App\Http\Controllers\Controller;
 
+use App\Models\Carrera;
+use App\Models\Materia;
+use App\Models\Subtopico;
+use App\Models\Unidad;
 use App\Models\Universidad;
 use App\Http\Requests\UniversidadRequest;
 use App\Models\User;
@@ -324,25 +328,40 @@ class UniversidadsController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  \App\Models\Universidad  $Universidad
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     // public function destroy(Universidad $Universidad)
     public function destroy($id)
     {
         Myhelp::EscribirEnLog($this, 'DELETE:universidad', '', false);
         DB::beginTransaction();
-
+        $theUser = Myhelp::AuthU();
         try {
             // si se la rechazaron, tendra que hacer uno nuevo
-            $Universidads = Universidad::findOrFail($id);
-            $Universidads->delete();
+            $universidadBorrada = Universidad::findOrFail($id);
+            //carreras
+            $idsCarreras = Carrera::Where('universidad_id',$universidadBorrada->id)->pluck('id');
+            Carrera::Where('universidad_id',$universidadBorrada->id)->delete();
+
+            //materias
+            $idsMaterias = Materia::WhereIn('carrera_id',$idsCarreras)->pluck('id');
+            Materia::WhereIn('carrera_id',$idsMaterias)->delete();
+
+            $idsUnidad = Unidad::WhereIn('materia_id',$idsMaterias)->pluck('id');
+            Unidad::WhereIn('id',$idsUnidad)->delete();
+            $idsSubtopico = Subtopico::WhereIn('unidad_id',$idsUnidad)->pluck('id');
+            Subtopico::WhereIn('id',$idsSubtopico)->delete();
+
+            $DatosUniversidad = $universidadBorrada->replicate();
+            $universidadBorrada->delete();
             DB::commit();
-            Myhelp::EscribirEnLog($this, 'universidad', 'borro Universidad id:' . $id . ' correctamente', false);
-            return back()->with('success', __('app.label.deleted_successfully2', ['nombre' => $Universidads->nombre]));
+            Myhelp::EscribirEnLog($this, 'universidad', 'borro Universidad id:' . $DatosUniversidad->id . 'y sus carreras, materias, unidades,subtopicos correctamente', false);
+            return back()->with('success', __('app.label.deleted_successfully2', ['nombre' => $DatosUniversidad->nombre]));
         } catch (\Throwable $th) {
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en borrar Universidad " . $id . " - " . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
-            return back()->with('error', __('app.label.deleted_error', ['name' => __('app.label.Universidads')]) . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
+            $mensaje = " Fallo en borrar Universidad " . $id . " -:- " . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile();
+            Log::alert("U -> " . $theUser->name . $mensaje);
+            return back()->with('error', __('app.label.deleted_error', ['name' => __('app.label.Universidads')]) . $mensaje);
         }
     }
 }

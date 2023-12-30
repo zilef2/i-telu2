@@ -30,7 +30,7 @@ class IA_MateriaRequest extends FormRequest
             'nombre_mat' => 'required',
             'carrera_id' => 'required',
             // 'codigo_mat' => 'required',
-            'objetivo' => 'required',
+//            'objetivo' => 'required',
             'nombre_unidad' => 'required',
             'Array_nombre_tema' => 'required',
             'Array_RA' => 'required',

@@ -16,7 +16,6 @@ const props = defineProps({
     user: Object,
     roles: Object,
 })
-
 const emit = defineEmits(["close"]);
 
 const form = useForm({

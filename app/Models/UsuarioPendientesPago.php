@@ -16,7 +16,6 @@ class UsuarioPendientesPago extends Model
         'fecha_aprovacion',
         'valorTotal',
         'tokensComprados',
-
         'user_id',
         'plan_id',
     ];

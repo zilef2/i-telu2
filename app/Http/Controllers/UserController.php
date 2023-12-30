@@ -13,10 +13,12 @@ use App\Imports\PersonalUniversidadImport;
 use App\Models\Carrera;
 use App\Models\Materia;
 use App\Models\Permission;
+use App\Models\Plan;
 use App\Models\Role;
 use App\Models\Universidad;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Hash;
@@ -32,21 +34,15 @@ class UserController extends Controller
         $this->middleware('permission:read user', ['only' => ['index', 'show']]);
         $this->middleware('permission:update user', ['only' => ['edit', 'update']]);
         $this->middleware('permission:delete user', ['only' => ['destroy', 'destroyBulk']]);
-
-//        $this->middleware('ErrorHandlerMiddleware');
     }
 
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
      */
-    public function index(UserIndexRequest $request)
-    {
+    public function index(UserIndexRequest $request){
         $permissions = Myhelp::EscribirEnLog($this, ' users');
         $numberPermissions = Myhelp::getPermissionToNumber($permissions);
-
-
 
         $users = User::query();
         if ($request->has('search')) {
@@ -56,9 +52,8 @@ class UserController extends Controller
                     ->orWhere('identificacion', 'LIKE', "%" . $request->search . "%")
                     ;
             })
-                ->where('name', '!=', 'admin')
-                ->where('name', '!=', 'Superadmin');
-
+            ->where('name', '!=', 'admin')
+            ->where('name', '!=', 'Superadmin');
             // $users->where('name', 'LIKE', "%" . $request->search . "%");
         }
 
@@ -69,13 +64,14 @@ class UserController extends Controller
         $perPage = $request->has('perPage') ? $request->perPage : 10;
         $role = auth()->user()->roles->pluck('name')[0];
         $roles = Role::get();
-        if ($role != 'superadmin') {
+        if ($role !== 'superadmin') {
             $users->whereHas('roles', function ($query) {
                 return $query->where('name', '<>', 'superadmin');
             });
             $roles = Role::where('name', '<>', 'superadmin')->where('name', '<>', 'admin')->get();
         }
 
+        //        $planes = Myhelp::NEW_turnInSelectID(Plan::all(),'plan');
         return Inertia::render('User/Index', [
             'breadcrumbs'   => [['label' => __('app.label.user'), 'href' => route('user.index')]],
             'title'         => __('app.label.user'),
@@ -83,14 +79,15 @@ class UserController extends Controller
             'perPage'       => (int) $perPage,
             'users'         => $users->with('roles')->paginate($perPage),
             'roles'         => $roles,
-            'numberPermissions'         => $numberPermissions,
+            'planes'        => Plan::all(),
+            'numberPermissions' => $numberPermissions,
         ]);
     }
 
     /**
      * Show the form for creating a new resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return string
      */
     //public function create()    {    }
 
@@ -99,14 +96,13 @@ class UserController extends Controller
     //! STORE functions
     public function updatingDate($date)
     {
-        if ($date === null || $date == '1969-12-31') {
+        if ($date === null || $date === '1969-12-31') {
             return null;
         }
         return date("Y-m-d", strtotime($date));
     }
 
-    public function store(UserStoreRequest $request)
-    {
+    public function store(UserStoreRequest $request){
         $permissions = Myhelp::EscribirEnLog($this, 'STORE:users');
 
         DB::beginTransaction();
@@ -125,6 +121,18 @@ class UserController extends Controller
                 'pgrado' => $request->pgrado,
             ]);
             $user->assignRole($request->role);
+            if($request->role === 'estudiante_independiente'){
+                $ugenerica = Universidad::Where('nombre','Intelu')
+                    ->orWhere('nombre','intelu')
+                        ->first();
+                if($ugenerica){
+                    $user->universidades()->attach($ugenerica->id);
+                    $ArrayCarrerasGen = Carrera::where('universidad_id',$ugenerica->id)->get();
+                    foreach ($ArrayCarrerasGen as $index => $carrera) {
+                        $user->carreras()->attach($carrera->id);
+                    }
+                }
+            }
             DB::commit();
             Myhelp::EscribirEnLog($this, 'STORE:users', 'usuario id:' . $user->id . ' | ' . $user->name . ' guardado', false);
 
@@ -137,15 +145,9 @@ class UserController extends Controller
         }
     }
     //fin store functions
+    public function show($id){}public function edit($id){}
 
-    public function show($id)
-    {
-    }
-    public function edit($id)
-    {
-    }
-    public function update(UserUpdateRequest $request, $id)
-    {
+    public function update(UserUpdateRequest $request, $id){
         Myhelp::EscribirEnLog($this, 'UP:users', '', false);
         DB::beginTransaction();
         try {
@@ -176,14 +178,35 @@ class UserController extends Controller
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(User $user)
-    {
+    public function updatePlan(Request $request, $userid){
+        Myhelp::EscribirEnLog($this, 'UpdatePlan:users', '', false);
+        DB::beginTransaction();
+        try {
+            $user = User::findOrFail($userid);
+            $elplan = Plan::find($request->plan_id);
+            $vence = Myhelp::TextoDateTime($elplan->caducidad_meses);
+            $nuevosTokens = $user->limite_token_leccion + $elplan->tokens;
+            $user->update([
+                'limite_token_leccion' => $nuevosTokens,
+                'plan_id' => $request->plan_id,
+                'planVence' => $vence,
+            ]);
+
+            DB::commit();
+            Myhelp::EscribirEnLog($this, 'UpdatePlan:users', 'usuario id:' . $user->id . ' | ' . $user->name . ' actualizado', false);
+
+            return back()->with('success', __('app.label.updated_successfully_plan_user',
+                ['name' => $user->name,'tokens' => $elplan->tokens])
+            );
+
+        } catch (\Throwable $th) {
+            DB::rollback();
+            Myhelp::EscribirEnLog($this, 'UPDATE:users', 'usuario id:' . $user->id . ' | ' . $user->name . '  fallo en el actualizado', false);
+            return back()->with('error', __('app.label.updated_error', ['name' => $user->name]) . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
+        }
+    }
+
+    public function destroy(User $user){
         $permissions = Myhelp::EscribirEnLog($this, 'DELETE:users');
         try {
             $user->delete();
@@ -241,7 +264,7 @@ class UserController extends Controller
 
         //! errores y contares tienen que tener la misma longuitud
         foreach ($errores as $key => $elError) {
-            foreach ($elError as $key => $value) {
+            foreach ($elError as $key2 => $value) {
 
                 ${$contares[$key]} = $value . ' ';
                 $bandera = $bandera || $value > 0;
@@ -335,7 +358,6 @@ class UserController extends Controller
 
                 $HuboWarning = $contarVacios > 0 || $contarNoNumeros > 0;
                 if ($HuboWarning) {
-                    $MensajeWarning = '';
                     $men1 = $contarNoNumeros > 0 ? '#filas con identifiaciones no validas ' . $contarNoNumeros : '';
                     $men5 = $contarVacios > 0 ? '#filas con celdas vacias ' . $contarVacios : '';
                     $MensajeWarning = $men1 . $men5;
@@ -446,52 +468,43 @@ class UserController extends Controller
 
                 $helpExcel = new HelpExcel();
                 $mensageWarning = $helpExcel->validarArchivoExcel($request->archivo_componente_carreras);
-                if ($mensageWarning != '') return back()->with('warning', $mensageWarning);
+                if ($mensageWarning != ''){
+                    $ElWith = 'warning';
+                    $MensajeFinal = $mensageWarning;
+                } else{
 
-                Excel::import(new CarreraImport($request->universidadID), $request->archivo_componente_carreras);
+                    Excel::import(new CarreraImport($request->universidadID), $request->archivo_componente_carreras);
 
-                $countfilas = session('CountFilas', 0);
-                $contarVacios = session('contarVacios', 0);
-                $contarNoNumeros = session('contarNoNumeros', 0);
+                    $countfilas = session('CountFilas', 0);
+                    $contarVacios = session('contarVacios', 0);
+                    $contarNoNumeros = session('contarNoNumeros', 0);
 
-                session(['CountFilas' => 0]);
-                session(['contarVacios' => 0]);
-                session(['contarNoNumeros' => 0]);
+                    session(['CountFilas' => 0]);
+                    session(['contarVacios' => 0]);
+                    session(['contarNoNumeros' => 0]);
 
-                $HuboWarning = $contarVacios > 0 || $contarNoNumeros > 0;
-                if ($HuboWarning) {
-                    $MensajeWarning = '';
-                    $men1 = $contarNoNumeros > 0 ? '#filas con identifiaciones no validas ' . $contarNoNumeros : '';
-                    $men5 = $contarVacios > 0 ? '#filas con celdas vacias ' . $contarVacios : '';
-                    $MensajeWarning = $men1 . $men5;
-                    return back()
-                        ->with('success', 'Usuarios nuevos: ' . $countfilas)
-                        ->with('warning', $MensajeWarning);
+                    $HuboWarning = $contarVacios > 0 || $contarNoNumeros > 0;
+                    if ($HuboWarning) {
+                        $men1 = $contarNoNumeros > 0 ? '#filas con identifiaciones no validas ' . $contarNoNumeros : '';
+                        $men5 = $contarVacios > 0 ? '#filas con celdas vacias ' . $contarVacios : '';
+                        $MensajeFinal = 'Usuarios nuevos: ' . $countfilas. '. '.$men1 . $men5;
+                        $ElWith = 'warning';
+                    }else{
+                        Myhelp::EscribirEnLog($this, 'IMPORT:uploadUniversida', ' finalizo con exito', false);
+                        if ($countfilas == 0){
+                            $MensajeFinal = ' No hubo cambios';
+                        }else{
+                            $MensajeFinal = ' Se leyeron ' . $countfilas . ' filas con exito';
+                        }
+                        $ElWith = 'success';
+                    }
                 }
 
-                Myhelp::EscribirEnLog($this, 'IMPORT:uploadUniversida', ' finalizo con exito', false);
-
-                if ($countfilas == 0)
-                    return back()->with('success', __('app.label.op_successfully') . ' No hubo cambios');
-                else
-                    return back()->with('success', __('app.label.op_successfully') . ' Se leyeron ' . $countfilas . ' filas con exito');
             } else {
-                return back()->with('error', __('app.label.op_not_successfully') . ' archivo no seleccionado');
+                $ElWith = 'error';
+                $MensajeFinal = 'Archivo no seleccionado';
             }
-            // } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
-            //     $failures = $e->failures();
-
-            //     foreach ($failures as $failure) {
-            //         $failure->row(); // row that went wrong
-            //         $failure->attribute(); // either heading key (if using heading row concern) or column index
-            //         $failure->errors(); // Actual error messages from Laravel validator
-            //         $failure->values(); // The values of the row that has failed.
-            //     }
-
-            //     Myhelp::EscribirEnLog($this, 'IMPORT:users', ' Fallo importacion: ' . $e->getMessage() . ' L:' . $e->getLine(), false);
-            //     $larow2 = session('larow') ?? '';
-            //     // $eeTrace = Myhelp::cortarFrase($e->getTraceAsString(), 8);
-            //     return back()->with('error', __('app.label.op_not_successfully') . 'codigo del error: ' . $larow2['codigo'] . ' error en la fila ' . $countfilas .' '. $e->getMessage() . ' L:' . $e->getLine());
+            return back()->with($ElWith, $MensajeFinal);
 
         } catch (\Throwable $th) {
             Myhelp::EscribirEnLog($this, 'IMPORT:users', ' Fallo importacion: '
@@ -503,86 +516,6 @@ class UserController extends Controller
         }
     }
 
-    public function VistaPrincipal()
-    {
-        $user = Myhelp::AuthU();
-        $numberpermissions = Myhelp::getPermissionToNumber();
-        if($numberpermissions < 2) return redirect('/materia');
 
-//        if($numberpermissions < 8) return redirect('/SeleccioneAsignatura');
 
-        $textoBotones=[
-          "Primer paso",
-          "Mis materias",
-        ];
-        $ExplicacionBotones=[
-          "Para empezar a aprender",
-          "Listado de tus asignaturas",
-        ];
-        $linkBotones=[
-          "SeleccioneAsignatura",
-          "materia.index",
-        ];
-        return Inertia::render('Dashboard', [
-            'users'         => (int) User::count(),
-            'roles'         => (int) Role::count(),
-            'permissions'   => (int) Permission::count(),
-            'textoBotones'  => $textoBotones,
-            'linkBotones'   => $linkBotones,
-            'ExplicacionBotones'   => $ExplicacionBotones,
-            'plan_id'       => (int) $user->plan_id, //si es cero no tiene plan
-        ]);
-    }
-
-    public function SeleccioneAsignatura()
-    {
-        $user = Myhelp::AuthU();
-        Myhelp::EscribirEnLog($this, ' SeleccioneAsignatura ');
-        $numberpermissions = Myhelp::getPermissionToNumber();
-        if($numberpermissions < 1.5) return redirect('/materia');
-
-//        if($numberpermissions < 8) return redirect('/SeleccioneAsignatura');
-
-        $IDmateriasDelUser = $user->materias()->pluck('materias.id');
-        $materias = Materia::WhereNotIn('id',$IDmateriasDelUser);
-
-        return Inertia::render('User/Autoasignacion/SeleccioneAsignatura', [
-            'title' => 1,
-            'perPage' => 1,
-            'numberPermissions' => 1,
-            'materias' => $materias->paginate(10),
-        ]);
-    }
-
-    public function ComprarAsignatura(Request $request)
-    {
-        $user = Myhelp::AuthU();
-        Myhelp::EscribirEnLog($this, ' ComprarAsignatura ');
-        $numberpermissions = Myhelp::getPermissionToNumber();
-        if($numberpermissions < 2) return redirect('/materia');
-
-        $lasCarreras = Carrera::WhereIn('id',$request->materias)->get();
-        $soloIdCarreras = $lasCarreras->pluck('id');
-        $soloIdUniversidades = $lasCarreras->pluck('universidad_id');
-
-        foreach ($soloIdUniversidades as $uniID){
-            if(!$user->ExistUniversidad($uniID)){
-                $user->universidades()->attach($uniID);
-            }
-        }
-        foreach ($soloIdCarreras as $carID){
-            if(!$user->ExistCarrera($carID)){
-                $user->carreras()->attach($carID);
-            }
-        }
-        foreach ($request->materias as $matID){
-            if(!$user->ExistMateria($matID)){
-                $user->materias()->attach($matID);
-            }
-        }
-//        $user->carreras()->attach($soloIdMaterias);
-//        $user->materias()->attach($request->materias);
-
-        return redirect()->route('materia.index')->with('success',"Usted ha matriculado". count($request->materias)." materias" );
-    }
 }

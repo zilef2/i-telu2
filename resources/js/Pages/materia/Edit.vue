@@ -52,7 +52,12 @@ watch(form.objetivo, (newValue, oldValue) => {
 
 const update = () => {
 
-    // if(form.objetivo.length == form.cuantosObj){
+    if(form.cuantosObj < 2){
+        alert('Muy pocos objetivos');
+        return null
+    }
+    form.objetivo = form.objetivo.filter((ele) => ele !== undefined && ele !== null && ele !== '')
+    // if(form.objetivo.length === form.cuantosObj){
         form.put(route('materia.update', props.materia?.id), {
             preserveScroll: true,
             onSuccess: () => {
@@ -161,14 +166,15 @@ onMounted(()=>{})
                     <!-- objetivos -->
                     <div>
                         <InputLabel for="cuantosObj" :value="lang().label.cuantosObj" />
-                        <TextInput id="cuantosObj" type="number" min=0 max=11 class="mt-1 block w-full" v-model.number="form.cuantosObj" required
+                        <TextInput id="cuantosObj" type="number" min=2 max=12 class="mt-1 block w-full" v-model.number="form.cuantosObj" required
                             :placeholder="lang().placeholder.cuantosObj"
                             :disabled="!materia.activa"
                             :class="{'bg-gray-300':!materia.activa}" />
                     </div>
 
                     <div v-if="form.cuantosObj > 0" v-for="index in form.cuantosObj" class="col-span-2">
-                        <InputLabel for="" :value="lang().label.objetivo + index" />
+                        <InputLabel v-if="index === 1" for="" value="Objetivo general" />
+                        <InputLabel v-else for="" :value="lang().label.objetivo_especifico + ' '+(index-1)" />
                         <TextInput id="objetivo" type="text" class="mt-1 block w-full" v-model="form.objetivo[index-1]" required
                             :placeholder="lang().placeholder.objetivo"
                             :disabled="!materia.activa"
