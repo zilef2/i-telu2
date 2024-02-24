@@ -18,16 +18,17 @@ class EstudianteIndependiente extends Seeder
         Permission::create(['name' => 'matricularEnUniversidad']);
         Permission::create(['name' => 'matricularEnCarrera']);
         Permission::create(['name' => 'matricularEnMateria']);
+        Permission::create(['name' => 'isIndependiente']);
 
-        $estudiante_independiente = Role::create(['name' => 'estudiante_independiente']);
+        $estudiante_independiente = Role::firstOrCreate(['name' => 'estudiante_independiente']);
         $estudiante_independiente->givePermissionTo([
-            'read carrera',
             'read materia', 'update materia', 'create materia',
             'read Unidad', 'cambiarNombre Unidad', 'create Unidad',
             'read subtopico', 'update subtopico', 'create subtopico',
             'read ejercicio', 'update ejercicio', 'create ejercicio',
             'read Articulo', 'update Articulo', 'create Articulo',
             'read Plan', 'update Plan', 'create Plan',
+            'isIndependiente'
         ]);
 
         //los estudiantes no pueden matricular nada.
@@ -43,13 +44,13 @@ class EstudianteIndependiente extends Seeder
         $superadmin->givePermissionTo([
             'matricularEnUniversidad',
             'matricularEnCarrera',
-            'matricularEnMateria'
+            'matricularEnMateria','isIndependiente'
         ]);
         $admin = Role::Where('name','admin')->first();
         $admin->givePermissionTo([
             'matricularEnUniversidad',
             'matricularEnCarrera',
-            'matricularEnMateria'
+            'matricularEnMateria','isIndependiente'
         ]);
         $coordinador_academico = Role::Where('name','coordinador_academico')->first();
         $coordinador_academico->givePermissionTo([
@@ -65,3 +66,4 @@ class EstudianteIndependiente extends Seeder
         ]);
     }
 }
+//php artisan db:seed --class=EstudianteIndependiente

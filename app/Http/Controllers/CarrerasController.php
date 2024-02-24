@@ -85,7 +85,7 @@ class CarrerasController extends Controller {
         }
     }
     public function losSelect($numberPermissions) {
-        if ($numberPermissions < intval(env('PERMISS_VER_FILTROS_SELEC'))) { //coordinador academico, coorPrograma,profe,estudiante
+        if ($numberPermissions < (int)(env('PERMISS_VER_FILTROS_SELEC'))) { //coordinador academico, coorPrograma,profe,estudiante
             $UniversidadSelect = Auth::user()->universidades;
         } else {
             $UniversidadSelect = Universidad::has('carreras')->get();
@@ -250,7 +250,7 @@ class CarrerasController extends Controller {
                 $enum = $request->enum;
             } else {
                 $modelInstance = resolve('App\\Models\\' . $this->modelName);
-                $enum = intval($modelInstance::latest('enum')->first()->enum) + 1 ?? 1;
+                $enum = (int)($modelInstance::latest('enum')->first()->enum) + 1 ?? 1;
             }
             // dd($enum);
             $Carrera = Carrera::create([

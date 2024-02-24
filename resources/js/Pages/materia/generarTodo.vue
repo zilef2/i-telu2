@@ -8,7 +8,7 @@ import SecondaryButton from '@/Components/SecondaryButton.vue';
 import GreenButton from '@/Components/GreenButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { router, useForm } from '@inertiajs/vue3';
-import { reactive, watch, watchEffect, onMounted } from 'vue'; //ref
+import { reactive, watch, watchEffect, onMounted ,computed} from 'vue'; //ref
 import SelectInput from '@/Components/SelectInput.vue';
 import vSelect from "vue-select"; import "vue-select/dist/vue-select.css";
 import { PrimerasPalabras, vectorSelect, formatDate } from '@/global.ts';
@@ -32,6 +32,7 @@ const data = reactive({
     recuerdeCodigo: '',
     mostrarLoader: false,
     RecomendacionTemaUnidades: '',
+    posicionMateria: 0
 })
 
 const form = useForm({
@@ -113,22 +114,21 @@ const validar = () => {
 watchEffect(() => {
     if (props.show) {
         form.errors = {}
-
         form.totalUT = parseInt(form.Cuantas_u) * ( 2 * parseInt(form.Cuantas_t) + 1) //tempo: se borro el +1
         data.contadorRespuesta = 0
         if (props.ValoresGenerarMateria != null) {
-            console.log("🧈 debu props.ValoresGenerarMateria:", props.ValoresGenerarMateria);
-            // data.contadorRespuesta = 2
+            let NombreMateriaTemporal = data.MateriasRequisitoSelect.find(item =>
+                item.value == form.materia_id
+            );
+            if(NombreMateriaTemporal)
+                form.nombre_mat = NombreMateriaTemporal['label']
 
-            form.nombre_mat = props?.ValoresGenerarMateria['respuesta'][data.contadorRespuesta]
+            // form.nombre_mat = data.MateriasRequisitoSelect.find(item => item.value === form.materia_id);
             data.contadorRespuesta++ // 2
-            // form.objetivo = props?.ValoresGenerarMateria['respuesta'][data.contadorRespuesta]
             // data.contadorRespuesta++ // 4
 
             let uni = parseInt(props.ValoresGenerarMateria['Cuantas_unidades'])
-            console.log("🧈 debu uni:", uni);
             let tema = parseInt(props.ValoresGenerarMateria['Cuantas_temas'])
-            console.log("🧈 debu tema:", tema);
             for (let index = 0; index < uni; index++) {
                 form.nombre_unidad[index] = props?.ValoresGenerarMateria['respuesta'][data.contadorRespuesta]
                 data.contadorRespuesta++ // 3
@@ -155,26 +155,24 @@ watchEffect(() => {
                     data.recuerdeCodigo = 'Hubo error en la generacion de texto. intente otra vez'
                     console.log(props.ValoresGenerarMateria)
                 }
-            }, 900);
+            }, 500);
         }
     }
 })
 
-let Succes_buscarMats = () =>{
-    if(props.MateriasRequisitoSelect.length > 0){
-        data.MateriasRequisitoSelect = vectorSelect(data.MateriasRequisitoSelect, props.MateriasRequisitoSelect, 'una asignatura')
-    }
-    else
-        data.MateriasRequisitoSelect.unshift({ label: 'No hay asignaturas', value: 0 })
-}
 
-// watch(() => data.carreraid, (newX) => {
 
+watch(() => form.materia_id, (newX) => {
+    data.posicionMateria = props.MateriasRequisitoSelect.findIndex(mat =>{
+        return mat.id == newX
+    })
+    form.nombre_mat = data.MateriasRequisitoSelect.find(item => item.value === form.materia_id);
+
+})
 watch(() => form.carrera_id,(newx) => {
     //validar que si se conserve la universidad muevase donde se mueva
     //poner el titulo en generarTodo
     //cambiar el titulo de donde se estudia, poner el titulo de la materia mas grande
-    console.log('asd')
     data.errorCarrera = '';
     form.materia_id = 0
     if (form.carrera_id) {
@@ -204,11 +202,21 @@ watch(() => form.carrera_id,(newx) => {
         data.errorCarrera = 'Seleccione una carrera';
     }
 })
+let Succes_buscarMats = () =>{
+  if(props.MateriasRequisitoSelect.length > 0){
+    data.MateriasRequisitoSelect = vectorSelect(data.MateriasRequisitoSelect, props.MateriasRequisitoSelect, 'una asignatura')
+  }
+  else
+    data.MateriasRequisitoSelect.unshift({ label: 'No hay asignaturas', value: 0 })
+}
 
 
 const create = () => {
     if (form.codigo_mat !== '') {
         data.errorCarrera = '';
+        if(form.nombre_mat === '')
+            form.nombre_mat = data.MateriasRequisitoSelect.find(item => item.value === form.materia_id);
+
 
         form.post(route('materia.guardarGenerado'), {
             preserveScroll: true,
@@ -224,7 +232,6 @@ const create = () => {
         data.errorCarrera = 'Falta el codigo de la materia';
     }
 }
-
 </script>
 
 <template>
@@ -255,7 +262,6 @@ const create = () => {
                         <InputError class="mt-2" :message="form.errors.materia_id" />
                     </div>
 
-
                     <div class="sm:col-span-8 md:col-span-1">
                         <InputLabel for="Cuantas_u" :value="lang().label.Cuantas_unidades" class="text-sm"/>
                         <TextInput name="Cuantas_u" type="number" min="1" max="9" class="mt-1 block w-full"
@@ -273,9 +279,9 @@ const create = () => {
                     <div class="mt-3 col-span-8">
                         <h4>Objetivos que guiaran la generación de las unidades y temas</h4>
                     </div>
-                    <div v-if="form.materia_id" class="my-2 col-span-8 ml-8">
+                    <div v-if="form.materia_id && props.MateriasRequisitoSelect" class="my-2 col-span-8 ml-8">
                         <ul class="list-decimal">
-                            <li v-for="obj in props.MateriasRequisitoSelect[0].objetivous">
+                            <li v-for="obj in props.MateriasRequisitoSelect[data.posicionMateria].objetivous">
                                 {{ obj }}</li>
                         </ul>
                     </div>
@@ -292,17 +298,7 @@ const create = () => {
                             class="text-center text-2xl mt-1 block w-full" />
                         <InputError class="mt-2" :message="form.errors.nombre_mat" />
                     </div>
-
-<!--                    <div class="col-span-6">-->
-<!--                        <InputLabel for="" :value="lang().label.objetivo" />-->
-<!--                        <TextInput id="objetivo" type="text" v-model="form.objetivo" required-->
-<!--                            :placeholder="lang().placeholder.objetivo"-->
-<!--                            :class="props?.ValoresGenerarMateria ? 'bg-gray-50' : 'bg-gray-300 invisible'"-->
-<!--                            class="mt-1 block w-full" />-->
-<!--                        <InputError class="mt-2" :message="form.errors.objetivo" />-->
-<!--                    </div>-->
                 </div>
-
 
                 <div v-if="props?.ValoresGenerarMateria && props?.ValoresGenerarMateria.funciono"
                     v-for="(uni, unikey) in form.nombre_unidad.length" :key="unikey"
@@ -333,28 +329,22 @@ const create = () => {
                     </div>
 
                 </div>
-                <!-- <div class="col-span-2 sm:col-span-4 w-full md:w-1/2">
-                    <InputLabel for="codigo_mat" :value="lang().label.codigoCar" />
-                    <TextInput id="codigo_mat" type="text" class="mt-1 block w-full border-x-2 border-sky-500"
-                        v-model="form.codigo_mat" required placeholder="Por favor escriba el codigo de la materia"
-                        :error="form.errors.codigo_mat" />
-                    <InputError class="mt-2" :message="form.errors.codigo_mat" />
-                </div> -->
 
                 <p v-if="data.recuerdeCodigo" class="text-lg">{{ data.recuerdeCodigo }}</p>
                 <p v-if="data.errorCarrera" class="text-lg text-red-600 my-4">{{ data.errorCarrera }}</p>
                 <p v-if="data.errorCarrera" class="text-lg text-gray-500 my-4">{{ data.RecomendacionTemaUnidades }}</p>
 
                 <div class="flex justify-end">
-                    <SecondaryButton :disabled="form.processing" @click="emit('close'), form.reset(), cerrarForm()"> {{
-                        lang().button.close }} </SecondaryButton>
+                    <SecondaryButton :disabled="form.processing" @click="emit('close'), form.reset(), cerrarForm()">
+                      Cerrar </SecondaryButton>
 
                     <PrimaryButton v-show="props?.ValoresGenerarMateria" class="ml-3" :class="{ 'opacity-25': form.processing }" :disabled="form.processing"
                         @click="create">
                         {{ form.processing ? 'Guardar' + '...' : 'Guardar' }}
                     </PrimaryButton>
 
-                    <GreenButton class="ml-3" :class="{ 'opacity-25': data.mostrarLoader }" :disabled="data.mostrarLoader"
+                    <GreenButton class="ml-3"
+                                 :class="{ 'opacity-25': data.mostrarLoader }" :disabled="data.mostrarLoader"
                         @click="generar">
                         {{ data.mostrarLoader ? 'Pensando...' : 'Generar' }}
                     </GreenButton>

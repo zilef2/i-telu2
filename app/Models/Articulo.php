@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Articulo extends Model
 {
     use HasFactory,SoftDeletes;
+    // Schema::table('articulo', function (Blueprint $table) {$table->softDeletes();});
 
     protected $fillable = [
         'nick',

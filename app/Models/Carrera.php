@@ -30,10 +30,11 @@ class Carrera extends Model
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function universidad(): BelongsTo { return $this->belongsTo(Universidad::class, 'universidad_id'); }
-    public function universidad_nombre(): string { return $this->universidad->nombre; }
     public function materias(): HasMany { return $this->hasMany(Materia::class, 'carrera_id'); }
     public function users() { return $this->belongsToMany(User::class, 'carrera_user'); }
 
+    //fin requisitos
+    public function universidad_nombre(): string { return $this->universidad->nombre; }
     public function materias_enum() {
         return $this->materias()->orderBy('enum');
     }
@@ -52,5 +53,11 @@ class Carrera extends Model
         });
 
         return $result;
+    }
+
+    public function EnLaCarreraYaTieneEseNombre($carreraid,$nombreMateria): int {
+
+        $materiasDeLaCarrera = Materia::Where('carrera_id',$this->id);
+        return $materiasDeLaCarrera->Where('nombre','like',$nombreMateria)->count();
     }
 }

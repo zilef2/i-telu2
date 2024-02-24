@@ -126,7 +126,7 @@ const BeneVector = [
                 <div class="mx-auto max-w-screen-xl px-4 md:px-8">
                     <h2 class="mb-4 text-center text-2xl font-bold text-gray-800 md:mb-8 lg:text-3xl xl:mb-12">Planes disponibles</h2>
 
-                    <div class="mb-6 grid gap-2 grid-cols-1 sm:grid-cols-2 md:mb-8 md:grid-cols-4 lg:gap-8">
+                    <div class="mb-6 grid gap-2 grid-cols-1 sm:grid-cols-2 md:mb-8 md:grid-cols-3 lg:gap-8">
                         <!-- plan - start -->
                         <div
                             v-for="plan in fromController" :key="plan.id"

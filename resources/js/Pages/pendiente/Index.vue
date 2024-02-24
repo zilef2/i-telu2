@@ -178,7 +178,7 @@ onMounted(() => {
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica?.nombre_user) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ formatDate(clasegenerica?.fecha_peticion) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ formatDate(clasegenerica?.fecha_aprovacion) }} </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ number_format(clasegenerica?.valorTotal,0,true) }} </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ number_format(clasegenerica?.valorTotal,0,true) }}.000 </td>
                             </tr>
                         </tbody>
                     </table>

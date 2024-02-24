@@ -80,8 +80,6 @@ class JustChatFunctionGPT {
                 break;
             }
         }
-
         return [$cuantosIndex,$respuesta,$finishingReason];
-
     }
 }

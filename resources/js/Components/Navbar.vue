@@ -41,7 +41,7 @@ const planesDefinidos =[
                     </div>
                     <div v-if="$page.props.auth.user.plan_id" class="flex mx-3">
                         <Link :href="route('dashboard')" class="flex items-center space-x-2">
-                            <p class="font-bold"> {{planesDefinidos[$page.props.auth.user.plan_id]}} </p>
+                            <p class="font-bold">Plan {{planesDefinidos[$page.props.auth.user.plan_id]}} </p>
                         </Link>
                     </div>
                     <div v-else class="flex mx-3">
@@ -90,9 +90,9 @@ const planesDefinidos =[
                                             {{ $page.props.auth.user.id }}
                                         </span> -->
                                     </div>
-                                    <DropdownLink :href="route('profile.edit')"> {{ lang().label.profile }}
-                                    </DropdownLink>
-                                    <DropdownLink > 0.9.9</DropdownLink>
+                                    <DropdownLink :href="route('profile.edit')"> {{ lang().label.profile }}</DropdownLink>
+                                    <DropdownLink :href="route('subirexceles')"> {{ lang().links.subirexceles }}</DropdownLink>
+                                    <DropdownLink > {{lang().profile.Version}}</DropdownLink>
                                     <DropdownLink :href="route('logout')" method="post" as="button">
                                         {{ lang().label.logout }}
                                     </DropdownLink>

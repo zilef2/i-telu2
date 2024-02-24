@@ -31,12 +31,18 @@ const props = defineProps({
     numUsuarios: Number,
     UniversidadSelect: Object,
     flash: Object,
+    numberPermissions: Number,
 
 })
 
 onMounted(() => {
     if (props.flash.warning) {
         data.warnn = props.flash.warning
+    }
+
+    if(props.numberPermissions > 9){
+        form.universidadID = 1
+        form.universidadID_Estudiantes = 1
     }
 });
 
@@ -55,17 +61,22 @@ const data = reactive({
         shown: false, // Always show the tooltip
         triggers: [], // No triggers to hide the tooltip
     },
+    tooltipSettings1: {
+        content: '',
+        shown: false, // Always show the tooltip
+        triggers: [], // No triggers to hide the tooltip
+    },
 })
 const showTooltip = () => {
     data.isOpen = true; // Function to show the tooltip
     console.log("🧈 debu data.isOpen:", data.isOpen);
 }
 
-
 const form = useForm({
     archivo1: null,
     archivo2_matricular: null,
     universidadID: 0,
+    universidadID_Estudiantes: 0,
 });
 
 watchEffect(() => {
@@ -73,34 +84,32 @@ watchEffect(() => {
 })
 
 function uploadFileestudiantes() {
-    form.post(route('user.uploadEstudiantes'), {
-        preserveScroll: true,
-        onSuccess: () => {
-            // emit("close")
-            // form.reset()
-            // data.respuesta = $page.props.flash.success
-        },
-        onError: () => null,
-        onFinish: () => null,
-    });
+    if (form.universidadID_Estudiantes === null || form.universidadID_Estudiantes === 0) {
+      data.tooltipSettings1.content = 'Seleccione universidad'
+    } else {
+      form.post(route('user.uploadEstudiantes'), {
+          preserveScroll: true,
+          onSuccess: () => {
+              // emit("close")
+              // form.reset()
+              // data.respuesta = $page.props.flash.success
+          },
+          onError: () => null,
+          onFinish: () => tooltipSettings1.shown = false,
+      });
+    }
 }
 
 function uploadestudiantesUniversidad() {
-    console.log("🧈 debu form.universidadID:", form.universidadID);
-    if (form.universidadID === null || form.universidadID == 0) {
+    if (form.universidadID === null || form.universidadID === 0) {
         data.tooltipSettings2.content = 'Seleccione universidad'
     } else {
         form.post(route('user.uploadUniversidad'), {
             preserveScroll: true,
-            onSuccess: () => {
-                // emit("close")
-                form.reset()
-                // data.respuesta = $page.props.flash.success
-            },
+            onSuccess: () => form.reset(),
             onError: () => null,
             onFinish: () => {
                 data.tooltipSettings2.shown = false
-
             },
         });
     }
@@ -127,10 +136,9 @@ data.UniversidadSelect = vectorSelect(data.UniversidadSelect, props.UniversidadS
                                 </path>
                             </svg>
                         </div>
-                        <div
-                            class="px-8 py-6 bg-white rounded-r-lg flex justify-between items-center w-full border border-l-transparent border-gray-200">
+                        <div class="px-8 py-6 bg-white rounded-r-lg flex justify-between items-center w-full border border-l-transparent border-gray-200">
                             <div>
-                                {{ $page.props.flash.warning ? $page.props.flash.warning : '' }}
+                              <p v-html="$page.props.flash.warning"></p>
                             </div>
                         </div>
                     </div>
@@ -141,25 +149,32 @@ data.UniversidadSelect = vectorSelect(data.UniversidadSelect, props.UniversidadS
                     <div class="container px-1 py-12 mx-auto">
                         <div v-if="can(['create user'])" class="flex flex-wrap -m-4">
                             <!-- user estudiantes -->
-                            <div class="p-2 lg:w-1/2 w-full xl:w-1/3">
+                            <div class="p-4 w-full sm:w-1/2 lg:w-1/3">
                                 <div class="h-full border-2 border-gray-200 border-opacity-60 rounded-lg overflow-hidden">
-                                    <DocumentArrowUpIcon class="mt-5 h-12 lg:h-24 w-full object-cover object-center" />
+                                    <DocumentArrowUpIcon class="mt-5 h-10 lg:h-20 w-full object-cover object-center" />
 
-                                    <div class="p-3">
-                                        <h3 class="title-font text-lg font-medium text-gray-900 mb-3">Subir estudiantes</h3>
-                                        <p class="leading-relaxed mb-3"> Este formulario solo permite cargar estudiantes</p>
+                                    <div class="p-6">
+                                        <h3 class="title-font text-lg font-medium text-gray-900 mb-3">{{ lang().labelExcel.subir_estudiantes }}</h3>
+                                        <p class="leading-relaxed mb-3">{{ lang().labelExcel.solo_estudiantes_profesores }}</p>
 
                                         <form @submit.prevent="uploadFileestudiantes" id="upload"
                                             class="flex flex-col text-center">
+                                            <div>
+                                              <InputLabel for="universidadID_Estudiantes" :value="lang().label.carrera" />
+                                              <SelectInput id="universidadID_Estudiantes" class="mt-1 block w-full"
+                                                           v-model="form.universidadID_Estudiantes" required :dataSet="data.UniversidadSelect">
+                                              </SelectInput>
+                                              <InputError class="mt-2" :message="form.errors.universidadID_Estudiantes" />
+                                            </div>
                                             <div class="w-full">
                                                 <div class="mt-6">
                                                     <label v-if="form.archivo1" for="fileInput"
                                                         class="bg-sky-300 text-white font-bold py-2 px-4 rounded">
-                                                        Seleccionar Archivo
+                                                        {{ lang().labelExcel.BuscarArchivo }}
                                                     </label>
                                                     <label v-else for="fileInput"
                                                         class="bg-sky-500 text-white font-bold py-2 px-4 rounded">
-                                                        Seleccionar archivo
+                                                        {{ lang().labelExcel.BuscarArchivo }}
                                                     </label>
                                                     <input id="fileInput" type="file"
                                                         @input="form.archivo1 = $event.target.files[0]"
@@ -172,6 +187,9 @@ data.UniversidadSelect = vectorSelect(data.UniversidadSelect, props.UniversidadS
                                                     class="bg-sky-200">
                                                     {{ form.progress.percentage }}%
                                                 </progress>
+                                                <div class="w-auto text-red-600 text-lg my-4">
+                                                  {{ data.tooltipSettings1.content }}
+                                                </div>
                                             </div>
 
                                             <div class="w-auto">
@@ -184,49 +202,48 @@ data.UniversidadSelect = vectorSelect(data.UniversidadSelect, props.UniversidadS
                                             </div>
                                         </form>
 
-
-
-                                        <h2 class="text-xl text-gray-900 dark:text-white">El formato necesita las siguientes
-                                            columnas</h2>
+                                        <h2 class="text-xl text-gray-900 dark:text-white">El formato necesita las siguientes columnas</h2>
                                         <ul class="list-decimal my-6 mx-5">
                                             <li class="text-lg">Nombre</li>
-                                            <li class="text-lg">Correo: <small class="text-lg">Cada correo debe ser
-                                                    unico</small></li>
-                                            <li class="text-lg">Identificacion: <small class="text-lg">Debe ser un
-                                                    numero</small></li>
-                                            <li class="text-lg">Sexo: <small class="text-lg">Femenino, masculino u
-                                                    otro</small></li>
+                                            <li class="text-lg">Correo</li>
+                                            <li class="text-lg">Identificacion</li>
+                                            <li class="text-lg">Sexo</li>
                                             <li class="text-lg">Fecha de nacimiento</li>
                                             <li class="text-lg">Semestre</li>
-                                            <li class="text-lg">Nivel: <small class="text-lg">Primaria, bachillerato,
-                                                    tecnologia, profesional,especializacion,maestría,doctorado</small></li>
+                                            <li class="text-lg">Nivel</li>
+                                            <li class="text-lg">Cargo</li>
+                                        </ul>
+                                        <ul class="list-decimal my-6 mx-5">
+                                            <li class="text-lg">Nombre</li>
+                                            <li class="text-lg">Correo: <small class="text-lg">Cada correo debe ser unico</small></li>
+                                            <li class="text-lg">Identificacion: <small class="text-lg">Debe ser un numero</small></li>
+                                            <li class="text-lg">Sexo: <small class="text-lg">Femenino, masculino u otro</small></li>
+                                            <li class="text-lg">Fecha de nacimiento</li>
+                                            <li class="text-lg">Semestre</li>
+                                            <li class="text-lg">Nivel: <small class="text-lg">Primaria, bachillerato, tecnologia, profesional,especializacion,maestría,doctorado</small></li>
                                             <li class="text-lg">Cargo: <small class="text-lg">estudiante, profesor</small>
                                             </li>
                                         </ul>
 
-                                        <div class="flex items-center flex-wrap my-6">
-                                            <a class="text-gray-500 inline-flex items-center md:mb-2 lg:mb-0">Numero de
-                                                Usuarios: </a>
-                                            <span
-                                                class="text-gray-400 mr-3 inline-flex items-center lg:ml-auto md:ml-0 ml-auto leading-none text-sm pr-3 py-1 border-r-2 border-gray-200">
-                                                <svg class="w-1 h-4 mr-1" stroke="currentColor" stroke-width="2" fill="none"
-                                                    stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                                    <circle cx="12" cy="12" r="3"></circle>
-                                                </svg>
+                                        <div class="flex items-center flex-wrap my-1">
+                                            <a class="text-gray-900 text-lg items-center mb-1">Numero de Usuarios: </a>
+                                            <span class="text-gray-900 text-lg  mx-2 items-center
+                                                 leading-none py-1">
                                                 {{ props.numUsuarios }}
                                             </span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <!-- user_universidad -->
-                            <div class="p-4 lg:w-1/2 w-full xl:w-1/3">
+                            <!-- Matricular en carrera y materia -->
+                            <div class="p-4 w-full sm:w-1/2 lg:w-1/3">
                                 <div class="h-full border-2 border-gray-200 border-opacity-60 rounded-lg overflow-hidden">
-                                    <DocumentArrowUpIcon class="mt-5 h-12 lg:h-20 w-full object-cover object-center" />
+                                    <DocumentArrowUpIcon class="mt-5 h-10 lg:h-20 w-full object-cover object-center" />
 
                                     <div class="p-6">
-                                        <h3 class="title-font text-lg font-medium text-gray-900 mb-3">Matricular estudiantes </h3>
+                                        <h3 class="title-font text-lg font-medium text-gray-900 mb-3">
+                                          {{ lang().labelExcel.matricular_carreramateria }}
+                                        </h3>
                                         <p class="leading-relaxed mb-3">Seleccione la universidad de los estudiantes</p>
 
                                         <form @submit.prevent="uploadestudiantesUniversidad" id="upload2">
@@ -240,17 +257,17 @@ data.UniversidadSelect = vectorSelect(data.UniversidadSelect, props.UniversidadS
                                             <div class="mt-6">
                                                 <label v-if="form.archivo2_matricular" for="file_matricular_user"
                                                     class="bg-sky-300 text-white font-bold py-2 px-4 rounded">
-                                                    Seleccionar Archivo
+                                                    {{ lang().labelExcel.BuscarArchivo }}
                                                 </label>
                                                 <label v-else for="file_matricular_user"
                                                     class="bg-sky-500 text-white font-bold py-2 px-4 rounded">
-                                                    Seleccionar archivo
+                                                    {{ lang().labelExcel.BuscarArchivo }}
                                                 </label>
                                                 <input id="file_matricular_user" type="file"
                                                     @input="form.archivo2_matricular = $event.target.files[0]"
                                                     accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                                                     class="opacity-0 relative inset-0 w-full my-1 cursor-pointer" />
-                                                <p v-if="form.archivo2_matricular" class="w-full my-2 text-green-600">
+                                                <p v-if="form.archivo2_matricular && form.universidadID" class="w-full my-2 text-green-600">
                                                     {{ form.archivo2_matricular.name }}</p>
                                             </div>
 
@@ -259,12 +276,12 @@ data.UniversidadSelect = vectorSelect(data.UniversidadSelect, props.UniversidadS
                                                 {{ form.progress.percentage }}%
                                             </progress>
 
-                                            <div v-if="form.archivo2_matricular" class="w-auto">
+                                            <div class="w-auto">
                                                 <Button v-show="can(['create user'])"
-                                                    :disabled="form.archivo2_matricular == null"
+                                                    :disabled="form.archivo2_matricular === null"
                                                     :class="{ 'bg-sky-500': form.archivo2_matricular !== null }"
                                                     class="w-32 rounded-none my-4 px-4 py-2 text-white">
-                                                    {{ lang().button.subir }} archivo
+                                                    {{ lang().button.subir }} {{ lang().button.archivo }}
                                                 </Button>
                                             </div>
                                             <div class="w-auto text-red-600 text-lg my-4">
@@ -292,8 +309,7 @@ data.UniversidadSelect = vectorSelect(data.UniversidadSelect, props.UniversidadS
                                 </div>
                             </div>
 
-
-                            <div class="p-4 lg:w-1/2 w-full xl:w-1/3">
+                            <div class="p-4 w-full sm:w-1/2 lg:w-1/3">
                                 <SubirCarreras
                                  :UniversidadSelect="data.UniversidadSelect"
                                  :flash="props.flash"

@@ -174,28 +174,21 @@ class HelpArticulo {
 
 
     public static function davinci($elpromp, $usuario,$materia,$Razon):array {
-        // return [
-        //     'respuesta' => [$elpromp.' Respondiendo cualquier cosa temporalmente. mucho texto'],
-        //     'restarAlToken' => 0,
-        // ];
-
-
-        $client = OpenAI::client(env('GTP_SELECT'));
-        $result = $client->completions()->create([
-            'model' => 'text-davinci-003',
-            'prompt' => $elpromp,
-            'max_tokens' => HelpGPT::maxToken()
-        ]);
-
-        $respuesta = $result['choices'][0]["text"];
-        $finishReason = $result['choices'][0];
-        $finishingReason = $finishReason["finish_reason"] ?? '';
-
+//        $client = OpenAI::client(env('GTP_SELECT'));
+//        $result = $client->completions()->create([
+//            'model' => 'text-davinci-003',
+//            'prompt' => $elpromp,
+//            'max_tokens' => HelpGPT::maxToken()
+//        ]);
+        $result = JustChatFunctionGPT::Chat4($elpromp);
+        $respuesta = $result[1];
+        $finishingReason = $result[2];
+        $restarAlToken = 1;
         if ($finishingReason === 'stop') {
-            $usageRespuesta = ($result['usage']["completion_tokens"]); //~ 260
-            $usageRespuestaTotal = ($result['usage']["total_tokens"]); //~ 500
-            $restarAlToken = HelpGPT::CalcularTokenConsumidos($usageRespuesta, $usageRespuestaTotal);
-
+            //TODO: urgente
+//            $usageRespuesta = ($result['usage']["completion_tokens"]); //~ 260
+//            $usageRespuestaTotal = ($result['usage']["total_tokens"]); //~ 500
+//            $restarAlToken = HelpGPT::CalcularTokenConsumidos($usageRespuesta, $usageRespuestaTotal);
             if($usuario){
                 $totalNuevo = $usuario->limite_token_leccion - $restarAlToken;
                 $totalNuevo = $totalNuevo < 0 ? 0 : $totalNuevo;

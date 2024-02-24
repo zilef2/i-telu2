@@ -183,6 +183,7 @@ Route::middleware('auth', 'verified')->group(function () {
 //<editor-fold desc="Artisan functions">
     Route::get('/exception', function () {
         throw new Exception('Probando excepciones y enrutamiento. La prueba ha concluido exitosamente.');
+
     });
 
     Route::get('/foo', function () {

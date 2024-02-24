@@ -5,15 +5,13 @@ namespace Database\Seeders;
 use App\Models\Permission;
 use Illuminate\Database\Seeder;
 
-class PermissionSeeder extends Seeder
-{
+class PermissionSeeder extends Seeder{
     /**
      * Run the database seeds.
      *
      * @return void
      */
-    public function run()
-    {
+    public function run(){
         Permission::create(['name' => 'isSuper']);
         Permission::create(['name' => 'isAdmin']);
         Permission::create(['name' => 'isCoorAcademico']);
@@ -58,6 +56,5 @@ class PermissionSeeder extends Seeder
         foreach ($ModelsIns as $model) {
             Permission::create(['name' => 'inscribirUs ' . $model]);
         }
-
     }
 }

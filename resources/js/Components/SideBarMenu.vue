@@ -22,7 +22,7 @@ import {
 
 import { Link } from '@inertiajs/vue3';
 import { reactive, watch } from 'vue';
-import { NoUnderLines}from '@/global.ts';;
+import { NoUnderLines}from '@/global.ts';
 
 
 const data = reactive({
@@ -54,12 +54,12 @@ const toggleContent2 = () => {
                 </div>
             </span>
             <span class="block text-xs font-medium truncate">{{ $page.props.auth.user.email }}</span>
-            <span class="block text-sm font-medium truncate">{{ NoUnderLines($page.props.auth.user.roles[0].name) }}</span>
+            <span class="block text-sm font-medium truncate capitalize">{{ NoUnderLines($page.props.auth.user.roles[0].name) }}</span>
         </div>
 
 
         <ul class="space-y-2 my-4">
-            <li v-show="can(['read user'])" class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
+            <li v-show="can(['read user']) || can(['isIndependiente'])" class="bg-gray-700/40 dark:bg-gray-800/40 text-white rounded-lg hover:bg-primary dark:hover:bg-primary"
                 :class="{ 'bg-sky-600 dark:bg-sky-600': route().current('dashboard') }">
                 <Link :href="route('dashboard')" class="flex items-center py-2 px-4">
                     <HomeIcon class="w-6 h-5" />

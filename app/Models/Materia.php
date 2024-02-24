@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,16 +25,24 @@ class Materia extends Model {
 
         //1 octubre
         'activa', //Esta materia puede seguir recibiendo modificaciones y unidades
+        //23feb2024
+        'horas_de_trabajo_independiente',
+        'horas_de_trabajo_presencial',
+        'numero_de_clases',
     ];
 
 
     //<editor-fold desc="Mandatory relationships">
+
     public function unidads(): HasMany {return $this->hasMany(Unidad::class, 'materia_id');}
     public function archivos(): HasMany {return $this->hasMany(Archivo::class, 'materia_id');}
     public function Tsubtemas(): HasManyThrough {
         return $this->hasManyThrough(Subtopico::class, Unidad::class);
     }
 
+    public function grupos(): HasMany {
+        return $this->hasMany(Grupo::class, 'materia_id');
+    }
     public function objetivos(): HasMany {
         return $this->hasMany(Objetivo::class, 'materia_id');
     }
@@ -120,7 +129,13 @@ class Materia extends Model {
     //</editor-fold>
 
 
-    public function usuarios($materiaid, $elrol) {
+    /**
+     * @param $materiaid
+     * @param $elrol
+     * @return Builder|BelongsToMany
+     */
+    public function usuarios($materiaid, $elrol): \Illuminate\Database\Eloquent\Builder|BelongsToMany
+    {
         $result = $this->belongsToMany(User::class, 'materia_user')
             ->wherePivot('materia_id',$materiaid)
             ->WhereHas('roles',function ($query) use ($elrol){
@@ -129,4 +144,6 @@ class Materia extends Model {
 
         return $result;
     }
+
+
 }

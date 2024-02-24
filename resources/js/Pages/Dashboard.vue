@@ -42,7 +42,7 @@ props.textoBotones.forEach(function (element, i) {
 
     <!-- hero - start -->
     <div class="bg-white pb-6 sm:pb-8 lg:pb-12">
-      <div class="mx-auto max-w-screen-2xl px-4 md:px-8">
+      <div class="mx-auto max-w-screen-2xl pl-4 md:pl-8">
         <section class="flex flex-col justify-between gap-6 sm:gap-10 md:gap-16 lg:flex-row">
           <!-- content - start -->
           <div class="flex flex-col justify-center sm:text-center lg:py-12 lg:text-left xl:w-5/12 xl:py-24">
@@ -82,8 +82,11 @@ props.textoBotones.forEach(function (element, i) {
             Actualmente usted cuenta con el plan:
           </h2>
 
-          <p class="mx-auto max-w-screen-md text-center text-gray-900 font-bold text-xl">
+          <p v-if="props.plan" class="mx-auto max-w-screen-md text-center text-gray-900 font-bold text-xl">
               {{ props.plan.nombre }}
+          </p>
+          <p v-else class="mx-auto max-w-screen-md text-center text-gray-900 font-bold text-xl">
+              Demo
           </p>
           <p class="mx-auto max-w-screen-md text-center text-gray-500 text-lg">
               Puede visualizar este plan en todo momento en la parte superior
@@ -163,14 +166,14 @@ props.textoBotones.forEach(function (element, i) {
         <div class="grid grid-cols-3 gap-8 md:grid-cols-3 md:gap-0 md:divide-x">
           <!-- stat - start -->
           <div class="flex flex-col items-center md:p-4">
-            <div class="text-xl font-bold text-indigo-500 sm:text-2xl md:text-3xl">+200</div>
+            <div class="text-xl font-bold text-indigo-500 sm:text-2xl md:text-3xl">+221</div>
             <div class="text-sm font-semibold sm:text-base">Estudiantes</div>
           </div>
           <!-- stat - end -->
 
           <!-- stat - start -->
           <div class="flex flex-col items-center md:p-4">
-            <div class="text-xl font-bold text-indigo-500 sm:text-2xl md:text-3xl">+500</div>
+            <div class="text-xl font-bold text-indigo-500 sm:text-2xl md:text-3xl">+35</div>
             <div class="text-sm font-semibold sm:text-base">Profesores y Asesores</div>
           </div>
 

@@ -6,6 +6,7 @@ php artisan make:crud Ensayo    "nombre:string, "
 php artisan make:crud Resumen   "nombre:string, "
 php artisan make:crud Plan "nombre:string, tipo:string, valor:integer, caducidad:datetime, tokens:integer"
 php artisan make:crud Calificacion "TipoPrueba:string, prompUsado:string, valor:float, tokens:integer"
+php artisan make:crud Grupo "nombre:string,codigo:string"
 
 
 //6nov2023
@@ -23,12 +24,6 @@ php artisan make:crud QuizPreguntas "Pregunta:string, Respuesta:string"
 
 
 
-
-
---------------------------------* comands laravel *--------------------------------
-
-php artisan db:seed --class=EstudianteIndependiente
-php artisan migrate
 
 
 --------------------------------* INSTALACIONES *--------------------------------

@@ -17,11 +17,11 @@ class Universidad extends Model {
     ];
 
     public function carreras(): HasMany { return $this->hasMany(Carrera::class, 'universidad_id'); }
-    public function materiasInscritas() { return $this->hasManyThrough(Materia::class, Carrera::class, 'universidad_id', 'carrera_id'); }
 
     public function users() {
         return $this->belongsToMany(User::class, 'universidad_user');
     }
+    public function materiasInscritas() { return $this->hasManyThrough(Materia::class, Carrera::class, 'universidad_id', 'carrera_id'); }
     public function estudiantes($universidadid, $inscrito, $elrol) {
         if ($inscrito) {
             $result = $this->belongsToMany(User::class, 'universidad_user')
@@ -60,9 +60,8 @@ class Universidad extends Model {
         return $result;
     }
 
-    public function materiasInteluGenerica()
-    {
-        $inteluid = $this->Where('nombre','Intelu')->first();
+    public function materiasInteluGenerica(){
+        $inteluid = $this->Where('nombre','like','Intelu')->first();
         $carreras = Carrera::Where('universidad_id',$inteluid->id)->get()->pluck('id');
         $materias = Materia::WhereIn('carrera_id',$carreras)->get();
         return $materias;

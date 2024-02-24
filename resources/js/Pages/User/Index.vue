@@ -19,7 +19,10 @@ import DeleteBulk from '@/Pages/User/DeleteBulk.vue';
 import Checkbox from '@/Components/Checkbox.vue';
 import { router, usePage, useForm, Link } from '@inertiajs/vue3';
 
-import { CalcularEdad }from '@/global.ts';;
+import { CalcularEdad }from '@/global.ts';
+import Toast from "@/Components/Toast.vue";
+
+;
 
 const { _, debounce, pickBy } = pkg
 const props = defineProps({
@@ -99,10 +102,11 @@ watchEffect(() => {
 <template>
     <Head :title="props.title" />
 
+
+
     <AuthenticatedLayout>
         <Breadcrumb :title="title" :breadcrumbs="breadcrumbs" />
-        <div class="space-y-4">
-
+      <div class="space-y-4">
             <div class="px-4 sm:px-0">
                 <div class="rounded-lg overflow-hidden w-fit">
                     <PrimaryButton v-show="can(['create user'])" class="rounded-none" @click="data.createOpen = true">

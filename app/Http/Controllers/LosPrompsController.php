@@ -81,7 +81,7 @@ class LosPrompsController extends Controller
     public function LimiteDePromps($numberPermissions) {
         if ($numberPermissions < 5) {
             $prompsUser = Auth::user()->LimiteDePromps()->get()->count();
-            return $prompsUser < intval(self::LIMITE_DE_PROMPS_PER_USER + $numberPermissions * 2);
+            return $prompsUser < (int)(self::LIMITE_DE_PROMPS_PER_USER + $numberPermissions * 2);
         }
         return true;
     }
@@ -94,7 +94,7 @@ class LosPrompsController extends Controller
             $IntegerMispromps = 0;
             if ($numberPermissions < 4) {
                 $IntegerMispromps = Auth::user()->LosPromps()->count();
-                $limitePromps = intval(env('LIMITEPROMPSPERSONA'));
+                $limitePromps = (int)(env('LIMITEPROMPSPERSONA'));
                 if ($IntegerMispromps >= $limitePromps) {
                     return back()->with('warning', __('app.label.created_error', ['nombre' => 'Numero maximo de registros']));
                 }

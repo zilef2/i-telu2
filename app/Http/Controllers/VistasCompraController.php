@@ -14,7 +14,7 @@ class VistasCompraController extends Controller{
     public function VistaPrincipal(){
         $user = Myhelp::AuthU();
         $numberpermissions = Myhelp::getPermissionToNumber();
-        if($numberpermissions < 2) return redirect('/materia');
+        if($numberpermissions < 1.5) return redirect('/materia');
 
 //        if($numberpermissions < 8) return redirect('/SeleccioneAsignatura');
 
@@ -49,8 +49,7 @@ class VistasCompraController extends Controller{
         $universidadClass = new Universidad();
         $materiasInteluGeneric = $universidadClass->materiasInteluGenerica()->pluck('id');
         $materias = Materia::WhereIn('id',$materiasInteluGeneric)
-//            ->WhereNotIn('id',$IDmateriasDelUser)
-        ;
+                    ->WhereNotIn('id',$IDmateriasDelUser);
 
         $materias = $materias->get()->map(function ($materia) {
             $materia->laCarrera = $materia->carrera()->first()->nombre;
@@ -80,12 +79,14 @@ class VistasCompraController extends Controller{
         $user = Myhelp::AuthU();
         Myhelp::EscribirEnLog($this, ' ComprarAsignatura ');
         $numberpermissions = Myhelp::getPermissionToNumber();
-        if($numberpermissions < 2) return redirect('/materia');
+        if($numberpermissions < 1.5){
+            Myhelp::EscribirEnLog($this,'Un estudiante normal intento comprar una asignatura',false,1);
+            return redirect('/materia');
+        }
 
         $lasCarreras = Carrera::WhereIn('id',$request->materias)->get();
         $soloIdCarreras = $lasCarreras->pluck('id');
         $soloIdUniversidades = $lasCarreras->pluck('universidad_id');
-
         foreach ($soloIdUniversidades as $uniID){
             if(!$user->ExistUniversidad($uniID)){
                 $user->universidades()->attach($uniID);
@@ -104,6 +105,7 @@ class VistasCompraController extends Controller{
 //        $user->carreras()->attach($soloIdMaterias);
 //        $user->materias()->attach($request->materias);
 
-        return redirect()->route('materia.index')->with('success',"Usted ha matriculado". count($request->materias)." materias" );
+        return redirect()->route('materia.index')
+            ->with('success',"Usted ha matriculado". count($request->materias)." materias" );
     }
 }

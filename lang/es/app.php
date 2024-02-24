@@ -1,6 +1,13 @@
 <?php
 
 return [
+    'labelExcel' => [
+        'matricular_carreramateria' => 'Matricular en carrera y materia',
+        'subir_estudiantes' => 'Subir estudiantes',
+        'solo_estudiantes_profesores' => 'Solo se permite cargar estudiantes y profesores',
+        'type' => '',
+        'BuscarArchivo' => 'Buscar Archivo'
+    ],
     'label' => [
         'PlanPendiente' => 'Plan Pendiente',
         //DASHBOARD
@@ -43,6 +50,7 @@ return [
         'Estudiantes' => 'Estudiantes',
 
         //generando mat
+        'Descripcion (opcional)' => 'Descripcion (opcional)',
         'totalUT' => 'total',
         'Array_nombre_unidad' => 'Unidad',
         'Array_nombre_tema' => 'Tema',
@@ -222,6 +230,7 @@ return [
     ],
     'button' => [
 
+        'archivo' => 'archivo',
         'subir' => 'Subir',
         'login' => 'Ingresar',
         'loading' => 'Cargando...',
@@ -291,10 +300,14 @@ return [
         'delete_account' => 'Borrar Cuenta',
         'delete_account_caption' => 'Una vez que se elimine tu cuenta, todos sus recursos e información se borrarán permanentemente. Antes de eliminar tu cuenta, descarga cualquier dato o información que desees conservar.',
         'delete_account_modal_title' => '¿Estás seguro de que deseas eliminar tu cuenta?',
-        'delete_account_modal_caption' => 'Una vez que se elimine tu cuenta, todos sus recursos e información se borrarán permanentemente. Ingresa tu contraseña para confirmar que deseas eliminar permanentemente tu cuenta.'
+        'delete_account_modal_caption' => 'Una vez que se elimine tu cuenta, todos sus recursos e información se borrarán permanentemente. Ingresa tu contraseña para confirmar que deseas eliminar permanentemente tu cuenta.',
 
+        'Version' => 'Version 0.11.05',
     ],
     'LongTexts' => [
         'markObligatory' => 'Los campos con * son obligatorios',
+    ],
+    'links' => [
+        'subirexceles' => 'Subir Excel',
     ],
 ];

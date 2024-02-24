@@ -27,9 +27,9 @@ class UserSeeder extends Seeder
         $superadmin = User::create([
             'name'              => 'Super',
             'email'             => 'ajelof2@gmail.com',
-            'password'          => bcrypt($genPa.'super0.+-*'.$genPa),
+            'password'          => bcrypt($genPa.'super0.+-*'.$genPa),//123_intelusuper0.+-
             'email_verified_at' => date('Y-m-d H:i'),
-            'sexo' => $sexos[rand(0, 1)],
+            'sexo' => $sexos[random_int(0, 1)],
             'identificacion' => '11232454',
             'limite_token_general' => $NumTickesDefecto,
                 'limite_token_leccion' => $NumTickesDefecto,
@@ -42,7 +42,7 @@ class UserSeeder extends Seeder
             'email'             => "$nombreAdmin$App"."@gmail.com",
             'password'          => bcrypt($genPa.'0.+-*'.$genPa), //
             'email_verified_at' => date('Y-m-d H:i'),
-            'sexo' => $sexos[rand(0, 1)],
+            'sexo' => $sexos[random_int(0, 1)],
             'identificacion' => '11232411',
             'limite_token_general' => $NumTickesDefecto,
             'limite_token_leccion' => $NumTickesDefecto,
@@ -74,7 +74,7 @@ class UserSeeder extends Seeder
         ];
 
         foreach ($nombresGenericos as $key => $value) {
-            $yearRandom = (rand(15, 39));
+            $yearRandom = (random_int(15, 39));
             $anios = Carbon::now()->subYears($yearRandom)->format('Y-m-d H:i');
             $unUsuario = User::create([
                 'name'              => $key,
@@ -82,10 +82,10 @@ class UserSeeder extends Seeder
                 'password'          => bcrypt($genPa.'asd+-*'), //
                 'email_verified_at' => date('Y-m-d H:i'),
                 'fecha_nacimiento' => $anios,
-                'sexo' => $sexos[rand(0, 1)],
+                'sexo' => $sexos[random_int(0, 1)],
                 'identificacion' => $value,
-                'semestre' => rand(1,10),
-                'pgrado' => $grados[rand(0,2)],
+                'semestre' => random_int(1,10),
+                'pgrado' => $grados[random_int(0,2)],
                 'limite_token_general' => $NumTickesDefecto,
                 'limite_token_leccion' => $NumTickesDefecto,
             ]);

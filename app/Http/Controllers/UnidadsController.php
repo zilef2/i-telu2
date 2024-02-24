@@ -31,7 +31,7 @@ class UnidadsController extends Controller {
 
     //! index functions () los filtros van primero ome
     public function Filtros($request, &$unidads, $numberPermissions) {
-        if ($numberPermissions < intval(env('PERMISS_VER_FILTROS_SELEC'))) { //coorPrograma,profe,estudiante
+        if ($numberPermissions < (int)(env('PERMISS_VER_FILTROS_SELEC'))) { //coorPrograma,profe,estudiante
             $MateriasSelect = Auth::user()->materias->pluck('id');
 
             $unidads->WhereIn('materia_id', $MateriasSelect);
@@ -95,7 +95,7 @@ class UnidadsController extends Controller {
 
     public function losSelect($numberPermissions) {
         // coordinador_academico = 4 | coorPrograma = 3 , profe ,estudiante
-        if ($numberPermissions < intval(env('PERMISS_VER_FILTROS_SELEC'))) { //5
+        if ($numberPermissions < (int)(env('PERMISS_VER_FILTROS_SELEC'))) { //5
             $MateriasSelect = Auth::user()->materias;
         } else {
             $MateriasSelect = Materia::all();
@@ -160,7 +160,7 @@ class UnidadsController extends Controller {
             $enum = $request->enum;
         } else {
             $modelInstance = resolve('App\\Models\\' . $this->modelName);
-            $enum = intval($modelInstance::latest('enum')->first()->enum) + 1 ?? 1;
+            $enum = (int)($modelInstance::latest('enum')->first()->enum) + 1 ?? 1;
         }
 
         try {
@@ -277,13 +277,6 @@ class UnidadsController extends Controller {
     public  function temasCreate2(Request $request)
     {
         $usuario = Auth::user();
-        // dd(
-        //     $request->id,
-        //     $request[0],
-        //     $request[1],
-        //     $request
-        // );
-
         $materia = Materia::find($request->materiaid);
         $materia->TodosObjetivos = $materia->objetivos();
 
@@ -306,25 +299,17 @@ class UnidadsController extends Controller {
         if ($productio) {
 
             $plantillaPracticar = 'Ejercicios para practicar';
-            $client = OpenAI::client(env('GTP_SELECT'));
-            $result = $client->completions()->create([
-                'model' => 'text-davinci-003',
-                'prompt' => 'Eres un academico, experto en la asignatura de ' . $materia->nombre . ' con años de experiencia enseñandola,
-                        responda el siguiente ejercicio: ' . $request->pregunta
-                    . '. La respuesta debe tener el nivel de un estudiante ' . $request->nivel
-                    . '. Antes de resolver la pregunta, genera un contexto, si es posible, de entre 20 y 40 palabras. Cuando finalices el contexto, deja un renglon vacio.'
-                    . '. Al finalizar la respuesta. sujiere 3 ejercicios para preguntarle a una inteligencia artificial(ponle de titulo ' . $plantillaPracticar . ') y seguir aprendiendo de ' . $materia->nombre,
-                'max_tokens' => 600 // Adjust the response length as needed
-            ]);
-//            $result = JustChatFunctionGPT::Chat4($promptParaResumir);
-
-            $respuesta = $result['choices'][0]["text"];
-
-            $finishReason = $result['choices'][0];
-            $finishingReason = $finishReason["finish_reason"] ?? '';
-            // dd($respuesta,$finishReason,$finishingReason,$request->nivel);
+            $elprompt = 'Eres un academico, experto en la asignatura de ' . $materia->nombre . ' con años de experiencia enseñandola,
+                responda el siguiente ejercicio: ' . $request->pregunta
+                . '. La respuesta debe tener el nivel de un estudiante ' . $request->nivel
+                . '. Antes de resolver la pregunta, genera un contexto, si es posible, de entre 20 y 40 palabras. Cuando finalices el contexto, deja un renglon vacio.'
+                . '. Al finalizar la respuesta. sujiere 3 ejercicios para preguntarle a una inteligencia artificial(ponle de titulo ' . $plantillaPracticar . ') y seguir aprendiendo de '
+                . $materia->nombre;
+            $result = JustChatFunctionGPT::Chat4($elprompt);
+            $respuesta = $result[1];
+            $finishingReason = $result[2];
+            dd($result);
             if ($finishingReason === 'stop') {
-                // dd($result['usage']);
                 $usageRespuesta = (int)($result['usage']["completion_tokens"]); //~ 260
                 $usageRespuestaTotal = (int)($result['usage']["total_tokens"]); //~ 500
 

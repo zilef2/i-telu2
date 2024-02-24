@@ -7,7 +7,8 @@
     "watch": "vite build --watch"
   },
   "dependencies": {
-    "@headlessui/vue": "^1.7.9",
+    "@headlessui/tailwindcss": "^0.2.0",
+    "@headlessui/vue": "^1.7.16",
     "@heroicons/vue": "^2.0.15",
     "@inertiajs/progress": "^0.2.7",
     "@jridgewell/sourcemap-codec": "^1.4.15",

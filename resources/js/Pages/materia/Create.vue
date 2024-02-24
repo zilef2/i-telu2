@@ -17,8 +17,17 @@ const props = defineProps({
     title: String,
     carrerasSelect: Object,
     MateriasRequisitoSelect: Object,
+    numberPermissions: Number,
+    selectedUni: Number,
 })
 const emit = defineEmits(["close"]);
+onMounted(() =>{
+  if(props.numberPermissions > 9){
+    form.nombre = 'materia generica'
+    form.objetivo = ['Objetivo general','Objetivo especifico']
+    form.codigo = 'Codigo materia generica 1'
+  }
+})
 
 const data = reactive({
     // cuantosReq: 1
@@ -34,15 +43,24 @@ const form = useForm({
     carrera_id: '',
     cuantosObj: 2,
     objetivo: [],
-
+    // horas_de_trabajo_independiente: 2,
+    // horas_de_trabajo_presencial: 2,
+    // numero_de_clases: 2,
 })
-onMounted(() =>{
-    form.nombre = 'materia a'
-    form.codigo = 'CODmateria a'
+
+
+watchEffect(() => {
+  if (props.show) {
+    form.errors = {}
+  }
 })
 
 let validate = () => {
     let esValido = true
+
+    // horas_de_trabajo_independiente
+    // horas_de_trabajo_presencial
+    // numero_de_clases
     if(!form.carrera_id) return false
     for (let i = 0; i <form.cuantosObj; i++){
         esValido = esValido && form.objetivo[i] !== '' && (typeof form.objetivo[i] !== 'undefined')
@@ -60,19 +78,12 @@ const create = () => {
             },
             onError: () => null,
             // onError: () => alert(JSON.stringify(form.errors, null, 4)),
-
             onFinish: () => null,
         })
     }else{
         data.MensajeError = 'falta campos obligatorios'
     }
 }
-
-watchEffect(() => {
-    if (props.show) {
-        form.errors = {}
-    }
-})
 </script>
 
 <template>

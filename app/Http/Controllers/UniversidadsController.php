@@ -36,7 +36,7 @@ class UniversidadsController extends Controller
             $universidad->tresPrimeros = Myhelp::ArrayInString($universidad->users->pluck('name'));
 
             $universidad->cuantosUs = $universidad->users->count();
-            $universidad->cuantasCarreras = intval($universidad->carreras->count());
+            $universidad->cuantasCarreras = (int)($universidad->carreras->count());
 
             return $universidad;
         })->filter();

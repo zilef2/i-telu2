@@ -62,6 +62,7 @@ const props = defineProps({
     ValoresGenerarMateria: Object,
 
     flash: Object, //solo para avisar la compra
+    UniversidadUser: Object,
 })
 
 
@@ -98,6 +99,25 @@ const data = reactive({
     GUni:0,
 })
 onMounted(() => {
+
+  if(props.numberPermissions === 1.5){
+    data.params.selectedUni = 7
+  }else{
+      // if(props.numberPermissions === 1){
+      //   data.params.selectedUni = UniversidadUser[0].id
+      // }else {
+        if(typeof (data.params.selectedUni) == 'undefined' || typeof (data.params.selectedUni) == 'object'){
+          data.GUni = localStorage.getItem('universidadGuardada')
+          if(data.GUni){
+            data.params.selectedUni = localStorage.getItem('universidadGuardada')
+          }else{
+            data.params.selectedUni = "0";
+          }
+        }
+      // }
+  }
+
+
   if (typeof data.params.selectedcarr === 'undefined' || data.params.selectedcarr === null) data.params.selectedcarr = 0
 
   data.UniversidadSelect = vectorSelect(data.UniversidadSelect, props.UniversidadSelect, 'una')
@@ -143,24 +163,21 @@ watch(() => _.cloneDeep(data.params), debounce(() => {
         preserveState: true,
         preserveScroll: true,
     })
-}, 10))
+}, 120))
 
 watchEffect(() => {
+  console.log(Array.isArray(props.carrerasSelect))
+  console.log((props.carrerasSelect))
+  if(props.carrerasSelect && Array.isArray(props.carrerasSelect)){
+
     data.carrerasDeUSel = props.carrerasSelect?.map(
         carrera => (
             { label: carrera.nombre, value: carrera.id }
         )
     )
     data.carrerasDeUSel.unshift({ label: 'Seleccione carrera', value: 0 })
+  }
 
-    if(typeof (data.params.selectedUni) == 'undefined' || typeof (data.params.selectedUni) == 'object'){
-        data.GUni = localStorage.getItem('universidadGuardada')
-        if(data.GUni){
-            data.params.selectedUni = localStorage.getItem('universidadGuardada')
-        }else{
-            data.params.selectedUni = "0";
-        }
-    }
 })
 
 watch(() => data.params.selectedUni, (newX) => {
@@ -210,15 +227,20 @@ const select = () => {
                         v-if="can(['create materia'])" :carrerasSelect="data.carrerasDeUSel"
                         :ValoresGenerarMateria="props.ValoresGenerarMateria"
                         :MateriasRequisitoSelect="props.MateriasRequisitoSelect"
+                         :selectedUni="data.params.selectedUni"
                         />
 
                     <Create :show="data.createOpen" @close="data.createOpen = false" :title="props.title"
                         v-if="can(['create materia'])" :carrerasSelect="data.carrerasDeUSel"
-                        :MateriasRequisitoSelect="props.MateriasRequisitoSelect" />
+                        :MateriasRequisitoSelect="props.MateriasRequisitoSelect"
+                        :numberPermissions="props.numberPermissions"
+                        :selectedUni="data.params.selectedUni"
+                    />
                     <Edit :show="data.editOpen" @close="data.editOpen = false" :materia="data.generico" :title="props.title"
                         v-if="can(['update materia'])" :carrerasSelect="data.carrerasDeUSel"
                         :MateriasRequisitoSelect="props.MateriasRequisitoSelect"
                         :numberPermissions="props.numberPermissions"
+                        :selectedUni="data.params.selectedUni"
                          />
                     <Delete :show="data.deleteOpen" @close="data.deleteOpen = false" :materia="data.generico"
                         v-if="can(['delete materia'])" :title="props.title" />
@@ -229,13 +251,13 @@ const select = () => {
                     <div v-if="props.numberPermissions > 1" class="flex space-x-2">
                         <SelectInput v-model="data.params.perPage" :dataSet="data.dataSet" />
                         <DangerButton v-if="can(['delete materia'])" @click="data.deleteBulkOpen = true"
-                            v-show="data.selectedId.length != 0" class="px-3 py-1.5"
+                            v-show="data.selectedId.length !== 0" class="px-3 py-1.5"
                             v-tooltip="lang().tooltip.delete_selected">
                             <TrashIcon class="w-5 h-5" />
                         </DangerButton>
 
                         <!-- filters -->
-                        <div class="bg-gray-100">
+                        <div v-show="props.numberPermissions !== 1.5" class="bg-gray-100">
                             <SelectInput v-model="data.params.selectedUni" id="uni" :dataSet="data.UniversidadSelect" />
                         </div>
                         <div v-if="data.params.selectedUni !== 0 && props.numberPermissions > 1" class="bg-gray-100">
@@ -272,7 +294,7 @@ const select = () => {
                                         v-model="data.selectedId"
                                         class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-primary dark:text-primary shadow-sm focus:ring-primary/80 dark:focus:ring-primary dark:focus:ring-offset-gray-800 dark:checked:bg-primary dark:checked:border-primary" />
                                 </td> -->
-                                <td v-if="numberPermissions > 1" class="whitespace-nowrap py-4 px-2 sm:py-3">
+                                <td v-if="numberPermissions > 1.5" class="whitespace-nowrap py-4 px-2 sm:py-3">
                                     <div class="flex justify-start items-center">
                                         <div class="rounded-md overflow-hidden">
                                             <InfoButton type="button"
@@ -341,12 +363,14 @@ const select = () => {
                                     </Link>
                                 </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-sm text-gay-600">{{ (clasegenerica.codigo) }} </td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-sm text-gay-600">{{ (clasegenerica.papa) }} </td>
+                                <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-sm text-gay-600">{{ (clasegenerica.papa) }}
+                                  <small v-if="numberPermissions > 8"><br>{{clasegenerica.abuelo}}</small>
+                                </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3 text-sm text-gay-600">{{ (clasegenerica.cuantoshijos) }} </td>
-                                <td v-if="props.numberPermissions > 2" class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.muchos) }} </td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.objetivs) }} </td>
 
                                 <td class="whitespace-wrap break-words text-sm py-4 px-0">{{ PrimerasPalabras(clasegenerica.descripcion, 11) }} </td>
+                              <td v-if="props.numberPermissions > 2" class="whitespace-nowrap py-4 px-2 sm:py-3">{{ (clasegenerica.muchos) }} </td>
                             </tr>
                         </tbody>
                     </table>

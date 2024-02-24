@@ -30,7 +30,8 @@ class Subtopico extends Model
     }
     public function tema_nombre(): string
     {
-        return $this->Unidad->nombre;
+        return
+            $this->Unidad->nombre ?? '';
     }
 
     public function find_carrera_nombre(): string

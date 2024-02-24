@@ -59,6 +59,8 @@ class UserController extends Controller
 
         if ($request->has(['field', 'order'])) {
             $users = $users->orderBy($request->field, $request->order);
+        }else{
+            $users = $users->orderBy('updated_at', 'Desc');
         }
 
         $perPage = $request->has('perPage') ? $request->perPage : 10;
@@ -103,7 +105,8 @@ class UserController extends Controller
     }
 
     public function store(UserStoreRequest $request){
-        $permissions = Myhelp::EscribirEnLog($this, 'STORE:users');
+        Myhelp::EscribirEnLog($this, 'STORE:users');
+        $typeReturn = 'success';
 
         DB::beginTransaction();
         try {
@@ -121,22 +124,30 @@ class UserController extends Controller
                 'pgrado' => $request->pgrado,
             ]);
             $user->assignRole($request->role);
+            $finalMessage = __('app.label.created_successfully', ['name' => $user->name]);
             if($request->role === 'estudiante_independiente'){
-                $ugenerica = Universidad::Where('nombre','Intelu')
-                    ->orWhere('nombre','intelu')
-                        ->first();
+                $ugenerica = Universidad::Where('nombre','like','Intelu')->first();//hardcode intelu
                 if($ugenerica){
                     $user->universidades()->attach($ugenerica->id);
                     $ArrayCarrerasGen = Carrera::where('universidad_id',$ugenerica->id)->get();
                     foreach ($ArrayCarrerasGen as $index => $carrera) {
                         $user->carreras()->attach($carrera->id);
                     }
+                }else{
+                    $typeReturn = 'error';
+                    $finalMessage = __('app.label.created_error', ['name' => __('app.label.user')]) . ' La universidad intelu no existe';
                 }
             }
-            DB::commit();
-            Myhelp::EscribirEnLog($this, 'STORE:users', 'usuario id:' . $user->id . ' | ' . $user->name . ' guardado', false);
 
-            return back()->with('success', __('app.label.created_successfully', ['name' => $user->name]));
+            if($typeReturn !== 'error'){
+                DB::commit();
+                Myhelp::EscribirEnLog($this, 'STORE:users', 'usuario id:' . $user->id . ' | ' . $user->name . ' guardado', false);
+            }else{
+                Myhelp::EscribirEnLog($this, 'Error:stor:users |'.$finalMessage, false);
+                DB::rollback();
+            }
+
+            return back()->with($typeReturn, $finalMessage);
         } catch (\Throwable $th) {
             DB::rollback();
             if (isset($user)) Myhelp::EscribirEnLog($this, 'STORE:users', 'usuario id:' . $user->id ?? 'x' . ' | ' . $user->name ?? 'x' . ' fallo en el guardado', false);
@@ -230,8 +241,7 @@ class UserController extends Controller
     }
     //FIN : STORE - UPDATE - DELETE
 
-    public function subirexceles()
-    { //just  a view
+    public function subirexceles(){
         $permissions = Myhelp::EscribirEnLog($this, ' materia');
         $numberPermissions = Myhelp::getPermissionToNumber($permissions);
 
@@ -239,7 +249,8 @@ class UserController extends Controller
             'breadcrumbs'   => [['label' => __('app.label.user'), 'href' => route('user.index')]],
             'title'         => __('app.label.user'),
             'numUsuarios'   => count(User::all()) - 1,
-            'UniversidadSelect'   => Universidad::all()
+            'UniversidadSelect'   => Universidad::all(),
+            'numberPermissions'   => $numberPermissions
             // 'users'         => $users->with('roles')->paginate($perPage),
         ]);
     }
@@ -264,9 +275,13 @@ class UserController extends Controller
 
         //! errores y contares tienen que tener la misma longuitud
         foreach ($errores as $key => $elError) {
-            foreach ($elError as $key2 => $value) {
+            foreach ($elError as $value) {
 
-                ${$contares[$key]} = $value . ' ';
+                if(isset(${$contares[$key]})){
+                    ${$contares[$key]} .= $value . '.<br> ';
+                }else{
+                    ${$contares[$key]} = '<br>'.$value . '.<br> ';
+                }
                 $bandera = $bandera || $value > 0;
             }
         }
@@ -274,65 +289,102 @@ class UserController extends Controller
         $mensaje = '';
         if ($bandera) {
             foreach ($mensajesWarnings as $key => $value) {
-                if (isset(${$contares[$key]}) && count(${$contares[$key]}) > 0) {
+                if (isset(${$contares[$key]})) {
                     $mensaje .= $value . ${$contares[$key]} . '. ';
                 }
             }
         }
         return $mensaje;
     }
+    private function inscribir($universidadID,
+                               $VectorUsuariosInscribirU,
+                               $VectorUsuariosInscribirCarrera,
+                               $VectorUsuariosInscribirMateria
+    ){
+        $ModelUniversidad = Universidad::find($universidadID);
 
-    public function uploadestudiantes(Request $request)
-    {
+
+        foreach ($VectorUsuariosInscribirU as $userid) {
+            $ModelUniversidad->users()->sync($userid);
+        }
+
+        foreach ($VectorUsuariosInscribirCarrera as $Carrera_Userid) {
+            $ModelCarrera = Carrera::find($Carrera_Userid[0]);
+            $ModelCarrera->users()->sync($Carrera_Userid[1]);
+        }
+
+        foreach ($VectorUsuariosInscribirMateria as $Materia_Userid) {
+            $ModelMateria = Materia::find($Materia_Userid[0]);
+            $ModelMateria->users()->sync($Materia_Userid[1]);
+        }
+    }
+    public function uploadestudiantes(Request $request): \Illuminate\Http\RedirectResponse{
         DB::beginTransaction();
         Myhelp::EscribirEnLog($this, get_called_class(), 'Empezo a importar', false);
         $countfilas = 0;
-        $personalImp = new PersonalImport();
+        $typeBack = 'success';
 
         try {
-            if ($request->archivo1) {
+            if ($request->archivo1 && $request->universidadID_Estudiantes) {
+                $universidadID = (int)$request->universidadID_Estudiantes;
+                $personalImp = new PersonalImport($universidadID);
 
                 $helpExcel = new HelpExcel();
                 $mensageWarning = $helpExcel->validarArchivoExcel($request->archivo1);
-                if ($mensageWarning != '') return back()->with('warning', $mensageWarning);
+                if ($mensageWarning != ''){
+                    $typeBack = 'warning';
+                    $FinalMessage = $mensageWarning;
+                }else{
 
-                // $result =
-                Excel::import($personalImp, $request->archivo1);
-                $misErrores = [
-                    $personalImp->contarEmailExistente,
-                    $personalImp->contarActualizado,
-                    $personalImp->contarNoNumeros,
-                    $personalImp->contarSex,
-                    $personalImp->contarCargo,
-                ];
-                $MensajeWarning = self::MensajeWar($misErrores);
-                if ($MensajeWarning !== '') {
-                    return back()->with('success',
-                        'Usuarios nuevos: ' . $personalImp->countfilas.
-                        ' Usuarios actualizados: ' . $personalImp->countfilasActualizadas
-                    )->with('warning', $MensajeWarning);
-                }
+                    // $result =
+                    Excel::import($personalImp, $request->archivo1);
+    //                dd($personalImp->VectorUsuariosInscribirU);
+                    $this->inscribir($universidadID,
+                        $personalImp->VectorUsuariosInscribirU, //inscribir en u, solo viene el id del user
+                        $personalImp->VectorUsuariosInscribirCarrera, //Carrera => userid
+                        $personalImp->VectorUsuariosInscribirMateria //materia => userid
+                    );
+                    $misErrores = [
+                        $personalImp->contarEmailExistente,
+                        $personalImp->contarActualizado,
+                        $personalImp->contarNoNumeros,
+                        $personalImp->contarSex,
+                        $personalImp->contarCargo,
+                    ];
+                    $MensajeWarning = $this->MensajeWar($misErrores);
+                    if ($MensajeWarning === '') {
+                        $FinalMessage = 'Usuarios nuevos: ' . $personalImp->countfilas."<br>"
+                            .' Usuarios actualizados: ' . $personalImp->countfilasActualizadas."<br>"
+                            .' '.$MensajeWarning;
+    //                        ->with('warning', $MensajeWarning);
+                    }else{
+                        $typeBack = 'warning';
+                        $FinalMessage = 'Usuarios nuevos: ' . $personalImp->countfilas."<br>"
+                            .' Usuarios actualizados: ' . $personalImp->countfilasActualizadas."<br>"
+                            .' '.$MensajeWarning;
 
+                    }
 
-                Myhelp::EscribirEnLog($this, 'IMPORT:users', ' finalizo con exito', false);
-                DB::commit();
-                if ($personalImp->countfilas == 0 && $personalImp->countfilasActualizadas == 0)
-                    // return back()->with('success', __('app.label.op_successfully') . ' No hubo cambios');
-                    return to_route('user.index')->with('success', __('app.label.op_successfully') . ' No hubo cambios');
-                else{
-                    //happy path
-                    // return back()->with('success', __('app.label.op_successfully') . ' Se leyeron ' . $personalImp->countfilas + $personalImp->countfilasActualizadas . ' filas con exito');
-                    return to_route('user.index')->with('success', __('app.label.op_successfully') . ' Se leyeron ' . $personalImp->countfilas + $personalImp->countfilasActualizadas . ' filas con exito');
+                    Myhelp::EscribirEnLog($this, 'IMPORT:users', ' finalizo con exito', false);
+                    DB::commit();
+
                 }
             } else {
-                return back()->with('error', __('app.label.op_not_successfully') . ' archivo no seleccionado');
+                $typeBack = 'error';
+                $FinalMessage = __('app.label.op_not_successfully') . ' archivo no seleccionado';
             }
+
+            return back()->with($typeBack, $FinalMessage);
         } catch (\Throwable $th) {
             DB::rollback();
+            $mensajeError= $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile();
+            Myhelp::EscribirEnLog($this, 'IMPORT:users', $mensajeError, false);
 
-            Myhelp::EscribirEnLog($this, 'IMPORT:users', ' Fallo importacion: ' . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile(), false);
-            $larowNull = $personalImp->larow[0] ?? null;
-            return back()->with('error', __('app.label.op_not_successfully') . ' Usuario del error: ' . $larowNull . ' error en la iteracion ' . $countfilas . ' ' . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
+            $larowNull = $personalImp->getRowNumber() ?? 'Sin info de la fila';
+            $larowNull = 'Fila: '.$larowNull;
+            return back()->with('error', __('app.label.op_not_successfully')
+                . $larowNull
+                . $mensajeError);
         }
     }
 
@@ -384,79 +436,53 @@ class UserController extends Controller
     public function uploadUniversidad(Request $request) {
         Myhelp::EscribirEnLog($this, get_called_class(), 'Empezo a importar alumnos de universidades', false);
         $countfilas = 0;
+        $typeReturn = 'success';
         try {
             if ($request->archivo2_matricular && $request->universidadID) {
-
                 $helpExcel = new HelpExcel();
-                $mensageWarning = $helpExcel->validarArchivoExcel($request->archivo2_matricular);
-                if ($mensageWarning != '') return back()->with('warning', $mensageWarning);
+                $mensageReturn = $helpExcel->validarArchivoExcel($request->archivo2_matricular);
 
-                Excel::import(new PersonalUniversidadImport($request->universidadID), $request->archivo2_matricular);
+                if ($mensageReturn != '') {
+                    $typeReturn = 'warning';
+                }else {
+                    $importarUsuarios = new PersonalUniversidadImport($request->universidadID);
+                    Excel::import($importarUsuarios, $request->archivo2_matricular);
+                    $countfilas = $importarUsuarios->getCountfilas();
+                    $contarVacios = $importarUsuarios->getcontarVacios();
+                    $contarNoNumeros = $importarUsuarios->getcontarNoNumeros();
+                    $contarRepetidos = $importarUsuarios->getcontarRepetidos();//todo: mejorar el mensaje
+                    $HuboWarning = $contarVacios > 0 || $contarNoNumeros > 0 || $contarRepetidos > 0;
 
+                    if ($HuboWarning) {
+                        $menSuccess = 'Usuarios nuevos: ' . $countfilas.'.';
+                        $men1 = $contarNoNumeros > 0 ? ' #filas con identifiaciones no validas ' . $contarNoNumeros : '';
+                        $men6 = $contarRepetidos > 0 ? ' #filas con usuarios no inscritos a universidades o carreras ' . $contarRepetidos : '';
+                        $men5 = $contarVacios > 0 ? ' #filas con celdas vacias ' . $contarVacios : '';
 
-                // try {
-                //     Excel::import(new PersonalUniversidadImport($request->universidadID), $request->archivo1);
-                // } catch (ValidationException $e) {
-                //     $failures = $e->failures();
-                //     $frow = ''; $fattribute = []; $ferrors = []; $fvalues = [];$countF = 0;
-
-                //     foreach ($failures as $failure) {
-                //         $frow .= 'Fila: ';
-                //         $frow .= $failure->row(); // row that went wrong
-                //         // $frow .= '. atributo: ';
-                //         // $frow .= $failure->attribute(); // either heading key (if using heading row concern) or column index
-                //         // dd($failure->errors());
-                //         // dd(
-                //         //     $failure->values(),
-                //         //     $failure->errors(),
-                //         // );
-                //         $frow .= $failure->errors()[0]; // Actual error messages from Laravel validator
-                //         // $frow .= ' Valor: ';
-                //         //array_key_first($failure->values()).' '.
-                //         // $frow .= array_values($failure->values())[0]; // The values of the row that has failed.
-                //         $frow .= ". \n";
-                //         $countF++;
-
-                //         if($countF > (6*3)) break; //3 columnas
-                //     }
-                //     Myhelp::EscribirEnLog($this, 'IMPORT:uploadUniversida ValidationException', 'ERRORES: '.$countF, false);
-                //     return back()->with('warning', 'ERRORES: '.$frow);
-                // }
-
-
-                $countfilas = session('CountFilas', 0);
-                $contarVacios = session('contarVacios', 0);
-                $contarNoNumeros = session('contarNoNumeros', 0);
-
-                session(['CountFilas' => 0]);
-                session(['contarVacios' => 0]);
-                session(['contarNoNumeros' => 0]);
-
-                $HuboWarning = $contarVacios > 0 || $contarNoNumeros > 0;
-                if ($HuboWarning) {
-                    $MensajeWarning = '';
-                    $men1 = $contarNoNumeros > 0 ? '#filas con identifiaciones no validas ' . $contarNoNumeros : '';
-                    $men5 = $contarVacios > 0 ? '#filas con celdas vacias ' . $contarVacios : '';
-                    $MensajeWarning = $men1 . $men5;
-                    return back()
-                        ->with('success', 'Usuarios nuevos: ' . $countfilas)
-                        ->with('warning', $MensajeWarning);
+                        $typeReturn = 'warning';
+                        $mensageReturn = $menSuccess . $men1 . $men5 . $men6;
+//                        return back()->with('warning', $MensajeWarning);
+                    }else{
+                        Myhelp::EscribirEnLog($this, 'IMPORT:uploadUniversida', ' finalizo con exito', false);
+                        if ($countfilas == 0){
+                            $mensageReturn = __('app.label.op_successfully') . ' No hubo cambios';
+                        } else{
+                            $mensageReturn = __('app.label.op_successfully') . ' Se leyeron ' . $countfilas . ' filas con exito';
+                        }
+                    }
                 }
-
-                Myhelp::EscribirEnLog($this, 'IMPORT:uploadUniversida', ' finalizo con exito', false);
-                if ($countfilas == 0)
-                    return back()->with('success', __('app.label.op_successfully') . ' No hubo cambios');
-                else
-                    return back()->with('success', __('app.label.op_successfully') . ' Se leyeron ' . $countfilas . ' filas con exito');
             } else {
-                return back()->with('error', __('app.label.op_not_successfully') . ' archivo no seleccionado');
+                $typeReturn = 'error';
+                $mensageReturn = __('app.label.op_not_successfully') . ' Archivo no seleccionado';
             }
         } catch (\Throwable $th) {
-            Myhelp::EscribirEnLog($this, 'IMPORT:users', ' Fallo importacion: ' . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile(), false);
-            $larow2 = session('larow') ?? '';
-            // $theTrace = Myhelp::cortarFrase($th->getTraceAsString(), 8);
-            return back()->with('error', __('app.label.op_not_successfully') . 'Usuario del error: ' . $larow2['usuario'] . ' error en la fila ' . $countfilas . ' ' . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
+            $mensajeth = ' | Mensaje: ' . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile();
+            Myhelp::EscribirEnLog($this, 'IMPORT:users', ' Fallo importacion de uploadUniversidad: ' . $mensajeth, false);
+//            return back()->with('error', )
+            $typeReturn = 'error';
+            $mensageReturn = __('app.label.op_not_successfully'. ' error en la fila ' . $countfilas . $mensajeth);
         }
+        return back()->with($typeReturn, $mensageReturn);
     }
 
 

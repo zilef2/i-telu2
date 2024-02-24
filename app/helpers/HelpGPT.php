@@ -21,8 +21,6 @@ class HelpGPT
     const servicioNOdisponible = 'servicioNOdisponible';
     const GPTdesabilitado = 'GPTdesabilitado';
     const PreguntaCorta = 'PreguntaCorta';
-    const MAX_USAGE_RESPUESTA = 550;
-    const MAX_USAGE_TOTAL = 600;
     const TOKEN_GENERAR_MATERIA = 3000;
 
 
@@ -72,41 +70,35 @@ class HelpGPT
 
             $StringObjetivos = $ModelMateria->objetivosString();
             $elpromp =
-                "Genera la siguiente informacion, teniendo en cuenta que,
+                "Genera la informacion solicitada, teniendo en cuenta que,
                 las asignaturas tienen muchas unidades, las unidades tienen muchos temas y cada tema tiene un resultado de aprendizaje"
                 . " para este caso se piden " . $unidades . " unidades y " . $temas . " temas"
                 . " Divide la respuesta en  $numeroRenglones renglones, con el siguiente patron"
                 . ". En los renglones " . $renglonesUnidad . " genera el nombre de una unidad que pertenesca a dicha asignatura"
-                . ". En los renglones  " . $renglonesTema . " genera los temas respectivos que pertenescan a las unidades del siguiente modo."
+                . ". En los renglones  " . $renglonesTema . " genera los temas respectivos que pertenescan a las unidades del siguiente modo"
                 . ". En los renglones  " . $renglonesRA . " genera los resultados de aprendizaje respectivos que del tema."
                 . " Si el numero de temas es " . $temas . " cada unidad tendrá " . $temas . " temas exactamente"
                 . ". Si el numero de temas es " . $temas . " cada unidad tendrá " . $temas . " resultados de aprendizaje exactamente."
                 . " Las unidades y los temas deben estar alineados con los siguientes objetivos: ".$StringObjetivos
-                . " Cada renglon debe tener solo 1 unidad o 1 un tema o 1 resultado de aprendizaje. Se muy estricto con los renglones. No dejes renglones vacios."
+                . " Cada renglon debe tener solo 1 unidad o 1 un tema o 1 resultado de aprendizaje.
+                Recuerda que debes generar exactamente $numeroRenglones reglones"
             ;
-
-
             //si no funciona por Materias_Unidades_Temas() se repite
-            $funcionoPorConteo = true;
+            $repetirOperacion = true;
             $ConteodeGPT = 0;
-            $client = OpenAI::client(env('GTP_SELECT'));
             $TokensGastados = 0;
-            while($funcionoPorConteo && $ConteodeGPT < 5){ //todo: make this a parameter
+            while($repetirOperacion && $ConteodeGPT < 5){ //todo: make this a parameter
                 $ConteodeGPT++;
-                $result = $client->completions()->create([
-                    'model' => 'text-davinci-003',
-                    'prompt' => $elpromp,
-                    'max_tokens' => self::TOKEN_GENERAR_MATERIA
-                ]);
-
-                $usuario = Auth::user();
-                $ArrayRespuesta = Help_2GPT::PostRespuestaIADavinci($result, $usuario);
+                $result = JustChatFunctionGPT::Chat4($elpromp);
+                $supuestamenteCuantosGasto = $result[0];
+                $respuesta = $result[1];
+                $finishingReason = $result[2];
                 $theUser = Myhelp::AuthU();
-                if ($ArrayRespuesta['funciono']) {
-                    $TokensGastados += (int)$ArrayRespuesta['restarAlToken'];
+                if ($finishingReason === 'stop') {
+                    $TokensGastados += ((int)$supuestamenteCuantosGasto)*2;
                     MedidaControl::create([
-                        'pregunta' => $ArrayRespuesta['respuesta'],
-                        'respuesta_guardada' => '',
+                        'pregunta' => $elpromp,
+                        'respuesta_guardada' => $respuesta,
                         'subtopico_id' => null, // 1 ocasion en la que el subtopico es null
                         'RazonNOSubtopico' => 'Generó unidades y temas',
 
@@ -114,16 +106,17 @@ class HelpGPT
                         'user_id' => $theUser->id
                     ]);
 
+                    $ArrayRespuesta['respuesta'] = $respuesta;
                     $ArrayRespuesta['Cuantas_unidades'] = $unidades;
                     $ArrayRespuesta['Cuantas_temas'] = $temas;
                     Help_2GPT::Materias_Unidades_Temas($ArrayRespuesta, $numeroRenglones);
-                    $funcionoPorConteo = !$ArrayRespuesta['funciono'];
+                    $repetirOperacion = $finishingReason !== 'stop';
                 }else{
                     break;
                 }
             }
             session(['ConteodeGPT',$ConteodeGPT]);//todo: usar de alguna manera (no se esta usando aquiiiii)
-            array_unshift($ArrayRespuesta['respuesta'], $ModelMateria->nombre);
+//            array_unshift($ArrayRespuesta['respuesta'], $ModelMateria->nombre);
             return $ArrayRespuesta;
         }
         //de aqui,es si se esta debugiando
@@ -327,21 +320,16 @@ class HelpGPT
                 $plantillaPracticar = 'Ejercicios para practicar:';
                 $client = OpenAI::client(env('GTP_SELECT'));
                 $elpromp = self::modificarPromt($materia_nombre, $pregunta, $nivel, $plantillaPracticar);
-                $result = $client->completions()->create([
-                    'model' => 'text-davinci-003',
-                    'prompt' => $elpromp,
-                    'max_tokens' => HelpGPT::maxToken()
-                ]);
-                $respuesta = $result['choices'][0]["text"];
-                $finishReason = $result['choices'][0];
-                $finishingReason = $finishReason["finish_reason"] ?? '';
+                $result = JustChatFunctionGPT::Chat4($elpromp);
+                $respuesta = $result[1];
+                $finishingReason = $result[2];
+                $restarAlToken = 1;
 
                 if ($finishingReason == 'stop') {
-                    $usageRespuesta = intval($result['usage']["completion_tokens"]); //~ 260
-                    $usageRespuestaTotal = intval($result['usage']["total_tokens"]); //~ 500
-
-                    $restarAlToken = HelpGPT::CalcularTokenConsumidos($usageRespuesta, $usageRespuestaTotal);
-                    $usuario->update(['limite_token_leccion' => (intval($usuario->limite_token_leccion)) - $restarAlToken]);
+//                    $usageRespuesta = (int)($result['usage']["completion_tokens"]); //~ 260
+//                    $usageRespuestaTotal = (int)($result['usage']["total_tokens"]); //~ 500
+//                    $restarAlToken = HelpGPT::CalcularTokenConsumidos($usageRespuesta, $usageRespuestaTotal);
+                    $usuario->update(['limite_token_leccion' => ((int)($usuario->limite_token_leccion)) - $restarAlToken]);
 
                     MedidaControl::create([
                         'pregunta' => $elpromp,
@@ -391,27 +379,19 @@ class HelpGPT
             // if ($debug) {
             if (!$debug) { //this one is ok
 
-                $client = OpenAI::client(env('GTP_SELECT'));
-                $result = $client->completions()->create([
-                    'model' => 'text-davinci-003',
-                    'prompt' => $elpromp,
-                    'max_tokens' => HelpGPT::maxToken()
-                ]);
-                $respuesta = $result['choices'][0]["text"];
-                $finishReason = $result['choices'][0];
-                $finishingReason = $finishReason["finish_reason"] ?? '';
+                $result = JustChatFunctionGPT::Chat4($elpromp);
+                $respuesta = $result[1];
+                $finishingReason = $result[2];
+                $restarAlToken = 2;
 
-                if ($finishingReason == 'stop') {
-                    $usageRespuesta = intval($result['usage']["completion_tokens"]); //~ 260
-                    $usageRespuestaTotal = intval($result['usage']["total_tokens"]); //~ 500
+                if ($finishingReason === 'stop') {
+//                    $usageRespuesta = (int)($result['usage']["completion_tokens"]); //~ 260
+//                    $usageRespuestaTotal = (int)($result['usage']["total_tokens"]); //~ 500
 
                     $chuleta = self::ApartarChuleta($respuesta, 'RESPUESTA=');
-
-                    $restarAlToken = HelpGPT::CalcularTokenConsumidos($usageRespuesta, $usageRespuestaTotal);
-
-                    $tokensAntes = intval($usuario->limite_token_leccion);
+//                    $restarAlToken = HelpGPT::CalcularTokenConsumidos($usageRespuesta, $usageRespuestaTotal);
+                    $tokensAntes = (int)($usuario->limite_token_leccion);
                     $usuario->update(['limite_token_leccion' => ($tokensAntes) - $restarAlToken]);
-
                     $respuestaImplode = implode(':|:', $chuleta['ArrayPreguntas']);
 
                     MedidaControl::create([
@@ -429,7 +409,7 @@ class HelpGPT
                         'restarAlToken' => $restarAlToken,
                     ];
                 } else {
-                    if ($finishingReason == 'length') {
+                    if ($finishingReason === 'length') {
                         MedidaControl::create([
                             'pregunta' => $elpromp,
                             'respuesta_guardada' => 'RESPUESTA_MUY_LARGA',
@@ -561,7 +541,7 @@ class HelpGPT
                     if ($finishingReason == 'stop') {
 
                         $restarAlToken = $ChatR[0];
-                        $TokensRestantes = (intval($usuario->limite_token_leccion)) - $restarAlToken;
+                        $TokensRestantes = ((int)($usuario->limite_token_leccion)) - $restarAlToken;
                         $TokensRestantes = $TokensRestantes >= 0 ? $TokensRestantes : 0;
                         $usuario->update(['limite_token_leccion' => $TokensRestantes]);
 
@@ -611,6 +591,7 @@ class HelpGPT
                         }
                     }
                 } //debug
+
                 $respuesta = "La energía cinética es un tipo de energía mecánica que se genera cuando un cuerpo se encuentra en movimiento. Esta energía se manifiesta en forma de calor, luz, sonido y movimiento. La energía cinética también se conoce como energía del movimiento, ya que el movimiento mismo es energía que se genera cuando un cuerpo se desplaza.
                     En un nivel universitario, la energía cinética se explica a través de la ley de conservación de la energía mecánica. Esta ley establece que la energía mecánica es la misma antes y después del movimiento, a menos que se transfiera a otra forma, como el calor. La energía cinética se calcula mediante la fórmula de energía cinética, que establece que la energía cinética (K) es igual a la mitad del producto de la masa del objeto multiplicado por el cuadrado de su velocidad. En conclusión, la energía cinética es un tipo de energía mecánica generada por el movimiento de los cuerpos. Esta energía se puede calcular usando la ley de conservación de la energía mecánica y se puede manifestar como calor, luz, sonido y movimiento.
                 ";
@@ -668,12 +649,12 @@ class HelpGPT
     {
 
         $restarAlToken = 1;
-        $usageRespuesta -= self::MAX_USAGE_RESPUESTA;
-        $usageRespuestaTotal -= self::MAX_USAGE_TOTAL;
+        $usageRespuesta -= 550;
+        $usageRespuestaTotal -= 600;
 
         while ($usageRespuesta > 0 && $usageRespuestaTotal > 0) {
-            $usageRespuesta -= self::MAX_USAGE_RESPUESTA;
-            $usageRespuestaTotal -= self::MAX_USAGE_TOTAL;
+            $usageRespuesta -= 550;
+            $usageRespuestaTotal -= 600;
             $restarAlToken++;
         }
         return $restarAlToken;
@@ -786,27 +767,20 @@ class HelpGPT
 
         $longuitudPregunta = strlen($subtopico->nombre) > 3;
         if ($longuitudPregunta) {
-            // if ($debug) {
             if (!$debug) { //this one is ok
 
-                $client = OpenAI::client(env('GTP_SELECT'));
-                $result = $client->completions()->create([
-                    'model' => 'text-davinci-003',
-                    'prompt' => $elpromp,
-                    'max_tokens' => HelpGPT::maxToken()
-                ]);
+                $result = JustChatFunctionGPT::Chat4($elpromp);
+                $respuesta = $result[1];
+                $finishingReason = $result[2];
+                $restarAlToken = 1;
 
-                $respuesta = $result['choices'][0]["text"];
-                $finishReason = $result['choices'][0];
-                $finishingReason = $finishReason["finish_reason"] ?? '';
-
-                if ($finishingReason == 'stop') {
-                    $usageRespuesta = intval($result['usage']["completion_tokens"]); //~ 260
-                    $usageRespuestaTotal = intval($result['usage']["total_tokens"]); //~ 500
+                if ($finishingReason === 'stop') {
+//                    $usageRespuesta = (int)($result['usage']["completion_tokens"]); //~ 260
+//                    $usageRespuestaTotal = (int)($result['usage']["total_tokens"]); //~ 500
                     $chuleta = self::ApartarChuleta($respuesta, 'RESPUESTA=');
-                    $restarAlToken = HelpGPT::CalcularTokenConsumidos($usageRespuesta, $usageRespuestaTotal);
+//                    $restarAlToken = HelpGPT::CalcularTokenConsumidos($usageRespuesta, $usageRespuestaTotal);
 
-                    $tokensAntes = intval($usuario->limite_token_leccion);
+                    $tokensAntes = (int)($usuario->limite_token_leccion);
                     $usuario->update(['limite_token_leccion' => ($tokensAntes) - $restarAlToken]);
 
 
@@ -827,7 +801,7 @@ class HelpGPT
                         'restarAlToken' => $restarAlToken,
                     ];
                 } else {
-                    if ($finishingReason == 'length') {
+                    if ($finishingReason === 'length') {
                         return [
                             'vectorChuleta' => [self::respuestaLarga],
                             'ArrayPreguntas' => [],

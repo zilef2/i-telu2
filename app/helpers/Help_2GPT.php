@@ -13,8 +13,7 @@ class Help_2GPT
     const MAX_USAGE_TOTAL = 600;
 
     //usado cuando se generan las unidades y temas de una materia
-    public static function PostRespuestaIADavinci($result, $usuario)
-    {
+    public static function PostRespuestaIADavinci($result, $usuario){
         $respuesta = $result['choices'][0]["text"];
         $finishReason = $result['choices'][0];
         $finishingReason = $finishReason["finish_reason"] ?? '';
@@ -43,7 +42,7 @@ class Help_2GPT
 
     public static function BorrarEspaciosDelArrayRespuesta(&$Array){
 
-        unset($Array[0]);
+//        unset($Array[0]);
         $pattern = '/^\d+\.\s/';
 
         foreach ($Array as $key => $value) {
@@ -51,7 +50,8 @@ class Help_2GPT
             $value = str_replace('  ', '', $value);
 
             if ($value === '.') unset($Array[$key]);
-            else if ($value == '')  unset($Array[$key]);
+            if ($value == '')  unset($Array[$key]);
+            if ($value === '\n')  unset($Array[$key]);
 
 
             $vectorLetras = [
@@ -79,6 +79,7 @@ class Help_2GPT
                     $vectorLetras[$i] . ')'
                 ), '', $value);
             }
+            $value = trim($value);
 
             $palabrasBorradas = [
                 'Renglon',
@@ -88,14 +89,29 @@ class Help_2GPT
                 'Resultado de Aprendizaje ',
                 'Resultado de aprendizaje ',
                 'resultado de aprendizaje ',
-//                'Tema ',
-//                'tema ',
-//                'Unidad  ',
-//                'unidad  ',//todo: solo borrar si estan al principio de la palabra
+
+            ];
+            $palabrasBorradasIniciales=[
+                '  Tema ',
+                ' Tema ',
+                'Tema ',
+                'tema ',
+                ' tema ',
+                '  tema ',
+                'Unidad  ',
+                ' Unidad  ',
+                '  Unidad  ',
+                'unidad  ',
             ];
 
             foreach ($palabrasBorradas as $palabra) {
                 $value = str_replace($palabra, '', $value);
+            }
+            foreach ($palabrasBorradasIniciales as $palabra) {
+                if (strpos($value, $palabra) === 0) {
+                    // Si es así, eliminar la palabra "tema"
+                    $value = substr($value, strlen($palabra));
+                }
             }
 
             $Array[$key] = preg_replace($pattern, '', $value);
@@ -111,9 +127,10 @@ class Help_2GPT
 
         $ArrayRespuesta['funciono'] =
             (count($ArrayRespuesta['respuesta']) == $numeroRenglones)
-            ||
-            (count($ArrayRespuesta['respuesta']) == $numeroRenglones + 1)
-            ||
-            (count($ArrayRespuesta['respuesta']) + 1 == $numeroRenglones);
+//            ||
+//            (count($ArrayRespuesta['respuesta']) == $numeroRenglones + 1)
+//            ||
+//            (count($ArrayRespuesta['respuesta']) + 1 == $numeroRenglones)
+        ;
     }
 }

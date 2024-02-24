@@ -72,7 +72,7 @@ class UsuarioPendientesPagosController extends Controller
         }
     }
     public function losSelect($numberPermissions) {
-        if ($numberPermissions < intval(env('PERMISS_VER_FILTROS_SELEC'))) { //coordinador academico, coorPrograma,profe,estudiante
+        if ($numberPermissions < (int)(env('PERMISS_VER_FILTROS_SELEC'))) { //coordinador academico, coorPrograma,profe,estudiante
             $UniversidadSelect = Auth::user()->universidades;
         } else {
             $UniversidadSelect = Universidad::has('pendientes')->get();
@@ -161,13 +161,11 @@ class UsuarioPendientesPagosController extends Controller
     {
     }
 
-    public function store(PendienteRequest $request)
-    {
+    public function store(Request $request){
         DB::beginTransaction();
         Myhelp::EscribirEnLog($this, 'pendiente');
 
         try {
-
             $input = $request->all();
             $pendiente = UsuarioPendientesPago::create($input);
             DB::commit();

@@ -20,6 +20,37 @@ use Illuminate\Support\Facades\Log;
 class Myhelp {
 
     //JUST THIS PROJECT
+    public function mensajesErrorBD($th, $clasePrincipal, $elid)
+    {
+        $errorCode = $th->getCode();
+        $arrayCodes = [
+            1048 => ' Campo obligatorio, por favor completa la información.',
+            1062 => ' Ya existe un registro con esa información.',
+            1216 => ' Este registro no se puede eliminar, hay dependencias pendientes.',
+            1451 => ' Hay otros campos relacionados con el registro actual',
+            1452 => ' Hacen falta entidades relacionadas con el registro actual.',
+
+            23000 => 'Existe un problema en las restricciones de los estudiantes. El correo debe ser único',
+        ];
+
+        if (isset($arrayCodes[$errorCode])) {
+            $errorMessage = $arrayCodes[$errorCode];
+        } else {
+            $errorMessage = "Ocurrió un error de base de datos. ";
+        }
+
+        $Message = $th->getMessage();
+        $Line = $th->getLine();
+        $File = $th->getFile();
+        $errorMessageLog = "$Message. | Línea: $Line. | Archivo: $File. | Codigo: $errorCode";
+        Myhelp::EscribirEnLog(
+            $this,
+            $clasePrincipal,
+            $clasePrincipal . ' id:' . $elid . ' | fallo:: ' . $errorMessageLog,
+        );
+        return $errorMessage;
+    }
+
     public static function TokensPorPlan($plan){
         $valores = [
             0 => 100,
@@ -364,6 +395,33 @@ class Myhelp {
                 [
                     'title' => $value->{$theName},
                     'value' => $value->id,
+                    // 'filtro' => $value->teoricaOpractica
+                ];
+        }
+        return $result;
+    }
+    public static function HeadlessUI_combobox($theArrayofStrings,$selecc,$theName = 'nombre') {
+        if(self::EstaVacio($theArrayofStrings)) {
+            return [
+                [
+                    'name' => 'No hay registros', 'id' => 0,
+//                    'filtro' => ''
+                ]
+            ];
+        }
+
+        $result = [
+            [
+                'name' => 'Selecciona un'.$selecc,
+                'id' => 0,
+//                 'filtro' => ''
+            ]
+        ];
+        foreach ($theArrayofStrings as $value) {
+            $result[] =
+                [
+                    'name' => $value->{$theName},
+                    'id' => $value->id,
                     // 'filtro' => $value->teoricaOpractica
                 ];
         }

@@ -181,9 +181,14 @@ class PlansController extends Controller{
         $Plan = Plan::find($request->planid);
         $userAu = Myhelp::AuthU();
         try {
-            $YaTienePendiente = UsuarioPendientesPago::Where('user_id', $userAu)->get()->count();
-            if($YaTienePendiente === 0){
-
+            $PivotElplanPendiente = UsuarioPendientesPago::Where('user_id', $userAu->id)->get();
+            $YaTienePendiente = $PivotElplanPendiente->count();
+            $MensajePostCompra =
+                'Anteriormente usted solicitó el plan <b> '.$Plan->nombre.'</b>'.
+                '.<br><br> Para activar el plan, realize la transferencia a la siguiente cuenta de ahorros 123456, Banco: Su plan sera activado prontamente';//todo: urgente
+            $yaTienePlanPedido = $YaTienePendiente === 0;
+            session(['YaTienePlan' => $yaTienePlanPedido]);
+            if($yaTienePlanPedido){
                 UsuarioPendientesPago::create([
                     'fecha_peticion' => Carbon::now(),
                     'fecha_aprovacion' => null,
@@ -192,11 +197,12 @@ class PlansController extends Controller{
                     'user_id' => $userAu->id,
                     'plan_id' => $Plan->id,
                 ]);
-                Log::info("U -> " . Auth::user()->name . " esta pendiente por pagar el Plan " . $Plan->nombre . "");
-                session(['SuPlan' => 'Para activar el plan, realize la transferencia a la siguiente cuenta de ahorros 123456, Banco: Su plan sera activado el siguiente dia habil']);
+
+                Log::info("U -> " . $userAu->name . " esta pendiente por pagar el Plan " . $Plan->nombre . "");
+                session(['SuPlan' => $MensajePostCompra]);
             }else{
-                Log::info("U -> " . Auth::user()->name . " Quiso comprar el plan " . $Plan->nombre . ". Pero ya tenia pendiente uno");
-                session(['SuPlan' => 'Para activar el plan, realize la transferencia a la siguiente cuenta de ahorros 123456, Banco: Su plan sera activado el siguiente dia habil']);
+                Log::info("U -> " . $userAu->name . " Quiso comprar el plan " . $Plan->nombre . ". Pero ya tenia pendiente uno");
+                session(['SuPlan' => $MensajePostCompra]);
             }
             DB::commit();
 
@@ -214,7 +220,6 @@ class PlansController extends Controller{
         $titulo = __('app.label.PlanPendiente');
         $elUsuario = Myhelp::AuthU();
 
-
         return Inertia::render('Plan/PlanPendiente', [ //carpeta
             'breadcrumbs'       =>  [['label' => __('app.label.Plans'), 'href' => route('Plan.index')]],
             'title'             =>  $titulo,
@@ -225,7 +230,8 @@ class PlansController extends Controller{
             ]),
             'numberPermissions' =>  $numberPermissions,
             'elUsuario'         => $elUsuario,
-            'SuPlan'         => session('SuPlan') ?? ''
+            'SuPlan'            => session('SuPlan') ?? '',
+            'YaTienePlan'       => session('YaTienePlan') ?? false
         ]);
     } //fin MensajePlanPendiente
 

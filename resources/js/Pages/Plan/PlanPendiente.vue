@@ -27,6 +27,7 @@ const props = defineProps({
     fromController: Object,
     numberPermissions: Number,
     SuPlan: String,
+    YaTienePlan: Boolean,
 })
 
 const data = reactive({
@@ -111,11 +112,16 @@ const copyToClipboard = () =>  {
             <div class="mx-auto max-w-screen-2xl px-4 md:px-8">
                 <header class="mb-8 flex items-center justify-between border-b py-4 md:mb-12 md:py-8 xl:mb-16">
                     <!-- logo - start -->
-                    <a href="/" class="inline-flex items-center gap-2.5 text-2xl font-bold text-black md:text-3xl" aria-label="logo">
+                    <a v-if="props.YaTienePlan" href="/" class="inline-flex items-center gap-2.5 text-2xl font-bold text-black md:text-3xl" aria-label="logo">
                         <svg width="95" height="94" viewBox="0 0 95 94" class="h-auto w-6 text-indigo-500" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                             <path d="M96 0V47L48 94H0V47L48 0H96Z" />
                         </svg>
-
+                        Recuerde usted ya tiene pendiente un plan. Será notificado con un correo electrónico
+                    </a>
+                    <a v-else href="/" class="inline-flex items-center gap-2.5 text-2xl font-bold text-black md:text-3xl" aria-label="logo">
+                        <svg width="95" height="94" viewBox="0 0 95 94" class="h-auto w-6 text-indigo-500" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M96 0V47L48 94H0V47L48 0H96Z" />
+                        </svg>
                         Su plan esta pendiente por revisar. Será notificado con un correo electrónico
                     </a>
                     <!-- logo - end -->
@@ -166,13 +172,14 @@ const copyToClipboard = () =>  {
                                 leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
                                 <DialogPanel
                                     class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-                                    <DialogTitle as="h3" class="text-lg font-medium leading-6 text-gray-900">
+                                    <DialogTitle v-if="props.YaTienePlan" as="h3" class="text-lg font-medium leading-6 text-gray-900">
                                         Activacion de plan para IntelU
                                     </DialogTitle>
+                                    <DialogTitle v-else as="h3" class="text-xl font-medium leading-6 text-gray-900">
+                                        Recuerde que usted ya tiene un plan pendiente por aprobacion
+                                    </DialogTitle>
                                     <div class="mt-2">
-                                        <p class="text-sm text-gray-500">
-                                            {{ props.SuPlan }}
-                                    </p>
+                                        <p v-html="props.SuPlan" class="text-lg text-gray-600"></p>
                                 </div>
 
                                 <div class="mt-4">

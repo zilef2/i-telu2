@@ -26,7 +26,7 @@ const data = reactive({
         // perPage: props.perPage,
     },
     vectorMostrar: []
-    // selectedId: [],  
+    // selectedId: [],
 })
 
 const order = (field) => {
@@ -64,22 +64,21 @@ onMounted(() => {
             <h1 class="text-xl title-font font-medium text-center my-1 text-zinc-600">Contenido de</h1>
             <h1 class="text-sky-700 text-3xl title-font text-center font-medium mb-4">{{ props.fromController.nombre }} </h1>
             <h1 class="text-gray-900 text-lg title-font text-justify font-medium mb-4">{{ props.fromController.descripcion }} </h1>
-            <h1 class="text-sky-700 text-2xl title-font font-medium text-center mt-10 mb-5">Objetivos </h1>
+            <h1 class="text-sky-700 text-2xl title-font font-medium mt-10 mb-5">Objetivos </h1>
             <ol class="list-decimal mb-12">
-                <li v-for="objetivo in props.objetivos" class="text-gray-900 text-xl title-font font-medium mb-4"> - {{
+                <li v-for="objetivo in props.objetivos" class="text-gray-900 text-lg title-font font-medium mb-4"> - {{
                     objetivo.nombre
                 }} </li>
             </ol>
 
             <p class="text-center">
-                Si desea iniciar con sus estudios presione click 
                 <div class="rounded-md overflow-hidden">
                     <superButton type="button" class="rounded-lg"
                         :ruta="'materia.VistaTema'"
                         :id1="props.fromController.id"
-                        :texto="'Aqui'">
+                        :texto="'Estudiar'">
                     </superButton>
-                </div> 
+                </div>
             </p>
 
             <div v-if="props.unidads.length" class="lg:w-4/5 w-full mx-auto overflow-auto">
@@ -122,8 +121,8 @@ onMounted(() => {
 
                 </table>
             </div>
-            <p v-else class="text-xl text-ellipsis text-orange-800">
-                No hay unidades registrados para esta materia
+            <p v-else class="text-2xl my-3 text-center text-ellipsis text-orange-800">
+                No hay unidades registradas para esta materia
             </p>
             <!-- todo: ir a la IA -->
             <!-- <div class="flex pl-4 mt-4 lg:w-2/3 w-full mx-auto">

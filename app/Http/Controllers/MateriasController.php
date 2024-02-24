@@ -76,6 +76,7 @@ class MateriasController extends Controller
             }
 
             $materia->papa = $materia->carrera_nombre();
+            $materia->abuelo = $materia->carrera()->first()->universidad_nombre();
             $materia->cuantoshijos = count($materia->unidads);
             $materia->cuantosArchivos = count($materia->archivos);
 
@@ -94,30 +95,33 @@ class MateriasController extends Controller
             $nombresTabla[0] = ["IA", "Archivos", "Semestre", "Nombre", "Codigo", "Carrera",   "Unidades", "Objetivos", "descripcion"];
         } else {
             if ($numberPermissions <= 1.5) {
-                $nombresTabla[2] = [null, null, null,             "enum",     "nombre", "codigo", "carrera_id", null,    null,        null, "descripcion"];
-                $nombresTabla[0] = ["Edicion", "IA", "Archivos",  "Semestre", "Nombre", "Codigo", "Carrera", "Unidades", "usuarios", "Objetivos", "descripcion"];
+                $nombresTabla[2] = [null, null,        "enum",     "nombre", "codigo", "carrera_id", null,      null,        null,       "descripcion"];
+                $nombresTabla[0] = ["IA", "Archivos",  "Semestre", "Nombre", "Codigo", "Carrera",   "Unidades", "usuarios", "Objetivos", "descripcion"];
             } else {
-                $nombresTabla[2] = [null, null, null, null,                     "enum",     "nombre", "codigo", "carrera_id", null,      null,       null, "descripcion"];
-                $nombresTabla[0] = ["Edicion", "Matricular", "IA", "Archivos",  "Semestre", "Nombre", "Codigo", "Carrera",  "Unidades", "usuarios", "Objetivos", "descripcion"];
+                $nombresTabla[2] = [null, null, null, null,                     "enum",     "nombre", "codigo", "carrera_id", null,     null,        "descripcion",null];
+                $nombresTabla[0] = ["Edicion", "Matricular", "IA", "Archivos",  "Semestre", "Nombre", "Codigo", "Carrera",  "Unidades", "Objetivos", "descripcion", "usuarios"];
             }
         }
-
         return $nombresTabla;
     }
 
-    public function losSelect($numberPermissions, &$carrerasSelect, &$MateriasRequisitoSelect, &$UniversidadSelect, $request, &$materias)
-    {
-        if ($request->has('selectedUni') &&  $request->selectedUni != 0) {
+    public function losSelect($numberPermissions, &$carrerasSelect, &$MateriasRequisitoSelect, &$UniversidadSelect, $request, &$materias){
+
+        $carrerasDelUsuarioSelect = Auth::user()->carreras();
+        if ($request->has('selectedUni') && $request->selectedUni != 0) {
             $carrerasSelect = Carrera::where('universidad_id', $request->selectedUni)->get();
         } else {
             if ($numberPermissions > 8) {
                 $carrerasSelect = Carrera::all();
             } else {
-                $carrerasSelect = Auth::user()->carreras;
+                $carrerasSelect = $carrerasDelUsuarioSelect;
             }
         }
         if ($request->has('selectedcarr') && $request->selectedcarr != 0) {
             $materias = $materias->whereIn('carrera_id', $request->selectedcarr);
+            if ($numberPermissions < 8) {
+                $materias->whereIn('carrera_id', $carrerasDelUsuarioSelect->pluck('carreras.id'));
+            }
         }
 
         if ($numberPermissions < (int)(env('PERMISS_VER_FILTROS_SELEC'))) { //coorPrograma,profe,estudiante
@@ -131,16 +135,13 @@ class MateriasController extends Controller
     }
 
     public function index(Request $request) {
-        $permissions = Myhelp::EscribirEnLog($this, ' materia');
-        $numberPermissions = Myhelp::getPermissionToNumber($permissions);
-
+        $numberPermissions = Myhelp::getPermissionToNumber(Myhelp::EscribirEnLog($this, ' materia'));
         $titulo = __('app.label.materias');
-
         $perPage = $request->has('perPage') ? $request->perPage : 10;
-
         $materias = Materia::query();
+        $theUser = Myhelp::AuthU();
 
-        if ($permissions === "estudiante") {
+        if ($numberPermissions < 2) {
             $nombresTabla = $this->fNombresTabla($numberPermissions);
         } else { // not estudiante
             $this->Filtros($request, $materias);
@@ -154,6 +155,9 @@ class MateriasController extends Controller
         $carrerasSelect = $MateriasRequisitoSelect = $UniversidadSelect = null;
         $this->losSelect($numberPermissions, $carrerasSelect, $MateriasRequisitoSelect, $UniversidadSelect, $request, $materias);
 
+
+
+        //Listo, Ahora las funciones de reload
         $page = request('page', 1); // Current page number
         $total = $materias->count();
         $paginated = new LengthAwarePaginator(
@@ -168,11 +172,14 @@ class MateriasController extends Controller
         //# generarTodo.vue :> generar
         // $listaMaterias = Materia::where('carrera_id',$request->carrera_id)->pluck('nombre') ?? [];
         $materia = Materia::find($request->materia_id);
-        $laCarrera = Carrera::find($request->carrera_id) ?? null;
-        $ValoresGenerarMateria = Inertia::lazy(fn () => HelpGpt::ValoresGenerarMateria($laCarrera->nombre, $materia, [
-            'temas' => $request->temas,
-            'unidades' => $request->unidades,
-        ]));
+        if($request->carrera_id)
+            $laCarrera = Carrera::find($request->carrera_id['value']) ?? null;
+
+        if(isset($laCarrera) && $laCarrera)
+            $ValoresGenerarMateria = Inertia::lazy(fn () => HelpGpt::ValoresGenerarMateria($laCarrera->nombre, $materia, [
+                'temas' => $request->temas,
+                'unidades' => $request->unidades,
+            ]));
 
         //# generarTodo.vue :> buscarMateriasSelect
         if ($request->has('carrera_id_buscar') && $request->carrera_id_buscar != 0) {
@@ -191,6 +198,7 @@ class MateriasController extends Controller
             'MateriasRequisitoSelect'   => $MateriasRequisitoSelect,
             'UniversidadSelect'         => $UniversidadSelect,
             'numberPermissions'         => $numberPermissions,
+            'UniversidadUser'           => $theUser->MyUniversidad($numberPermissions),
 
             'ValoresGenerarMateria'     => $ValoresGenerarMateria ?? null,
         ]);
@@ -206,16 +214,24 @@ class MateriasController extends Controller
         $request->validate([
             'codigo' => 'required|unique:materias',
         ]);
+        $uiser = Myhelp::AuthU();
         try {
-            //very usefull
-            // $modelInstance = resolve('App\\Models\\' . $this->modelName);
-            // $ultima = $modelInstance::latest('enum')->first()->enum;
+            //very usefull // $modelInstance = resolve('App\\Models\\' . $this->modelName);// $ultima = $modelInstance::latest('enum')->first()->enum;
+            $CarreraID = $request->carrera_id;
+            $Carrera = Carrera::find($CarreraID);
+            $nombreIgual = $Carrera->EnLaCarreraYaTieneEseNombre($CarreraID,$request->nombre);
+//            dd($nombreIgual,$Carrera);
+            if($nombreIgual > 0) {
+                DB::rollback();
+                Myhelp::EscribirEnLog($this,'Se intento guardar una materia con el mismo nombre');
+                return back()->with('error', 'Ese nombre ya esta reservado para otra asignatura');
+            }
             $enum = $this->enumUltimo($request->enum);
 
             $materia = Materia::create([
                 'nombre' => $request->nombre,
                 'descripcion' => $request->descripcion,
-                'carrera_id' =>  $request->carrera_id,
+                'carrera_id' =>  $CarreraID,
                 'enum' => $enum,
                 'codigo' => $request->codigo
             ]);
@@ -234,13 +250,13 @@ class MateriasController extends Controller
             }
 
             DB::commit();
-            Log::info("U -> " . Auth::user()->name . " Guardo materia " . $request->nombre . " correctamente");
+            Log::info("U -> " . $uiser->name . " Guardo materia " . $request->nombre . " correctamente");
             return back()->with('success', __('app.label.created_successfully2', ['nombre' => $materia->nombre]));
         } catch (\Throwable $th) {
+            $mensajeth =  $request->nombre . " - " . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile();
             DB::rollback();
-            Log::alert("U -> " . Auth::user()->name . " fallo en Guardar materia " . $request->nombre . " - " . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
-
-            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.materia')]) . $th->getMessage() . ' L:' . $th->getLine() . ' Ubi:' . $th->getFile());
+            Log::alert("U -> " . $uiser->name . " fallo en Guardar materia " . $mensajeth);
+            return back()->with('error', __('app.label.created_error', ['nombre' => __('app.label.materia')]) . $mensajeth);
         }
     }
 
@@ -585,13 +601,13 @@ class MateriasController extends Controller
                             $gpt = HelpGPT::gptResolverQuiz($selectedReasonString, $subtopicoSelec->nombre, $ChosenNivel, $materia->nombre, $usuario, env('DEBUGGINGGPT'));
                         }
                         $restarAlToken = $gpt['restarAlToken'];
-                        $limite = intval($usuario->limite_token_leccion);
+                        $limite = (int)($usuario->limite_token_leccion);
                     } else { //no le quedan mas tokens
                         $respuesta = $this->respuestaLimite;
                     }
                 }
 
-                $temasYValores = $this->lookForTemas(intval($materiaid));
+                $temasYValores = $this->lookForTemas((int)($materiaid));
                 $nivelSelect = $vectorYSelecNiveles[1];
 
                 set_time_limit(70);
@@ -600,7 +616,7 @@ class MateriasController extends Controller
                 return Inertia::render('materia/vistaTem', [ //carpeta
                     'breadcrumbs'           =>  [['label' => __('app.label.materias'), 'href' => route('materia.index')]],
                     'title'                 =>  'Aprendiendo con GPT',
-                    'elid'                  =>  intval($materiaid),
+                    'elid'                  =>  (int)($materiaid),
                     'perPage'               =>  10,
                     'fromController'        =>  $temasYValores[0],
                     'respuesta'             =>  $respuesta,
@@ -645,7 +661,7 @@ class MateriasController extends Controller
                     $temaSelec = Unidad::find($subtopicoModel->unidad_id);
                     $gpt = HelpGPT::gptResolverTema($selectedReasonString, $subtopicoModel, $unidad->nombre, 'Profesional', $materia->nombre, $usuario, env('DEBUGGINGGPT'));
                     $restarAlToken = $gpt['restarAlToken'];
-                    $limite = intval($usuario->limite_token_leccion);
+                    $limite = (int)($usuario->limite_token_leccion);
                     $respuesta = $gpt['respuesta'];
                 }
             } else { //no le quedan mas tokens

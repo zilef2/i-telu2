@@ -17,9 +17,8 @@ class ErrorHandlerMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
-        $user = Myhelp::AuthU();
-
         try {
+            $user = Myhelp::AuthU();
             return $next($request);
         } catch (\Throwable $th) {
             DB::rollback();
