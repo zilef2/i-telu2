@@ -53,12 +53,12 @@ props.textoBotones.forEach(function (element, i) {
             <p class="mb-8 leading-relaxed text-gray-500 md:mb-12 w-full">Descubre, Aprende, Crea: Tu Camino Educativo con IA</p>
             <p class="mb-8 leading-relaxed text-gray-700 md:mb-12 w-full text-justify">"¡Bienvenido a nuestra plataforma educativa interactiva! Aquí, los estudiantes tienen el poder de elegir sus propios cursos y sumergirse en un mundo de descubrimiento, aprendizaje y creación. Nuestra inteligencia artificial guía a los usuarios a lo largo de su viaje educativo, proporcionando asistencia personalizada para investigar, comprender y redactar contenido. Desde explorar materias hasta profundizar en proyectos, nuestra plataforma fomenta la autonomía del estudiante mientras ofrece el respaldo y la orientación de la IA en cada paso del camino. ¡Prepárate para descubrir, aprender y crear con libertad y apoyo tecnológico innovador!"</p>
 
-            <div class="flex flex-col gap-2.5 sm:flex-row sm:justify-center lg:justify-start">
-                <Link :href="route(props.linkBotones[0])" class="flex justify-between items-center">
-                  <p class="underline text-indigo-500">{{ props.textoBotones[0] }}</p>
-                  <ChevronRightIcon class="w-5 h-5 mx-4"/>
-                </Link>
-            </div>
+<!--            <div class="flex flex-col gap-2.5 sm:flex-row sm:justify-center lg:justify-start">-->
+<!--                <Link :href="route(props.linkBotones[0])" class="flex justify-between items-center">-->
+<!--                  <p class="underline text-indigo-500">{{ props.textoBotones[0] }}</p>-->
+<!--                  <ChevronRightIcon class="w-5 h-5 mx-4"/>-->
+<!--                </Link>-->
+<!--            </div>-->
           </div>
           <!-- content - end -->
 

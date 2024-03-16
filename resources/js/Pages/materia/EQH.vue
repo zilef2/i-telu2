@@ -18,7 +18,7 @@ const props = defineProps({
     respuesta1: String,
     limite: Number,
 
-    //EQH
+    //EQH (Ejemplos, quiz, HacerPregunta)
     actionEQH: Number,
     ejemplosRespuesta: String,
     restarAlToken: Number,
@@ -45,7 +45,6 @@ const data = reactive({
         temaSelec: {},
         subtopicoSelec: {},
         respuesta1: '',
-        actionEQH: '',
         //E
         ejemplosRespuesta: '',
         //Q
@@ -54,6 +53,7 @@ const data = reactive({
         HacerlaPregunta: '',
         materiaid: '',
         Yarespondio: false,
+        mostrarFormQuiz:false,
     },
     thinking:false,
 
@@ -80,10 +80,10 @@ function myPromise(){
 const PreguntarGPT = async (actionEQH) => {
     data.thinking = false//temp
     // data.thinking = true
-    
+
     try{
 
-        if(actionEQH == 2) {
+        if(actionEQH === 2) {
             data.IntegerRespondioCorrectamente = 0
             data.Yarespondio = false
         }
@@ -97,7 +97,7 @@ const PreguntarGPT = async (actionEQH) => {
         data.params.materiaid = props.materia.id;
 
         //quiz
-        if (data.params.actionEQH == 3) data.params.HacerlaPregunta = ReemplazarTildes(data.params.HacerlaPregunta)
+        if (data.params.actionEQH === 3) data.params.HacerlaPregunta = ReemplazarTildes(data.params.HacerlaPregunta)
 
         await myPromise();
         data.thinking = false//temp
@@ -123,7 +123,7 @@ watch(() => data.chosenRespuesta, (newX) => {
 
 //not using
 watchEffect(() => { });
-onMounted(() => { 
+onMounted(() => {
 
  })
 const form = useForm({ });
@@ -178,13 +178,13 @@ const paAbajo = () => { window.scrollTo(0, document.body.scrollHeight); }
                                                 {{ props.quizPregunta }}
                                             </label>
                                             <div class="grid grid-cols-2 space-x-6 space-y-6">
-                                                <div v-for="(respuesta, index) in quizRespuestas" :key="index"
+                                                <div v-for="(respuesta, index) in props.quizRespuestas" :key="index"
                                                     class="items-start">
                                                     <div class="my-1">
-                                                        <input v-if="!data.Yarespondio" :value="index" 
+                                                        <input v-if="!data.Yarespondio" :value="index"
                                                             v-model="data.chosenRespuesta" type="radio"
                                                             name="respuestas" id="respuestasButton" class="h-5 w-5"
-                                                            
+
                                                             />
                                                             <!-- todo: guardar si respondio bien la respuesta del quiz -->
                                                         <label for="radioButton1" class="pl-3 text-base font-medium text-gray-800">
@@ -205,7 +205,7 @@ const paAbajo = () => { window.scrollTo(0, document.body.scrollHeight); }
                                             role="alert">
                                             <p class="font-bold">¡Incorrecto!</p>
                                         </div>
-                                        
+
                                         <p class="text-sm">
                                             {{ props.RespuestaUnicaCorrecta }}
                                         </p>
@@ -218,9 +218,10 @@ const paAbajo = () => { window.scrollTo(0, document.body.scrollHeight); }
 
 
 
-                        <div class="w-full mt-6 mx-auto border border-t-2 border-x-0 border-b-0 border-black">
-                            <p class="my-5 text-lg font-sans font-extrabold">Explicacion inicial</p>
-                            <p class="text-left">{{ props.respuesta1 }}</p>
+                        <div class="w-full mt-6 mx-auto">
+                            <p @click="data.mostrarFormQuiz = !data.mostrarFormQuiz" class="my-5 text-lg font-sans font-extrabold border-2 border-gray-900 border-dotted">Explicacion inicial</p>
+
+                            <p v-if="data.mostrarFormQuiz" class="text-left">{{ props.respuesta1 }}</p>
                             <div class="w-full mt-1 mx-auto">
 
                                 <div class="w-full flex items-center justify-center bg-gray-100 dark:bg-gray-900">
@@ -244,7 +245,7 @@ const paAbajo = () => { window.scrollTo(0, document.body.scrollHeight); }
                                                     class="border border-teal-500 bg-teal-500 text-white rounded-md px-4 py-2 m-2 transition duration-500 ease select-none hover:bg-teal-600 focus:outline-none focus:shadow-outline">
                                                     Hacer una pregunta
                                                 </button> -->
-                                                
+
                                             </div>
                                         </div>
                                         <div class="flex items-center justify-center p-12">

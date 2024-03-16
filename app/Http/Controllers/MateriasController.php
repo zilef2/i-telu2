@@ -694,13 +694,11 @@ class MateriasController extends Controller
         }
     }
 
-    public function actionEQH(Request $request)
-    {
+    public function actionEQH(Request $request){
         $permissions = Myhelp::EscribirEnLog($this, ' materia');
         $numberPermissions = Myhelp::getPermissionToNumber($permissions);
         $usuario = Myhelp::AuthU();
         try {
-
             $SubtopicoEsString = is_string($request->subtopicoSelec);
             if ($SubtopicoEsString) {
                 $subtopicoModel = Subtopico::Where('nombre', $request->subtopicoSelec)->first();
@@ -726,10 +724,15 @@ class MateriasController extends Controller
             }
 
             if ($actionEQH === 2) { //quiz
-                $selectedReasonString = 'Genere una pregunta de seleccion multiple sobre [tema] de la asignatura [materia].';
+                $selectedReasonString = 'Genere una pregunta de seleccion multiple sobre [tema] de la asignatura [materia].'
+                ."Debes responder siempre en este orden: La pregunta, opcion a, opcion b, opcion c y opcion d "
+                ."No coloques un renglon adicional ni coloque el texto opcion x para cada posible respuesta."
+                ;
+
                 $quiz = true;
                 $gpt = HelpGPT::gptQuizEstudiante($selectedReasonString, $subtopicoModel, 'Profesional', $materia->nombre, $usuario, env('DEBUGGINGGPT'));
                 $quizPregunta = $gpt['vectorChuleta'][0];
+
                 $quizCorrectaString = trim($gpt['vectorChuleta'][$gpt['ArrayRespuestasCorrectas'][0]]);
                 $myhelp = new Myhelp();
                 if (count($myhelp->EncontrarEnString($quizCorrectaString, "RESPUESTA=A")) > 0) $quizCorrecta = 0;

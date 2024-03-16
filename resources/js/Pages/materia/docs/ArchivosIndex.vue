@@ -130,7 +130,7 @@ const deletethis = (archivoid) => {
                     <div class="px-4 lg:w-full">
                         <div class="h-full bg-gray-100 bg-opacity-75 px-8 pt-8 pb-1 rounded-lg overflow-hidden text-center relative">
                             <!-- <h1 class="title-font sm:text-2xl text-xl font-medium text-gray-900 mb-3"></h1> -->
-                            <h1 @click="data.mostrarForm = !data.mostrarForm" class="title-font sm:text-xl text-lg font-medium text-gray-900 hover:underline cursor-pointer">Guardar documentos, solo PDF</h1>
+                            <h1 @click="data.mostrarForm = !data.mostrarForm" class="sm:text-xl text-lg font-medium text-gray-900 border-dotted border-b-2 border-gray-900 cursor-pointer">Guardar documentos(PDF)</h1>
                         </div>
                     </div>
                 </div>
@@ -155,8 +155,8 @@ const deletethis = (archivoid) => {
                             Subir archivo
                         </button>
                     </div>
+                    <Back :ruta="'materia.index'" class="mt-7 text-center"/>
                 </form>
-                <Back :ruta="'materia.index'" class="mt-7 text-center"/>
             </div>
 
             <div class="container px-5 my-4 mx-auto border border-b-2 border-x-0 border-black">

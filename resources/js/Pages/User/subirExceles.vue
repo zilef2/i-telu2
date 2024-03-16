@@ -202,18 +202,20 @@ data.UniversidadSelect = vectorSelect(data.UniversidadSelect, props.UniversidadS
                                             </div>
                                         </form>
 
-                                        <h2 class="text-xl text-gray-900 dark:text-white">El formato necesita las siguientes columnas</h2>
+                                        <h2 class="text-lg text-gray-900 dark:text-white">El formato necesita las siguientes columnas</h2>
                                         <ul class="list-decimal my-6 mx-5">
-                                            <li class="text-lg">Nombre</li>
-                                            <li class="text-lg">Correo</li>
-                                            <li class="text-lg">Identificacion</li>
+                                            <li class="text-lg">Nombre*</li>
+                                            <li class="text-lg">Correo*</li>
+                                            <li class="text-lg">Identificacion*</li>
                                             <li class="text-lg">Sexo</li>
                                             <li class="text-lg">Fecha de nacimiento</li>
                                             <li class="text-lg">Semestre</li>
-                                            <li class="text-lg">Nivel</li>
-                                            <li class="text-lg">Cargo</li>
+                                            <li class="text-lg">Nivel*</li>
+                                            <li class="text-lg">Cargo*</li>
+                                            <li class="text-lg">Código Programa*</li>
+                                            <li class="text-lg">Código Asignatura*</li>
                                         </ul>
-                                        <ul class="list-decimal my-6 mx-5">
+                                        <ul class="list-decimal m-5">
                                             <li class="text-lg">Nombre</li>
                                             <li class="text-lg">Correo: <small class="text-lg">Cada correo debe ser unico</small></li>
                                             <li class="text-lg">Identificacion: <small class="text-lg">Debe ser un numero</small></li>
@@ -221,8 +223,9 @@ data.UniversidadSelect = vectorSelect(data.UniversidadSelect, props.UniversidadS
                                             <li class="text-lg">Fecha de nacimiento</li>
                                             <li class="text-lg">Semestre</li>
                                             <li class="text-lg">Nivel: <small class="text-lg">Primaria, bachillerato, tecnologia, profesional,especializacion,maestría,doctorado</small></li>
-                                            <li class="text-lg">Cargo: <small class="text-lg">estudiante, profesor</small>
-                                            </li>
+                                            <li class="text-lg">Cargo: <small class="text-lg">estudiante, profesor</small></li>
+                                            <li class="text-lg">Programa: <small class="text-lg">Código del Programa</small></li>
+                                            <li class="text-lg">Asignatura: <small class="text-lg">Código de la Asignatura</small></li>
                                         </ul>
 
                                         <div class="flex items-center flex-wrap my-1">

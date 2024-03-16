@@ -76,6 +76,7 @@ class PersonalImport implements ToModel, WithHeadingRow, WithUpsertColumns {
         $Asignatura = trim($row['asignatura']);
         $ModelPrograma = Carrera::Where('codigo',$Programa);
         $pasoLaValidacionCarrera = $ModelPrograma->exists();
+        //todo: contar los usuarios que tengan carrera o materia mal escrita.
 
         if($pasoLaValidacionCarrera){
             $ModelPrograma = $ModelPrograma->first();
@@ -94,7 +95,6 @@ class PersonalImport implements ToModel, WithHeadingRow, WithUpsertColumns {
         ];
     }
     private function validationForUser($row,&$identificacio, &$rowSemestre,&$rowSexo,&$elcargo){
-        //<editor-fold desc="validaciones identifiacion - sexo y cargo">
         $Validacionidentificacion = true;
         $ValidacionCargo = true;
 
@@ -131,7 +131,6 @@ class PersonalImport implements ToModel, WithHeadingRow, WithUpsertColumns {
             'Validacionidentificacion' => $Validacionidentificacion,
             'ValidacionCargo' => $ValidacionCargo
         ];
-        //</editor-fold>
     }
 
 
@@ -152,15 +151,25 @@ class PersonalImport implements ToModel, WithHeadingRow, WithUpsertColumns {
 
             $ValCarrera = $VectorValidacionCarMat['pasoLaValidacionCarrera'];
             $ValAsignatura = $VectorValidacionCarMat['pasoLaValidacionAsignatura'];
+            $Validacionidentificacion = $VectorPasoLaValidacion["Validacionidentificacion"];
+            $ValidacionCargo = $VectorPasoLaValidacion["ValidacionCargo"];
+//            dd(
+                //                  $ValCarrera,
+                    //$ValAsignatura,
+                    //$Validacionidentificacion,
+                    //$ValidacionCargo,
+//            );//quitar cuando muestre mensaje para estas validaciones
 
             //todo: falta actualizar nivel y cargo
-            //todo: Primaria, bachillerato, tecnologia, profesional,especializacion,maestría,doctorado
+            //todo: nivel -> Primaria, bachillerato, tecnologia, profesional,especializacion,maestría,doctorado
             //todo: enviar correo a cada estudiante, que ha sido registrado
-            if($ValCarrera && $ValAsignatura && $VectorPasoLaValidacion){
+            if($ValCarrera && $ValAsignatura && $Validacionidentificacion && $ValidacionCargo){
                 $elCorreo = trim($row['correo']);
                 $queryIdentificacion = User::where('identificacion', $identificacio);
                 $queryEmail = User::where('email', $elCorreo);
 
+
+                //4 opciones
                 if(!$queryIdentificacion->exists() && $queryEmail->exists()){
                     //se borra al user fue error humano
                     $elUsuario = $queryEmail->first();
@@ -217,6 +226,7 @@ class PersonalImport implements ToModel, WithHeadingRow, WithUpsertColumns {
                 }
             }
 
+            return null;
         }catch (QueryException $e) {
             $this->countfilasFallidas++;
             if($this->countfilasFallidas >= 20){

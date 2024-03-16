@@ -185,11 +185,11 @@ watchEffect(() => {
                                         <ChevronUpDownIcon class="w-4 h-4" />
                                     </div>
                                 </th>
-                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('pgrado')">
-                                    <div class="flex justify-between items-center"> <span>{{ lang().label.pgrado }}</span>
-                                        <ChevronUpDownIcon class="w-4 h-4" />
-                                    </div>
-                                </th>
+<!--                                <th class="px-2 py-4 cursor-pointer" v-on:click="order('pgrado')">-->
+<!--                                    <div class="flex justify-between items-center"> <span>{{ lang().label.pgrado }}</span>-->
+<!--                                        <ChevronUpDownIcon class="w-4 h-4" />-->
+<!--                                    </div>-->
+<!--                                </th>-->
                                 <th class="px-2 py-4 cursor-pointer" v-on:click="order('semestre')">
                                     <div class="flex justify-between items-center"> <span>{{ lang().label.semestre }}</span>
                                         <ChevronUpDownIcon class="w-4 h-4" />
@@ -245,9 +245,8 @@ watchEffect(() => {
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.updated_at }}</td> -->
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.identificacion }}</td>
                                 <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.sexo }}</td>
-                                <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">
-                                    {{ CalcularEdad(user.fecha_nacimiento) }}</td>
-                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.pgrado }}</td>
+                                <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">{{ CalcularEdad(user.fecha_nacimiento) }}</td>
+<!--                                <td class="whitespace-nowrap py-4 px-2 sm:py-3">{{ user.pgrado }}</td>-->
                                 <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">{{ user.semestre }}</td>
                                 <td class="whitespace-nowrap text-center py-4 px-2 sm:py-3">{{ user.limite_token_general }}
                                 </td>

@@ -171,19 +171,18 @@ class HelpGPT
 
     //todo: strpos(stringGrande, buscado) -> $buscando = strpos
 
-    private static function ApartarChuleta($respuestaGPT, $plantillaPracticar) {
+    private static function ApartarChuleta($respuestaGPT, $plantillaPracticar): array{
         $vectorChuleta = explode("\n", $respuestaGPT);
-
         //asegurar que el primer renglon, sea el titulo
-        if (strpos(trim($vectorChuleta[0]), '¿'))
-            array_unshift($vectorChuleta, "Quiz");
+//        if (strpos(trim($vectorChuleta[0]), '¿'))
+//        array_shift($vectorChuleta, "Quiz");
 
         $ArrayRespuestasCorrectas = [];
         $posicionInicial = 0;
 
         $contador = 0;
         //todo: usar array_filter
-        foreach ($vectorChuleta as $key => $value) {
+        foreach ($vectorChuleta as $key => $value) { //limpiar valores que gpt envia por presentacion
             if (strlen(trim($value)) > 1) {
                 $NuevoVectorChuleta[$contador] = $value;
                 $contador++;
@@ -193,21 +192,25 @@ class HelpGPT
         foreach ($NuevoVectorChuleta as $key => $value) {
             $buscando = strpos(trim($value), $plantillaPracticar);
             if ($buscando !== false) {
-                $posicionPreguntas[] = $posicionInicial;
+                $posicionPreguntas[] = $posicionInicial;//tosee
                 $ArrayRespuestasCorrectas[] = $key;
                 $posicionInicial += $key;
             }
         }
 
+        $countValidatioxn = count($ArrayRespuestasCorrectas);
+
         //si no devuelve un vector, la IA no respondio bien
-        if (count($ArrayRespuestasCorrectas) < 1) return [
+        if ($countValidatioxn < 1 || $countValidatioxn > 7) return [
             'vectorChuleta' => [],
             'ArrayRespuestasCorrectas' => 'Formato de respuesta invalido',
-            'ArrayPreguntas' => ''
+            'ArrayPreguntas' => '',
+            'countValidation' => $countValidatioxn
         ];
 
         //guardar las posiciones de dichas preguntas
         $posicionInicial = 0;
+        $ArrayPreguntas =[];
         foreach ($ArrayRespuestasCorrectas as $key => $correcta) {
             for ($i = $posicionInicial; $i < $correcta; $i++) {
                 $ArrayPreguntas[$key][] = $i;
@@ -218,7 +221,8 @@ class HelpGPT
         return [
             'vectorChuleta' => $NuevoVectorChuleta,
             'ArrayRespuestasCorrectas' => $ArrayRespuestasCorrectas,
-            'ArrayPreguntas' => $ArrayPreguntas
+            'ArrayPreguntas' => $ArrayPreguntas,
+            'countValidation' => $countValidatioxn
         ];
     } //fin: Apartarujerencia
 
@@ -753,8 +757,7 @@ class HelpGPT
 
 
     //quiz de actionEQH
-    public static function gptQuizEstudiante(&$elpromp, $subtopico, $nivel, $materia_nombre, $usuario, $debug = false)
-    {
+    public static function gptQuizEstudiante(&$elpromp, $subtopico, $nivel, $materia_nombre, $usuario, $debug = false){
         //contarModificarP cambia [tema] = el tema seleccionado
         $carrera_Nombre = $subtopico->find_carrera_nombre();
         $corchetesYparentesis = self::contarModificarP($elpromp, $materia_nombre, $subtopico->nombre, $nivel, $carrera_Nombre);
@@ -762,7 +765,7 @@ class HelpGPT
 
         $elpromp .= ". Al final, imprime la respuesta correcta con este formato: RESPUESTA=A";
         $elpromp .= ". Cada opcion, debe ocupar una fila y deben ser 4 opciones de la A a la D";
-        $elpromp .= ". La primera fila debe tener un titulo relacionado a lo que se evalua y la segunda fila debe ser la primera pregunta.";
+//        $elpromp .= ". La primera fila debe tener un titulo relacionado a lo que se evalua y la segunda fila debe ser la primera pregunta.";
         $elpromp = str_replace("..", ".", $elpromp);
 
         $longuitudPregunta = strlen($subtopico->nombre) > 3;
@@ -770,6 +773,7 @@ class HelpGPT
             if (!$debug) { //this one is ok
 
                 $result = JustChatFunctionGPT::Chat4($elpromp);
+
                 $respuesta = $result[1];
                 $finishingReason = $result[2];
                 $restarAlToken = 1;
